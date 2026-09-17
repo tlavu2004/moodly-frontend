@@ -2,6 +2,7 @@ import { useState } from 'react'
 import heroImg from './assets/hero.png'
 import reactLogo from './assets/react.svg'
 import viteLogo from './assets/vite.svg'
+import { AuthControls } from './auth/AuthControls.tsx'
 import './App.css'
 
 function App() {
@@ -21,6 +22,7 @@ function App() {
             Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
           </p>
         </div>
+        <AuthControls />
         <button
           type="button"
           className="counter"
