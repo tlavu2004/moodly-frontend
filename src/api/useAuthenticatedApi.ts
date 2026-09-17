@@ -19,7 +19,6 @@ function isApiEnvelope<T>(value: unknown): value is ApiEnvelope<T> {
     'success' in value &&
     typeof value.success === 'boolean' &&
     'data' in value &&
-    'error' in value &&
     'timestamp' in value
   )
 }

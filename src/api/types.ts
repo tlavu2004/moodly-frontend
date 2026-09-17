@@ -7,7 +7,7 @@ export type ApiError = {
 export type ApiEnvelope<T> = {
   success: boolean
   data: T | null
-  error: ApiError | null
+  error?: ApiError | null
   timestamp: string
 }
 

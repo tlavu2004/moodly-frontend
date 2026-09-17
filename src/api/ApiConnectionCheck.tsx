@@ -3,10 +3,17 @@ import { useState } from 'react'
 import { ApiRequestError } from './types.ts'
 import { useAuthenticatedApi } from './useAuthenticatedApi.ts'
 
+type HabitSummary = {
+  id: string
+  name: string
+  icon?: string | null
+  targetFrequency: string
+}
+
 type CheckState =
   | { status: 'idle' }
   | { status: 'loading' }
-  | { status: 'success'; habitCount: number }
+  | { status: 'success'; habits: HabitSummary[] }
   | { status: 'error'; message: string }
 
 // TODO(auth): Remove this diagnostic once the first authenticated API screen
@@ -24,8 +31,8 @@ export function ApiConnectionCheck() {
     setState({ status: 'loading' })
 
     try {
-      const habits = await api<unknown[]>('/habits')
-      setState({ status: 'success', habitCount: habits.length })
+      const habits = await api<HabitSummary[]>('/habits')
+      setState({ status: 'success', habits })
     } catch (error) {
       const message =
         error instanceof ApiRequestError
@@ -51,9 +58,19 @@ export function ApiConnectionCheck() {
       </button>
 
       {state.status === 'success' ? (
-        <p className="mt-2 text-sm" role="status">
-          API connection verified. Received {state.habitCount} habits.
-        </p>
+        <div className="mt-2 text-left text-sm" role="status">
+          <p>API connection verified. Received {state.habits.length} habits.</p>
+          {state.habits.length > 0 ? (
+            <ul className="mt-2 space-y-1">
+              {state.habits.map((habit) => (
+                <li key={habit.id}>
+                  {habit.icon ? `${habit.icon} ` : ''}
+                  {habit.name} · {habit.targetFrequency}
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </div>
       ) : null}
 
       {state.status === 'error' ? (
