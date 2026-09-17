@@ -2,6 +2,7 @@ import { Auth0Provider } from '@auth0/auth0-react'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
+import { AuthBootstrap } from './auth/AuthBootstrap.tsx'
 import App from './App.tsx'
 
 createRoot(document.getElementById('root')!).render(
@@ -14,7 +15,9 @@ createRoot(document.getElementById('root')!).render(
         redirect_uri: window.location.origin,
       }}
     >
-      <App />
+      <AuthBootstrap>
+        <App />
+      </AuthBootstrap>
     </Auth0Provider>
   </StrictMode>,
 )
