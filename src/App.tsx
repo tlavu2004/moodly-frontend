@@ -1,5 +1,6 @@
 import { withAuthenticationRequired } from '@auth0/auth0-react'
 import { Navigate, Route, Routes } from 'react-router'
+import { AppShell } from './components/layout/AppShell.tsx'
 import { DashboardPage } from './features/dashboard/pages/DashboardPage.tsx'
 import { NotFoundPage } from './features/not-found/pages/NotFoundPage.tsx'
 
@@ -11,7 +12,7 @@ function RedirectingToLogin() {
   )
 }
 
-const ProtectedDashboardPage = withAuthenticationRequired(DashboardPage, {
+const ProtectedAppShell = withAuthenticationRequired(AppShell, {
   onRedirecting: RedirectingToLogin,
 })
 
@@ -19,7 +20,9 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
-      <Route path="/dashboard" element={<ProtectedDashboardPage />} />
+      <Route element={<ProtectedAppShell />}>
+        <Route path="/dashboard" element={<DashboardPage />} />
+      </Route>
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
   )
