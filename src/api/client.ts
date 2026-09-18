@@ -1,4 +1,5 @@
 import { createClient } from './openapi/client/index.api.ts'
+import { normalizeApiError } from './errors.ts'
 
 type GetAccessToken = () => Promise<string | undefined>
 
@@ -14,10 +15,15 @@ function getApiBaseUrl() {
 
 /** Creates the shared typed API transport for authenticated Moodly requests. */
 export function createApiClient(getAccessToken: GetAccessToken) {
-  return createClient({
+  const client = createClient({
     baseUrl: getApiBaseUrl(),
     auth: getAccessToken,
+    throwOnError: true,
   })
+
+  client.interceptors.error.use((error, response) => normalizeApiError(error, response))
+
+  return client
 }
 
 export type ApiClient = ReturnType<typeof createApiClient>
