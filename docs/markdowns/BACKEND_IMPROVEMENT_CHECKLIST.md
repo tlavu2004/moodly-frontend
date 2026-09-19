@@ -1,5 +1,8 @@
 # Moodly Backend Improvement Checklist
 
+> Các việc frontend còn thiếu được theo dõi riêng tại
+> [`FRONTEND_COMPLETION_CHECKLIST.md`](./FRONTEND_COMPLETION_CHECKLIST.md).
+
 ## Mục đích
 
 Tài liệu này tổng hợp những điểm backend cần hoàn thiện sau khi đối chiếu giao diện frontend với `moodly-openapi.json` phiên bản `v1`.
