@@ -6,6 +6,7 @@ import { LandingPage } from './features/landing/pages/LandingPage.tsx'
 import { HabitsPage } from './features/habits/pages/HabitsPage.tsx'
 import { EntriesPage } from './features/entries/pages/EntriesPage.tsx'
 import { TodayPage } from './features/entries/pages/TodayPage.tsx'
+import { StatsPage } from './features/stats/pages/StatsPage.tsx'
 import { NotFoundPage } from './features/not-found/pages/NotFoundPage.tsx'
 
 function RedirectingToLogin() {
@@ -29,6 +30,7 @@ function App() {
         <Route path="/habits" element={<HabitsPage />} />
         <Route path="/today" element={<TodayPage />} />
         <Route path="/entries" element={<EntriesPage />} />
+        <Route path="/stats" element={<StatsPage />} />
       </Route>
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
