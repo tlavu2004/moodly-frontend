@@ -1,5 +1,5 @@
 import { useAuth0 } from '@auth0/auth0-react'
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { createApiClient } from '../api/client.ts'
 import { synchronize } from '../api/openapi/sdk.api.ts'
 
@@ -9,26 +9,25 @@ type AuthBootstrapProps = {
 
 export function AuthBootstrap({ children }: AuthBootstrapProps) {
   const { error, getAccessTokenSilently, isAuthenticated, isLoading } = useAuth0()
-  const client = useMemo(() => createApiClient(() => getAccessTokenSilently()), [getAccessTokenSilently])
-  const [isSynchronizing, setIsSynchronizing] = useState(false)
+  const [isProfileReady, setIsProfileReady] = useState(false)
   const [profileError, setProfileError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!isAuthenticated) return
     let active = true
-    queueMicrotask(() => setIsSynchronizing(true))
-    synchronize({ client, throwOnError: true }).catch((reason: unknown) => { if (active) setProfileError(reason instanceof Error ? reason.message : 'Unable to synchronize your profile.') }).finally(() => { if (active) setIsSynchronizing(false) })
+    const client = createApiClient(() => getAccessTokenSilently())
+    synchronize({ client, throwOnError: true }).then(() => { if (active) setIsProfileReady(true) }).catch((reason: unknown) => { if (active) setProfileError(reason instanceof Error ? reason.message : 'Unable to synchronize your profile.') })
     return () => { active = false }
-  }, [client, isAuthenticated])
+  }, [getAccessTokenSilently, isAuthenticated])
 
-  if (isLoading || isSynchronizing) {
+  if (isLoading || (isAuthenticated && !isProfileReady && !profileError)) {
     return (
       <main
         className="grid min-h-svh place-items-center p-6"
         aria-busy="true"
         aria-live="polite"
       >
-        <p>{isSynchronizing ? 'Preparing your Moodly space…' : 'Starting authentication…'}</p>
+        <p>{isAuthenticated ? 'Preparing your Moodly space…' : 'Starting authentication…'}</p>
       </main>
     )
   }
