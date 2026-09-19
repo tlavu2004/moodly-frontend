@@ -1,0 +1,12 @@
+import { useEntries } from '../hooks/useEntries.ts'
+
+const moodEmoji: Record<number, string> = { 1: '😞', 2: '😕', 3: '😌', 4: '🙂', 5: '🤩' }
+export function EntriesPage() {
+  const { entries, isLoading, error } = useEntries()
+  return <main className="page-container pb-24 lg:pb-10"><p className="eyebrow">Your journal</p><h1 className="page-title mt-3">Moments worth remembering</h1><p className="page-subtitle">A gentle record of how your days have felt.</p><section className="mt-8" aria-live="polite">
+    {isLoading && <div className="space-y-4">{[1,2,3].map((item) => <div key={item} className="card h-36 animate-pulse bg-surface-muted" />)}</div>}
+    {!isLoading && error && <div className="card p-8 text-center" role="alert"><h2 className="text-lg font-bold">Your entries couldn’t be loaded</h2><p className="mt-2 text-sm text-foreground-muted">{error}</p></div>}
+    {!isLoading && !error && entries.length === 0 && <div className="card p-10 text-center"><span className="text-4xl">📝</span><h2 className="mt-4 text-xl font-bold">Your story starts today</h2><p className="mt-2 text-sm text-foreground-muted">Complete a daily check-in and it will appear here.</p></div>}
+    {!isLoading && !error && entries.length > 0 && <div className="space-y-4">{entries.map((entry) => { const date = entry.date ? new Date(`${entry.date}T12:00:00`) : null; const done = entry.habits?.filter((habit) => habit.done).length ?? 0; return <article className="card p-5 sm:p-6" key={entry.id ?? entry.date}><div className="flex gap-4"><span className="text-4xl">{moodEmoji[entry.mood?.score ?? 3]}</span><div className="min-w-0 flex-1"><div className="flex flex-wrap items-start justify-between gap-2"><div><p className="text-xs font-bold uppercase tracking-wider text-foreground-muted">{date?.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p><h2 className="mt-1 font-bold">Mood {entry.mood?.score ?? '—'} of 5</h2></div><span className="rounded-full bg-success/10 px-3 py-1 text-xs font-bold text-success">{done} habits complete</span></div>{entry.mood?.note && <p className="mt-4 text-sm leading-6 text-foreground-muted">{entry.mood.note}</p>}{entry.mood?.tags && <div className="mt-4 flex flex-wrap gap-2">{entry.mood.tags.map((tag) => <span key={tag} className="rounded-full bg-surface-muted px-2.5 py-1 text-xs font-semibold">{tag}</span>)}</div>}</div></div></article> })}</div>}
+  </section></main>
+}

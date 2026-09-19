@@ -4,6 +4,8 @@ import { AppShell } from './components/layout/AppShell.tsx'
 import { DashboardPage } from './features/dashboard/pages/DashboardPage.tsx'
 import { LandingPage } from './features/landing/pages/LandingPage.tsx'
 import { HabitsPage } from './features/habits/pages/HabitsPage.tsx'
+import { EntriesPage } from './features/entries/pages/EntriesPage.tsx'
+import { TodayPage } from './features/entries/pages/TodayPage.tsx'
 import { NotFoundPage } from './features/not-found/pages/NotFoundPage.tsx'
 
 function RedirectingToLogin() {
@@ -25,6 +27,8 @@ function App() {
       <Route element={<ProtectedAppShell />}>
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/habits" element={<HabitsPage />} />
+        <Route path="/today" element={<TodayPage />} />
+        <Route path="/entries" element={<EntriesPage />} />
       </Route>
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
