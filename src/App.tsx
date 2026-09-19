@@ -8,6 +8,7 @@ import { EntriesPage } from './features/entries/pages/EntriesPage.tsx'
 import { TodayPage } from './features/entries/pages/TodayPage.tsx'
 import { StatsPage } from './features/stats/pages/StatsPage.tsx'
 import { ProfilePage } from './features/profile/pages/ProfilePage.tsx'
+import { SearchPage } from './features/search/pages/SearchPage.tsx'
 import { NotFoundPage } from './features/not-found/pages/NotFoundPage.tsx'
 
 function RedirectingToLogin() {
@@ -33,6 +34,7 @@ function App() {
         <Route path="/entries" element={<EntriesPage />} />
         <Route path="/stats" element={<StatsPage />} />
         <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/search" element={<SearchPage />} />
       </Route>
       <Route path="*" element={<NotFoundPage />} />
     </Routes>

@@ -6,6 +6,7 @@ const navigation: Array<{ label: string; to: string; icon: IconName }> = [
   { label: 'Overview', to: '/dashboard', icon: 'home' }, { label: 'Today', to: '/today', icon: 'check' },
   { label: 'Habits', to: '/habits', icon: 'leaf' }, { label: 'Entries', to: '/entries', icon: 'calendar' },
   { label: 'Insights', to: '/stats', icon: 'chart' },
+  { label: 'Search', to: '/search', icon: 'search' },
 ]
 
 function getInitials(name: string): string { return name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase()).join('') }
@@ -34,7 +35,7 @@ export function AppShell() {
       </header>
       <div className="min-w-0 lg:col-start-2"><Outlet /></div>
       <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t border-border bg-surface px-2 pb-[env(safe-area-inset-bottom)] lg:hidden" aria-label="Mobile navigation">
-        {navigation.map((item) => <NavLink key={item.to} to={item.to} className={({ isActive }) => `flex min-h-16 flex-col items-center justify-center gap-1 text-[0.65rem] font-semibold ${isActive ? 'text-primary' : 'text-foreground-muted'}`}><Icon name={item.icon} className="size-5" />{item.label}</NavLink>)}
+        {navigation.filter((item) => item.to !== '/search').map((item) => <NavLink key={item.to} to={item.to} className={({ isActive }) => `flex min-h-16 flex-col items-center justify-center gap-1 text-[0.65rem] font-semibold ${isActive ? 'text-primary' : 'text-foreground-muted'}`}><Icon name={item.icon} className="size-5" />{item.label}</NavLink>)}
       </nav>
     </div>
   )
