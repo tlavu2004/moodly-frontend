@@ -1,34 +1,47 @@
 import { useAuth0 } from '@auth0/auth0-react'
-import type { ReactNode } from 'react'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { createApiClient } from '../api/client.ts'
+import { synchronize } from '../api/openapi/sdk.api.ts'
 
 type AuthBootstrapProps = {
   children: ReactNode
 }
 
 export function AuthBootstrap({ children }: AuthBootstrapProps) {
-  const { error, isLoading } = useAuth0()
+  const { error, getAccessTokenSilently, isAuthenticated, isLoading } = useAuth0()
+  const client = useMemo(() => createApiClient(() => getAccessTokenSilently()), [getAccessTokenSilently])
+  const [isSynchronizing, setIsSynchronizing] = useState(false)
+  const [profileError, setProfileError] = useState<string | null>(null)
 
-  if (isLoading) {
+  useEffect(() => {
+    if (!isAuthenticated) return
+    let active = true
+    queueMicrotask(() => setIsSynchronizing(true))
+    synchronize({ client, throwOnError: true }).catch((reason: unknown) => { if (active) setProfileError(reason instanceof Error ? reason.message : 'Unable to synchronize your profile.') }).finally(() => { if (active) setIsSynchronizing(false) })
+    return () => { active = false }
+  }, [client, isAuthenticated])
+
+  if (isLoading || isSynchronizing) {
     return (
       <main
         className="grid min-h-svh place-items-center p-6"
         aria-busy="true"
         aria-live="polite"
       >
-        <p>Starting authentication…</p>
+        <p>{isSynchronizing ? 'Preparing your Moodly space…' : 'Starting authentication…'}</p>
       </main>
     )
   }
 
-  if (error) {
+  if (error || profileError) {
     return (
       <main className="grid min-h-svh place-items-center p-6">
         <section
           className="max-w-md rounded-card border border-border bg-surface p-6"
           role="alert"
         >
-          <h1 className="text-lg font-semibold">Unable to start authentication</h1>
-          <p className="mt-2 text-sm text-foreground/75">{error.message}</p>
+          <h1 className="text-lg font-semibold">Unable to prepare Moodly</h1>
+          <p className="mt-2 text-sm text-foreground/75">{error?.message ?? profileError}</p>
         </section>
       </main>
     )
