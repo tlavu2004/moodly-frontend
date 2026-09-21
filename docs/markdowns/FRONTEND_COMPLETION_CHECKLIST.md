@@ -180,14 +180,14 @@ Repository hiện chưa có test runner hoặc test dependencies.
 
 Production build hiện cảnh báo initial bundle khoảng 545 kB.
 
-- [ ] Chuyển các page component sang dynamic import bằng `React.lazy`.
-- [ ] Bọc lazy routes trong `Suspense` với fallback có `aria-busy` và `aria-live`.
-- [ ] Giữ AppShell trong initial chunk để navigation ổn định.
-- [ ] Tách Landing khỏi protected application chunk nếu bundle analyzer xác nhận có lợi.
-- [ ] Kiểm tra Auth0, React Router và generated SDK có bị duplicate giữa các chunk không.
-- [ ] Đo lại raw/gzip/brotli size sau code splitting.
-- [ ] Đặt performance budget cho initial JavaScript và CSS.
-- [ ] Không chỉ tăng `chunkSizeWarningLimit` để che cảnh báo.
+- [x] Chuyển các page component sang dynamic import bằng `React.lazy`.
+- [x] Bọc lazy routes trong `Suspense` với fallback có `aria-busy` và `aria-live`.
+- [x] Giữ AppShell trong initial chunk để navigation ổn định.
+- [x] Tách Landing khỏi protected application chunk sau khi kiểm tra Vite manifest.
+- [x] Tách Auth0, React Router và React thành các vendor chunk duy nhất; generated SDK không bị duplicate.
+- [x] Đo raw/gzip/brotli bằng Vite manifest sau mỗi production build.
+- [x] Đặt performance budget cho initial JavaScript, CSS và kích thước chunk lớn nhất.
+- [x] Không tăng `chunkSizeWarningLimit` để che cảnh báo.
 
 Ví dụ lazy-load một named export:
 
@@ -310,14 +310,14 @@ const StatsPage = lazy(() =>
 
 ## 10. Các quyết định đang phụ thuộc backend/product
 
-- [ ] Chốt `targetFrequency`: chỉ `DAILY` hay có `WEEKDAYS` và `WEEKLY`.
-- [ ] Nếu có nhiều frequency, chờ backend triển khai streak/missed semantics tương ứng.
-- [ ] Chốt có mở rộng Stats ngoài `period=week` hay không.
-- [ ] Chốt timezone nguồn sự thật cho “today”, streak và đầu tuần.
-- [ ] Chốt search highlight là plain text hay markup có kiểm soát.
-- [ ] Chốt pagination contract cho entries và search.
-- [ ] Chốt backend dashboard summary/batch streak để bỏ N+1 requests.
-- [ ] Chốt chính sách xóa/thay avatar cũ trên Cloudinary.
+- [x] Chốt `targetFrequency`: chỉ hỗ trợ `DAILY`.
+- [x] Không triển khai nhiều frequency; streak/missed giữ semantics theo ngày.
+- [x] Stats hiện chỉ hỗ trợ `period=week`.
+- [x] Timezone nguồn sự thật là `Asia/Ho_Chi_Minh`, tuần bắt đầu thứ Hai.
+- [x] Search highlight là plain text kèm ranges 0-based, end-exclusive.
+- [x] Entries và search dùng pagination `page` 0-based, `size` tối đa 100.
+- [x] Dashboard summary endpoint đã thay thế N+1 streak requests.
+- [x] Backend lưu avatar mới trước khi xóa Cloudinary asset cũ và hỗ trợ xóa avatar.
 
 Chi tiết backend nằm tại [`BACKEND_IMPROVEMENT_CHECKLIST.md`](./BACKEND_IMPROVEMENT_CHECKLIST.md).
 

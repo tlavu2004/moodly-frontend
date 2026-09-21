@@ -173,6 +173,12 @@ Daily entry, streak và statistics phụ thuộc mạnh vào khái niệm “hô
 
 ## Đề xuất thứ tự triển khai
 
+> Trạng thái rà soát: đã triển khai đủ cả 7 nhóm. Trình tự thực tế giữ đúng các
+> phụ thuộc nghiệp vụ P0 → P1 → P2; riêng việc hoàn thiện toàn bộ `required`
+> response schema được thực hiện ở P2.9 sau các endpoint P1 để OpenAPI được
+> chuẩn hóa một lần trên contract cuối cùng. Đây là điều chỉnh thứ tự hợp lý,
+> không làm thiếu hạng mục nào.
+
 1. Chốt nghiệp vụ `targetFrequency`.
 2. Chốt phạm vi period cho statistics.
 3. Chuẩn hóa OpenAPI enum, required fields và validation.
@@ -193,7 +199,8 @@ Frontend không nên tự thêm lựa chọn hoặc hành vi chưa được cont
 
 ## Ghi chú về cảnh báo bundle frontend
 
-Cảnh báo bundle khoảng 545 kB không yêu cầu thay đổi backend. Cách xử lý phù hợp là lazy-load từng route ở frontend:
+Cảnh báo bundle khoảng 545 kB không yêu cầu thay đổi backend và đã được xử lý
+trong frontend cùng mục 9.1 của `FRONTEND_COMPLETION_CHECKLIST.md`:
 
 ```tsx
 import { lazy, Suspense } from 'react'
@@ -205,4 +212,8 @@ const StatsPage = lazy(() =>
 )
 ```
 
-Sau đó bọc route tree hoặc từng route bằng `Suspense` với loading fallback. Nên áp dụng cho các protected pages lớn và kiểm tra lại kích thước từng chunk bằng production build. Đây là tối ưu riêng của frontend và có thể thực hiện ở một commit kỹ thuật tiếp theo.
+Route tree đã được bọc bằng `Suspense` với loading fallback accessible; các page
+public/protected đều được tách khỏi initial chunk, AppShell vẫn nằm trong initial
+chunk và vendor được chia theo React, React Router và Auth0. Production build
+đọc Vite manifest để đo raw/gzip/brotli và fail nếu vượt performance budget,
+thay vì tăng `chunkSizeWarningLimit` để che cảnh báo.
