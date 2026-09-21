@@ -9,6 +9,12 @@
   --color-border: oklch(0.89 0.018 290);
   --color-primary: oklch(0.58 0.2 300);
   --color-primary-foreground: oklch(0.99 0.005 300);
+  --color-primary-soft: oklch(0.94 0.045 300);
+  --color-primary-dark: oklch(0.42 0.16 300);
+  --color-secondary: oklch(0.75 0.12 180);
+  --color-success: oklch(0.63 0.14 155);
+  --color-warning-soft: oklch(0.96 0.06 85);
+  --color-foreground-muted: oklch(0.5 0.025 285);
 
   /* Typography */
   --font-sans: ui-sans-serif, system-ui, sans-serif;
@@ -40,4 +46,19 @@
   #root {
     min-height: inherit;
   }
+
+  button, a { -webkit-tap-highlight-color: transparent; }
+  :focus-visible { outline: 3px solid color-mix(in oklab, var(--color-primary) 45%, transparent); outline-offset: 2px; }
+}
+
+@layer components {
+  .button-primary { @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-control bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/15 transition hover:-translate-y-0.5 hover:bg-primary-dark disabled:pointer-events-none disabled:opacity-50; }
+  .button-secondary { @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-control border border-border bg-surface px-5 py-2.5 text-sm font-bold transition hover:bg-surface-muted; }
+  .card { @apply rounded-card border border-border bg-surface shadow-sm; }
+  .eyebrow { @apply inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.16em] text-primary; }
+  .page-container { @apply mx-auto max-w-7xl px-4 py-8 sm:px-8 sm:py-10; }
+  .page-title { @apply text-3xl font-bold tracking-tight sm:text-4xl; }
+  .page-subtitle { @apply mt-2 text-sm leading-6 text-foreground-muted sm:text-base; }
+  .field-label { @apply mb-2 block text-sm font-bold; }
+  .field-input { @apply min-h-11 w-full rounded-control border border-border bg-surface px-3 py-2 text-sm outline-none transition placeholder:text-foreground-muted/60 focus:border-primary focus:ring-3 focus:ring-primary/10; }
 }
