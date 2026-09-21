@@ -6,5 +6,6 @@ export type DashboardData = DashboardResponse
 
 export async function getDashboardData(client: ApiClient): Promise<DashboardData> {
   const result = await getDashboard({ client, throwOnError: true })
-  return result.data.data ?? {}
+  if (!result.data.data) throw new Error('The dashboard response was empty.')
+  return result.data.data
 }

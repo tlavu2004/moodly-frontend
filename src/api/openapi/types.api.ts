@@ -20,28 +20,38 @@ export type SetMoodRequest = {
 };
 
 export type ApiError = {
-    status?: number;
-    code?: string;
-    message?: string;
-    path?: string;
-    errors?: Array<FieldErrorResponse>;
+    status: number;
+    /**
+     * Stable machine-readable error code. See the ErrorEnvelope example and documented error responses.
+     */
+    code: string;
+    message: string;
+    path: string;
+    errors: Array<FieldErrorResponse>;
+    requestId: string;
 };
 
 export type ApiResponseDailyEntry = {
-    success?: boolean;
+    success: boolean;
+    /**
+     * Present for successful responses.
+     */
     data?: DailyEntry;
+    /**
+     * Present for error responses.
+     */
     error?: ApiError;
-    timestamp?: string;
+    timestamp: string;
 };
 
 export type DailyEntry = {
-    id?: string;
-    userId?: string;
-    date?: string;
+    id: string;
+    userId: string;
+    date: string;
     mood?: Mood;
-    habits?: Array<HabitLog>;
-    createdAt?: string;
-    updatedAt?: string;
+    habits: Array<HabitLog>;
+    createdAt: string;
+    updatedAt: string;
 };
 
 export type FieldErrorResponse = {
@@ -50,29 +60,35 @@ export type FieldErrorResponse = {
 };
 
 export type HabitLog = {
-    habitId?: string;
-    done?: boolean;
-    note?: string;
+    habitId: string;
+    done: boolean;
+    note?: string | null;
 };
 
 export type Mood = {
-    score?: number;
-    tags?: Array<string>;
-    note?: string;
+    score: number;
+    tags: Array<string>;
+    note?: string | null;
 };
 
 export type ApiResponseProfileResponse = {
-    success?: boolean;
+    success: boolean;
+    /**
+     * Present for successful responses.
+     */
     data?: ProfileResponse;
+    /**
+     * Present for error responses.
+     */
     error?: ApiError;
-    timestamp?: string;
+    timestamp: string;
 };
 
 export type ProfileResponse = {
-    userId?: string;
-    email?: string;
-    createdAt?: string;
-    updatedAt?: string;
+    userId: string;
+    email: string;
+    createdAt: string;
+    updatedAt: string;
 };
 
 export type UploadRequest = {
@@ -84,10 +100,16 @@ export type UploadRequest = {
 };
 
 export type ApiResponseUploadSignature = {
-    success?: boolean;
+    success: boolean;
+    /**
+     * Present for successful responses.
+     */
     data?: UploadSignature;
+    /**
+     * Present for error responses.
+     */
     error?: ApiError;
-    timestamp?: string;
+    timestamp: string;
 };
 
 export type UploadSignature = {
@@ -107,10 +129,16 @@ export type ConfirmRequest = {
 };
 
 export type ApiResponseAvatar = {
-    success?: boolean;
+    success: boolean;
+    /**
+     * Present for successful responses.
+     */
     data?: Avatar;
+    /**
+     * Present for error responses.
+     */
     error?: ApiError;
-    timestamp?: string;
+    timestamp: string;
 };
 
 export type Avatar = {
@@ -121,10 +149,16 @@ export type Avatar = {
 };
 
 export type ApiResponseReindexResult = {
-    success?: boolean;
+    success: boolean;
+    /**
+     * Present for successful responses.
+     */
     data?: ReindexResult;
+    /**
+     * Present for error responses.
+     */
     error?: ApiError;
-    timestamp?: string;
+    timestamp: string;
 };
 
 export type ReindexResult = {
@@ -147,20 +181,26 @@ export type CreateHabitRequest = {
 };
 
 export type ApiResponseHabit = {
-    success?: boolean;
+    success: boolean;
+    /**
+     * Present for successful responses.
+     */
     data?: Habit;
+    /**
+     * Present for error responses.
+     */
     error?: ApiError;
-    timestamp?: string;
+    timestamp: string;
 };
 
 export type Habit = {
-    id?: string;
-    userId?: string;
-    name?: string;
-    icon?: string;
-    targetFrequency?: 'DAILY';
-    active?: boolean;
-    version?: number;
+    id: string;
+    userId: string;
+    name: string;
+    icon?: string | null;
+    targetFrequency: 'DAILY';
+    active: boolean;
+    version: number;
 };
 
 export type HabitVersionRequest = {
@@ -201,75 +241,111 @@ export type UpdateHabitLogRequest = {
 };
 
 export type ApiResponseListMostMissedHabitResponse = {
-    success?: boolean;
-    data?: Array<MostMissedHabitResponse>;
+    success: boolean;
+    /**
+     * Present for successful responses.
+     */
+    data?: Array<MostMissedHabitResponse> | null;
+    /**
+     * Present for error responses.
+     */
     error?: ApiError;
-    timestamp?: string;
+    timestamp: string;
 };
 
 export type MostMissedHabitResponse = {
-    habitId?: string;
-    missedCount?: number;
+    habitId: string;
+    missedCount: number;
 };
 
 export type ApiResponseListMoodTrendResponse = {
-    success?: boolean;
-    data?: Array<MoodTrendResponse>;
+    success: boolean;
+    /**
+     * Present for successful responses.
+     */
+    data?: Array<MoodTrendResponse> | null;
+    /**
+     * Present for error responses.
+     */
     error?: ApiError;
-    timestamp?: string;
+    timestamp: string;
 };
 
 export type MoodTrendResponse = {
-    date?: string;
-    averageScore?: number;
-    entryCount?: number;
+    date: string;
+    averageScore: number;
+    entryCount: number;
 };
 
 export type ApiResponseListHabit = {
-    success?: boolean;
-    data?: Array<Habit>;
+    success: boolean;
+    /**
+     * Present for successful responses.
+     */
+    data?: Array<Habit> | null;
+    /**
+     * Present for error responses.
+     */
     error?: ApiError;
-    timestamp?: string;
+    timestamp: string;
 };
 
 export type ApiResponseHabitStreakResponse = {
-    success?: boolean;
+    success: boolean;
+    /**
+     * Present for successful responses.
+     */
     data?: HabitStreakResponse;
+    /**
+     * Present for error responses.
+     */
     error?: ApiError;
-    timestamp?: string;
+    timestamp: string;
 };
 
 export type HabitStreakResponse = {
-    habitId?: string;
-    currentStreak?: number;
+    habitId: string;
+    currentStreak: number;
 };
 
 export type ApiResponsePageResponseDailyEntry = {
-    success?: boolean;
+    success: boolean;
+    /**
+     * Present for successful responses.
+     */
     data?: PageResponseDailyEntry;
+    /**
+     * Present for error responses.
+     */
     error?: ApiError;
-    timestamp?: string;
+    timestamp: string;
 };
 
 export type PageResponseDailyEntry = {
-    items?: Array<DailyEntry>;
-    page?: number;
-    size?: number;
-    totalElements?: number;
-    totalPages?: number;
-    hasNext?: boolean;
+    items: Array<DailyEntry>;
+    page: number;
+    size: number;
+    totalElements: number;
+    totalPages: number;
+    hasNext: boolean;
 };
 
 export type ApiResponseTodayEntryResponse = {
-    success?: boolean;
+    success: boolean;
+    /**
+     * Present for successful responses.
+     */
     data?: TodayEntryResponse;
+    /**
+     * Present for error responses.
+     */
     error?: ApiError;
-    timestamp?: string;
+    timestamp: string;
 };
 
 export type TodayEntryResponse = {
-    date?: string;
-    checkedIn?: boolean;
+    date: string;
+    checkedIn: boolean;
     /**
      * The complete entry, or null when the user has not checked in today.
      */
@@ -277,71 +353,83 @@ export type TodayEntryResponse = {
 };
 
 export type ApiResponsePageResponseEntrySearchResult = {
-    success?: boolean;
+    success: boolean;
+    /**
+     * Present for successful responses.
+     */
     data?: PageResponseEntrySearchResult;
+    /**
+     * Present for error responses.
+     */
     error?: ApiError;
-    timestamp?: string;
+    timestamp: string;
 };
 
 export type EntrySearchResult = {
-    entryId?: string;
-    date?: string;
+    entryId: string;
+    date: string;
     /**
      * Plain-text fragments keyed only by mood.note, habits.note, or mood.tags; ranges use zero-based, end-exclusive offsets.
      */
-    highlights?: {
+    highlights: {
         [key: string]: Array<HighlightFragment>;
     };
 };
 
 export type HighlightFragment = {
-    text?: string;
-    ranges?: Array<HighlightRange>;
+    text: string;
+    ranges: Array<HighlightRange>;
 };
 
 export type HighlightRange = {
-    start?: number;
-    end?: number;
+    start: number;
+    end: number;
 };
 
 export type PageResponseEntrySearchResult = {
-    items?: Array<EntrySearchResult>;
-    page?: number;
-    size?: number;
-    totalElements?: number;
-    totalPages?: number;
-    hasNext?: boolean;
+    items: Array<EntrySearchResult>;
+    page: number;
+    size: number;
+    totalElements: number;
+    totalPages: number;
+    hasNext: boolean;
 };
 
 export type ApiResponseDashboardResponse = {
-    success?: boolean;
+    success: boolean;
+    /**
+     * Present for successful responses.
+     */
     data?: DashboardResponse;
+    /**
+     * Present for error responses.
+     */
     error?: ApiError;
-    timestamp?: string;
+    timestamp: string;
 };
 
 export type DashboardResponse = {
     todayEntry?: DailyEntry;
-    activeHabits?: Array<Habit>;
-    completedHabitCount?: number;
-    totalHabitCount?: number;
-    completionRatio?: number;
-    weeklyMood?: WeeklyMoodSummary;
-    bestCurrentStreak?: number;
+    activeHabits: Array<Habit>;
+    completedHabitCount: number;
+    totalHabitCount: number;
+    completionRatio: number;
+    weeklyMood: WeeklyMoodSummary;
+    bestCurrentStreak: number;
 };
 
 export type WeeklyMoodSummary = {
-    averageScore?: number;
-    entryCount?: number;
+    averageScore?: number | null;
+    entryCount: number;
 };
 
 export type ApiResponseApiError = {
-    success?: boolean;
+    success: boolean;
     data?: {
         [key: string]: unknown;
     };
-    error?: ApiError;
-    timestamp?: string;
+    error: ApiError;
+    timestamp: string;
 };
 
 export type SetTodayMoodData = {
