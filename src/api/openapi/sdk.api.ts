@@ -2,7 +2,7 @@
 
 import { client } from './client.api';
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client/index.api';
-import type { ConfirmData, ConfirmErrors, ConfirmResponses, CreateData, CreateErrors, CreateResponses, CurrentData, CurrentErrors, CurrentResponses, CurrentStreakData, CurrentStreakErrors, CurrentStreakResponses, FindActiveData, FindActiveErrors, FindActiveResponses, FindBetweenData, FindBetweenErrors, FindBetweenResponses, MoodTrendData, MoodTrendErrors, MoodTrendResponses, MostMissedHabitsData, MostMissedHabitsErrors, MostMissedHabitsResponses, ReindexData, ReindexErrors, ReindexResponses, ReplayData, ReplayErrors, ReplayResponses, SearchData, SearchErrors, SearchResponses, SetTodayMoodData, SetTodayMoodErrors, SetTodayMoodResponses, SignatureData, SignatureErrors, SignatureResponses, SynchronizeData, SynchronizeErrors, SynchronizeResponses, UpdateTodayHabitData, UpdateTodayHabitErrors, UpdateTodayHabitResponses } from './types.api';
+import type { ConfirmData, ConfirmErrors, ConfirmResponses, CreateData, CreateErrors, CreateResponses, CurrentData, CurrentErrors, CurrentResponses, CurrentStreakData, CurrentStreakErrors, CurrentStreakResponses, FindActiveData, FindActiveErrors, FindActiveResponses, FindBetweenData, FindBetweenErrors, FindBetweenResponses, GetDashboardData, GetDashboardErrors, GetDashboardResponses, MoodTrendData, MoodTrendErrors, MoodTrendResponses, MostMissedHabitsData, MostMissedHabitsErrors, MostMissedHabitsResponses, ReindexData, ReindexErrors, ReindexResponses, ReplayData, ReplayErrors, ReplayResponses, SearchData, SearchErrors, SearchResponses, SetTodayMoodData, SetTodayMoodErrors, SetTodayMoodResponses, SignatureData, SignatureErrors, SignatureResponses, SynchronizeData, SynchronizeErrors, SynchronizeResponses, UpdateTodayHabitData, UpdateTodayHabitErrors, UpdateTodayHabitResponses } from './types.api';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -200,5 +200,16 @@ export const findBetween = <ThrowOnError extends boolean = false>(options: Optio
 export const search = <ThrowOnError extends boolean = false>(options: Options<SearchData, ThrowOnError>): RequestResult<SearchResponses, SearchErrors, ThrowOnError> => (options.client ?? client).get<SearchResponses, SearchErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/entries/search',
+    ...options
+});
+
+/**
+ * Get dashboard summary
+ *
+ * Returns today's entry, active habits, completion ratio, current-week mood summary, and the best current streak. The response is user-specific and is not cacheable.
+ */
+export const getDashboard = <ThrowOnError extends boolean = false>(options?: Options<GetDashboardData, ThrowOnError>): RequestResult<GetDashboardResponses, GetDashboardErrors, ThrowOnError> => (options?.client ?? client).get<GetDashboardResponses, GetDashboardErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/dashboard',
     ...options
 });

@@ -74,11 +74,11 @@ Dashboard hiện phải gọi nhiều endpoint:
 
 Việc gọi streak theo từng habit tạo mô hình N+1 request và sẽ chậm khi số habit tăng.
 
-- [ ] Cân nhắc thêm `GET /dashboard` hoặc `GET /me/summary`.
-- [ ] Trả về today entry, active habits, completion ratio, weekly mood summary và streak lớn nhất trong một response.
-- [ ] Hoặc bổ sung endpoint batch streak nhận/trả nhiều habit ID.
-- [ ] Ghi rõ dữ liệu nào có thể cache và thời gian cache phù hợp.
-- [ ] Thêm integration test xác nhận dữ liệu summary thuộc đúng authenticated user.
+- [x] Thêm `GET /dashboard` cho authenticated user.
+- [x] Trả về today entry, active habits, completion ratio, weekly mood summary và streak lớn nhất trong một response.
+- [x] Chọn summary endpoint thay cho batch streak; backend đọc lịch sử entry một lần để tính streak lớn nhất.
+- [x] Dashboard là dữ liệu user-specific thay đổi sau check-in nên response dùng `Cache-Control: no-store`.
+- [x] Thêm integration test xác nhận dữ liệu summary thuộc đúng authenticated user.
 
 ### 4. Hoàn thiện vòng đời habit
 

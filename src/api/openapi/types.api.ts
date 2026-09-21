@@ -239,6 +239,28 @@ export type EntrySearchResult = {
     };
 };
 
+export type ApiResponseDashboardResponse = {
+    success?: boolean;
+    data?: DashboardResponse;
+    error?: ApiError;
+    timestamp?: string;
+};
+
+export type DashboardResponse = {
+    todayEntry?: DailyEntry;
+    activeHabits?: Array<Habit>;
+    completedHabitCount?: number;
+    totalHabitCount?: number;
+    completionRatio?: number;
+    weeklyMood?: WeeklyMoodSummary;
+    bestCurrentStreak?: number;
+};
+
+export type WeeklyMoodSummary = {
+    averageScore?: number;
+    entryCount?: number;
+};
+
 export type ApiResponseApiError = {
     success?: boolean;
     data?: {
@@ -823,3 +845,40 @@ export type SearchResponses = {
 };
 
 export type SearchResponse = SearchResponses[keyof SearchResponses];
+
+export type GetDashboardData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/dashboard';
+};
+
+export type GetDashboardErrors = {
+    /**
+     * The request is invalid.
+     */
+    400: ApiResponseApiError;
+    /**
+     * Authentication is required or the access token is invalid.
+     */
+    401: ApiResponseApiError;
+    /**
+     * The authenticated user is not allowed to perform this operation.
+     */
+    403: ApiResponseApiError;
+    /**
+     * An unexpected server error occurred.
+     */
+    500: ApiResponseApiError;
+};
+
+export type GetDashboardError = GetDashboardErrors[keyof GetDashboardErrors];
+
+export type GetDashboardResponses = {
+    /**
+     * OK
+     */
+    200: ApiResponseDashboardResponse;
+};
+
+export type GetDashboardResponse = GetDashboardResponses[keyof GetDashboardResponses];
