@@ -137,9 +137,9 @@ export type CreateHabitRequest = {
      */
     icon?: string;
     /**
-     * Target completion frequency
+     * Target completion frequency. Moodly currently supports daily habits only.
      */
-    targetFrequency: string;
+    targetFrequency: 'DAILY';
 };
 
 export type ApiResponseHabit = {
@@ -154,7 +154,7 @@ export type Habit = {
     userId?: string;
     name?: string;
     icon?: string;
-    targetFrequency?: string;
+    targetFrequency?: 'DAILY';
     active?: boolean;
 };
 

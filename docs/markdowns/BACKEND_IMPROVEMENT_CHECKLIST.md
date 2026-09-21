@@ -31,15 +31,15 @@ Hiện tại `CreateHabitRequest.targetFrequency` chỉ là một chuỗi không
 
 Backend hiện lưu nguyên chuỗi và chưa thể hiện logic tính streak hoặc missed count theo từng tần suất.
 
-- [ ] Quyết định tập giá trị frequency chính thức.
-- [ ] Chuyển frequency thành enum ở backend.
-- [ ] Xuất enum trong OpenAPI để SDK sinh union type chính xác.
-- [ ] Từ chối giá trị không hợp lệ bằng validation error có field `targetFrequency`.
-- [ ] Quy định rõ `WEEKDAYS` xử lý thứ Bảy, Chủ nhật và múi giờ như thế nào.
-- [ ] Quy định rõ `WEEKLY` hoàn thành một lần trong tuần hay vào một ngày cố định.
-- [ ] Cập nhật thuật toán streak theo frequency.
-- [ ] Cập nhật thống kê missed habits theo frequency.
-- [ ] Bổ sung integration test cho từng loại frequency.
+- [x] Quyết định tập giá trị frequency chính thức: chỉ hỗ trợ `DAILY`.
+- [x] Chuyển frequency thành enum ở backend.
+- [x] Xuất enum trong OpenAPI để SDK sinh union type chính xác.
+- [x] Từ chối giá trị không hợp lệ bằng validation error có field `targetFrequency`.
+- [x] Không áp dụng quy tắc `WEEKDAYS`; frontend không cung cấp lựa chọn này.
+- [x] Không áp dụng quy tắc `WEEKLY`; frontend không cung cấp lựa chọn này.
+- [x] Giữ thuật toán streak theo ngày cho frequency duy nhất `DAILY`.
+- [x] Giữ thống kê missed habits theo các daily habit log có `done: false`.
+- [x] Bổ sung integration test cho contract `DAILY` và trường hợp frequency không được hỗ trợ.
 
 Nếu sản phẩm hiện chỉ hỗ trợ habit hằng ngày, backend và OpenAPI nên chỉ chấp nhận `DAILY`; frontend sẽ bỏ hai lựa chọn còn lại.
 
