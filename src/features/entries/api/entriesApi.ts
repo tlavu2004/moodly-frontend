@@ -1,15 +1,20 @@
 import type { ApiClient } from '../../../api/client.ts'
-import { findActive, findBetween, setTodayMood, updateTodayHabit } from '../../../api/openapi/sdk.api.ts'
+import { findByStatus, findBetween, setTodayMood, today, updateTodayHabit } from '../../../api/openapi/sdk.api.ts'
 import type { DailyEntry, Habit, SetMoodRequest } from '../../../api/openapi/types.api.ts'
 
 export async function getEntries(client: ApiClient, from: string, to: string): Promise<DailyEntry[]> {
   const result = await findBetween({ client, query: { from, to }, throwOnError: true })
-  return result.data.data ?? []
+  return result.data.data?.items ?? []
 }
 
 export async function getActiveHabits(client: ApiClient): Promise<Habit[]> {
-  const result = await findActive({ client, throwOnError: true })
+  const result = await findByStatus({ client, query: { status: 'active' }, throwOnError: true })
   return result.data.data ?? []
+}
+
+export async function getTodayEntry(client: ApiClient): Promise<DailyEntry | null> {
+  const result = await today({ client, throwOnError: true })
+  return result.data.data?.entry ?? null
 }
 
 export async function saveMood(client: ApiClient, body: SetMoodRequest): Promise<DailyEntry> {

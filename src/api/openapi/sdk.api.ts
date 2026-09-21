@@ -2,7 +2,7 @@
 
 import { client } from './client.api';
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client/index.api';
-import type { ConfirmData, ConfirmErrors, ConfirmResponses, CreateData, CreateErrors, CreateResponses, CurrentData, CurrentErrors, CurrentResponses, CurrentStreakData, CurrentStreakErrors, CurrentStreakResponses, FindActiveData, FindActiveErrors, FindActiveResponses, FindBetweenData, FindBetweenErrors, FindBetweenResponses, GetDashboardData, GetDashboardErrors, GetDashboardResponses, MoodTrendData, MoodTrendErrors, MoodTrendResponses, MostMissedHabitsData, MostMissedHabitsErrors, MostMissedHabitsResponses, ReindexData, ReindexErrors, ReindexResponses, ReplayData, ReplayErrors, ReplayResponses, SearchData, SearchErrors, SearchResponses, SetTodayMoodData, SetTodayMoodErrors, SetTodayMoodResponses, SignatureData, SignatureErrors, SignatureResponses, SynchronizeData, SynchronizeErrors, SynchronizeResponses, UpdateTodayHabitData, UpdateTodayHabitErrors, UpdateTodayHabitResponses } from './types.api';
+import type { ArchiveData, ArchiveErrors, ArchiveResponses, ConfirmData, ConfirmErrors, ConfirmResponses, CreateData, CreateErrors, CreateResponses, CurrentData, CurrentErrors, CurrentResponses, CurrentStreakData, CurrentStreakErrors, CurrentStreakResponses, DeleteData, DeleteErrors, DeleteResponses, FindBetweenData, FindBetweenErrors, FindBetweenResponses, FindByStatusData, FindByStatusErrors, FindByStatusResponses, GetDashboardData, GetDashboardErrors, GetDashboardResponses, MoodTrendData, MoodTrendErrors, MoodTrendResponses, MostMissedHabitsData, MostMissedHabitsErrors, MostMissedHabitsResponses, ReindexData, ReindexErrors, ReindexResponses, ReplayData, ReplayErrors, ReplayResponses, RestoreData, RestoreErrors, RestoreResponses, SearchData, SearchErrors, SearchResponses, SetTodayMoodData, SetTodayMoodErrors, SetTodayMoodResponses, SignatureData, SignatureErrors, SignatureResponses, SynchronizeData, SynchronizeErrors, SynchronizeResponses, TodayData, TodayErrors, TodayResponses, UpdateData, UpdateErrors, UpdateResponses, UpdateTodayHabitData, UpdateTodayHabitErrors, UpdateTodayHabitResponses } from './types.api';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -97,11 +97,11 @@ export const replay = <ThrowOnError extends boolean = false>(options: Options<Re
 });
 
 /**
- * List active habits
+ * List habits
  *
- * Returns all active habits owned by the authenticated user.
+ * Returns habits owned by the authenticated user, filtered by lifecycle status.
  */
-export const findActive = <ThrowOnError extends boolean = false>(options?: Options<FindActiveData, ThrowOnError>): RequestResult<FindActiveResponses, FindActiveErrors, ThrowOnError> => (options?.client ?? client).get<FindActiveResponses, FindActiveErrors, ThrowOnError>({
+export const findByStatus = <ThrowOnError extends boolean = false>(options?: Options<FindByStatusData, ThrowOnError>): RequestResult<FindByStatusResponses, FindByStatusErrors, ThrowOnError> => (options?.client ?? client).get<FindByStatusResponses, FindByStatusErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/habits',
     ...options
@@ -120,6 +120,62 @@ export const create = <ThrowOnError extends boolean = false>(options: Options<Cr
         'Content-Type': 'application/json',
         ...options.headers
     }
+});
+
+/**
+ * Restore a habit
+ *
+ * Makes an archived habit active again.
+ */
+export const restore = <ThrowOnError extends boolean = false>(options: Options<RestoreData, ThrowOnError>): RequestResult<RestoreResponses, RestoreErrors, ThrowOnError> => (options.client ?? client).post<RestoreResponses, RestoreErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/habits/{habitId}/restore',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Archive a habit
+ *
+ * Deactivates the habit without changing historical entry logs.
+ */
+export const archive = <ThrowOnError extends boolean = false>(options: Options<ArchiveData, ThrowOnError>): RequestResult<ArchiveResponses, ArchiveErrors, ThrowOnError> => (options.client ?? client).post<ArchiveResponses, ArchiveErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/habits/{habitId}/archive',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Update a habit
+ *
+ * Updates the name and icon. The version prevents lost concurrent updates.
+ */
+export const update = <ThrowOnError extends boolean = false>(options: Options<UpdateData, ThrowOnError>): RequestResult<UpdateResponses, UpdateErrors, ThrowOnError> => (options.client ?? client).patch<UpdateResponses, UpdateErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/habits/{habitId}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Get today's entry
+ *
+ * Returns a structured empty state when the authenticated user has not checked in today.
+ */
+export const today = <ThrowOnError extends boolean = false>(options?: Options<TodayData, ThrowOnError>): RequestResult<TodayResponses, TodayErrors, ThrowOnError> => (options?.client ?? client).get<TodayResponses, TodayErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/entries/today',
+    ...options
 });
 
 /**
@@ -156,6 +212,17 @@ export const mostMissedHabits = <ThrowOnError extends boolean = false>(options?:
 export const moodTrend = <ThrowOnError extends boolean = false>(options?: Options<MoodTrendData, ThrowOnError>): RequestResult<MoodTrendResponses, MoodTrendErrors, ThrowOnError> => (options?.client ?? client).get<MoodTrendResponses, MoodTrendErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/stats/mood-trend',
+    ...options
+});
+
+/**
+ * Delete the current avatar
+ *
+ * Resets the avatar to the default and deletes the previous Cloudinary asset.
+ */
+export const delete_ = <ThrowOnError extends boolean = false>(options?: Options<DeleteData, ThrowOnError>): RequestResult<DeleteResponses, DeleteErrors, ThrowOnError> => (options?.client ?? client).delete<DeleteResponses, DeleteErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/me/avatar',
     ...options
 });
 

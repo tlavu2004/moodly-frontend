@@ -76,7 +76,10 @@ export type ProfileResponse = {
 };
 
 export type UploadRequest = {
-    contentType: string;
+    contentType: 'image/jpeg' | 'image/png' | 'image/webp';
+    /**
+     * File size in bytes; maximum 5 MiB (5242880 bytes).
+     */
     sizeBytes?: number;
 };
 
@@ -93,6 +96,7 @@ export type UploadSignature = {
     uploadPreset?: string;
     publicId?: string;
     timestamp?: number;
+    expiresAt?: string;
     signature?: string;
     uploadUrl?: string;
 };
@@ -156,6 +160,29 @@ export type Habit = {
     icon?: string;
     targetFrequency?: 'DAILY';
     active?: boolean;
+    version?: number;
+};
+
+export type HabitVersionRequest = {
+    /**
+     * Version returned by the latest read
+     */
+    version: number;
+};
+
+export type UpdateHabitRequest = {
+    /**
+     * Habit name
+     */
+    name: string;
+    /**
+     * Optional icon or emoji
+     */
+    icon?: string;
+    /**
+     * Version returned by the latest read
+     */
+    version: number;
 };
 
 export type UpdateHabitLogRequest = {
@@ -217,16 +244,41 @@ export type HabitStreakResponse = {
     currentStreak?: number;
 };
 
-export type ApiResponseListDailyEntry = {
+export type ApiResponsePageResponseDailyEntry = {
     success?: boolean;
-    data?: Array<DailyEntry>;
+    data?: PageResponseDailyEntry;
     error?: ApiError;
     timestamp?: string;
 };
 
-export type ApiResponseListEntrySearchResult = {
+export type PageResponseDailyEntry = {
+    items?: Array<DailyEntry>;
+    page?: number;
+    size?: number;
+    totalElements?: number;
+    totalPages?: number;
+    hasNext?: boolean;
+};
+
+export type ApiResponseTodayEntryResponse = {
     success?: boolean;
-    data?: Array<EntrySearchResult>;
+    data?: TodayEntryResponse;
+    error?: ApiError;
+    timestamp?: string;
+};
+
+export type TodayEntryResponse = {
+    date?: string;
+    checkedIn?: boolean;
+    /**
+     * The complete entry, or null when the user has not checked in today.
+     */
+    entry?: DailyEntry;
+};
+
+export type ApiResponsePageResponseEntrySearchResult = {
+    success?: boolean;
+    data?: PageResponseEntrySearchResult;
     error?: ApiError;
     timestamp?: string;
 };
@@ -234,9 +286,31 @@ export type ApiResponseListEntrySearchResult = {
 export type EntrySearchResult = {
     entryId?: string;
     date?: string;
+    /**
+     * Plain-text fragments keyed only by mood.note, habits.note, or mood.tags; ranges use zero-based, end-exclusive offsets.
+     */
     highlights?: {
-        [key: string]: Array<string>;
+        [key: string]: Array<HighlightFragment>;
     };
+};
+
+export type HighlightFragment = {
+    text?: string;
+    ranges?: Array<HighlightRange>;
+};
+
+export type HighlightRange = {
+    start?: number;
+    end?: number;
+};
+
+export type PageResponseEntrySearchResult = {
+    items?: Array<EntrySearchResult>;
+    page?: number;
+    size?: number;
+    totalElements?: number;
+    totalPages?: number;
+    hasNext?: boolean;
 };
 
 export type ApiResponseDashboardResponse = {
@@ -502,14 +576,19 @@ export type ReplayResponses = {
 
 export type ReplayResponse = ReplayResponses[keyof ReplayResponses];
 
-export type FindActiveData = {
+export type FindByStatusData = {
     body?: never;
     path?: never;
-    query?: never;
+    query?: {
+        /**
+         * Lifecycle filter
+         */
+        status?: 'active' | 'archived' | 'all';
+    };
     url: '/habits';
 };
 
-export type FindActiveErrors = {
+export type FindByStatusErrors = {
     /**
      * The request is invalid.
      */
@@ -528,16 +607,16 @@ export type FindActiveErrors = {
     500: ApiResponseApiError;
 };
 
-export type FindActiveError = FindActiveErrors[keyof FindActiveErrors];
+export type FindByStatusError = FindByStatusErrors[keyof FindByStatusErrors];
 
-export type FindActiveResponses = {
+export type FindByStatusResponses = {
     /**
      * OK
      */
     200: ApiResponseListHabit;
 };
 
-export type FindActiveResponse = FindActiveResponses[keyof FindActiveResponses];
+export type FindByStatusResponse = FindByStatusResponses[keyof FindByStatusResponses];
 
 export type CreateData = {
     body: CreateHabitRequest;
@@ -575,6 +654,160 @@ export type CreateResponses = {
 };
 
 export type CreateResponse = CreateResponses[keyof CreateResponses];
+
+export type RestoreData = {
+    body: HabitVersionRequest;
+    path: {
+        habitId: string;
+    };
+    query?: never;
+    url: '/habits/{habitId}/restore';
+};
+
+export type RestoreErrors = {
+    /**
+     * The request is invalid.
+     */
+    400: ApiResponseApiError;
+    /**
+     * Authentication is required or the access token is invalid.
+     */
+    401: ApiResponseApiError;
+    /**
+     * The authenticated user is not allowed to perform this operation.
+     */
+    403: ApiResponseApiError;
+    /**
+     * An unexpected server error occurred.
+     */
+    500: ApiResponseApiError;
+};
+
+export type RestoreError = RestoreErrors[keyof RestoreErrors];
+
+export type RestoreResponses = {
+    /**
+     * OK
+     */
+    200: ApiResponseHabit;
+};
+
+export type RestoreResponse = RestoreResponses[keyof RestoreResponses];
+
+export type ArchiveData = {
+    body: HabitVersionRequest;
+    path: {
+        habitId: string;
+    };
+    query?: never;
+    url: '/habits/{habitId}/archive';
+};
+
+export type ArchiveErrors = {
+    /**
+     * The request is invalid.
+     */
+    400: ApiResponseApiError;
+    /**
+     * Authentication is required or the access token is invalid.
+     */
+    401: ApiResponseApiError;
+    /**
+     * The authenticated user is not allowed to perform this operation.
+     */
+    403: ApiResponseApiError;
+    /**
+     * An unexpected server error occurred.
+     */
+    500: ApiResponseApiError;
+};
+
+export type ArchiveError = ArchiveErrors[keyof ArchiveErrors];
+
+export type ArchiveResponses = {
+    /**
+     * OK
+     */
+    200: ApiResponseHabit;
+};
+
+export type ArchiveResponse = ArchiveResponses[keyof ArchiveResponses];
+
+export type UpdateData = {
+    body: UpdateHabitRequest;
+    path: {
+        habitId: string;
+    };
+    query?: never;
+    url: '/habits/{habitId}';
+};
+
+export type UpdateErrors = {
+    /**
+     * The request is invalid.
+     */
+    400: ApiResponseApiError;
+    /**
+     * Authentication is required or the access token is invalid.
+     */
+    401: ApiResponseApiError;
+    /**
+     * The authenticated user is not allowed to perform this operation.
+     */
+    403: ApiResponseApiError;
+    /**
+     * An unexpected server error occurred.
+     */
+    500: ApiResponseApiError;
+};
+
+export type UpdateError = UpdateErrors[keyof UpdateErrors];
+
+export type UpdateResponses = {
+    /**
+     * OK
+     */
+    200: ApiResponseHabit;
+};
+
+export type UpdateResponse = UpdateResponses[keyof UpdateResponses];
+
+export type TodayData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/entries/today';
+};
+
+export type TodayErrors = {
+    /**
+     * The request is invalid.
+     */
+    400: ApiResponseApiError;
+    /**
+     * Authentication is required or the access token is invalid.
+     */
+    401: ApiResponseApiError;
+    /**
+     * The authenticated user is not allowed to perform this operation.
+     */
+    403: ApiResponseApiError;
+    /**
+     * An unexpected server error occurred.
+     */
+    500: ApiResponseApiError;
+};
+
+export type TodayError = TodayErrors[keyof TodayErrors];
+
+export type TodayResponses = {
+    /**
+     * OK
+     */
+    200: ApiResponseTodayEntryResponse;
+};
+
+export type TodayResponse = TodayResponses[keyof TodayResponses];
 
 export type UpdateTodayHabitData = {
     body: UpdateHabitLogRequest;
@@ -689,6 +922,43 @@ export type MoodTrendResponses = {
 
 export type MoodTrendResponse2 = MoodTrendResponses[keyof MoodTrendResponses];
 
+export type DeleteData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/me/avatar';
+};
+
+export type DeleteErrors = {
+    /**
+     * The request is invalid.
+     */
+    400: ApiResponseApiError;
+    /**
+     * Authentication is required or the access token is invalid.
+     */
+    401: ApiResponseApiError;
+    /**
+     * The authenticated user is not allowed to perform this operation.
+     */
+    403: ApiResponseApiError;
+    /**
+     * An unexpected server error occurred.
+     */
+    500: ApiResponseApiError;
+};
+
+export type DeleteError = DeleteErrors[keyof DeleteErrors];
+
+export type DeleteResponses = {
+    /**
+     * OK
+     */
+    200: ApiResponseAvatar;
+};
+
+export type DeleteResponse = DeleteResponses[keyof DeleteResponses];
+
 export type CurrentData = {
     body?: never;
     path?: never;
@@ -771,6 +1041,8 @@ export type FindBetweenData = {
     query: {
         from: string;
         to: string;
+        page?: number;
+        size?: number;
     };
     url: '/entries';
 };
@@ -800,7 +1072,7 @@ export type FindBetweenResponses = {
     /**
      * OK
      */
-    200: ApiResponseListDailyEntry;
+    200: ApiResponsePageResponseDailyEntry;
 };
 
 export type FindBetweenResponse = FindBetweenResponses[keyof FindBetweenResponses];
@@ -812,6 +1084,8 @@ export type SearchData = {
         q: string;
         from?: string;
         to?: string;
+        page?: number;
+        size?: number;
     };
     url: '/entries/search';
 };
@@ -841,7 +1115,7 @@ export type SearchResponses = {
     /**
      * OK
      */
-    200: ApiResponseListEntrySearchResult;
+    200: ApiResponsePageResponseEntrySearchResult;
 };
 
 export type SearchResponse = SearchResponses[keyof SearchResponses];

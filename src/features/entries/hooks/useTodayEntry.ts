@@ -1,9 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useApiClient } from '../../../api/useApiClient.ts'
 import type { DailyEntry, Habit, SetMoodRequest } from '../../../api/openapi/types.api.ts'
-import { getActiveHabits, getEntries, saveHabitLog, saveMood } from '../api/entriesApi.ts'
-
-function localDate(date = new Date()) { return date.toLocaleDateString('en-CA') }
+import { getActiveHabits, getTodayEntry, saveHabitLog, saveMood } from '../api/entriesApi.ts'
 
 export function useTodayEntry() {
   const client = useApiClient()
@@ -14,7 +12,7 @@ export function useTodayEntry() {
 
   useEffect(() => {
     let active = true
-    Promise.all([getEntries(client, localDate(), localDate()), getActiveHabits(client)]).then(([entries, activeHabits]) => { if (active) { setEntry(entries[0] ?? null); setHabits(activeHabits) } }).catch((reason: unknown) => { if (active) setError(reason instanceof Error ? reason.message : 'Unable to load today.') }).finally(() => { if (active) setIsLoading(false) })
+    Promise.all([getTodayEntry(client), getActiveHabits(client)]).then(([todayEntry, activeHabits]) => { if (active) { setEntry(todayEntry); setHabits(activeHabits) } }).catch((reason: unknown) => { if (active) setError(reason instanceof Error ? reason.message : 'Unable to load today.') }).finally(() => { if (active) setIsLoading(false) })
     return () => { active = false }
   }, [client])
 

@@ -1,9 +1,9 @@
 import type { ApiClient } from '../../../api/client.ts'
-import { create, currentStreak, findActive } from '../../../api/openapi/sdk.api.ts'
+import { create, currentStreak, findByStatus } from '../../../api/openapi/sdk.api.ts'
 import type { CreateHabitRequest, Habit } from '../../../api/openapi/types.api.ts'
 
 export async function listHabits(client: ApiClient): Promise<Habit[]> {
-  const result = await findActive({ client, throwOnError: true })
+  const result = await findByStatus({ client, query: { status: 'active' }, throwOnError: true })
   return result.data.data ?? []
 }
 
