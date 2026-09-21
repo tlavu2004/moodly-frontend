@@ -138,38 +138,38 @@ Frontend hiện lấy entry hôm nay bằng cách gọi `GET /entries` với `fr
 
 Phần lớn thuộc tính response hiện đều optional trong OpenAPI, khiến TypeScript SDK sinh ra nhiều trường có dấu `?` dù backend thực tế luôn trả chúng.
 
-- [ ] Đánh dấu required cho các field backend luôn đảm bảo, ví dụ ID, date và các trường chính của response.
-- [ ] Khai báo nullable riêng biệt nếu một field có thể là `null`.
-- [ ] Thêm example cho success, empty và error response.
-- [ ] Đảm bảo mọi endpoint dùng thống nhất envelope `success/data/error/timestamp`.
+- [x] Đánh dấu required cho các field backend luôn đảm bảo, ví dụ ID, date và các trường chính của response.
+- [x] Khai báo nullable riêng biệt nếu một field có thể là `null`.
+- [x] Thêm example cho success, empty và error response.
+- [x] Đảm bảo mọi endpoint dùng thống nhất envelope `success/data/error/timestamp`.
 
 ### 10. Chuẩn hóa error codes
 
-- [ ] Xây dựng danh sách error code ổn định cho validation, auth, not found, conflict và upload.
-- [ ] Đảm bảo validation error luôn trả `field` trùng tên field trong request.
-- [ ] Phân biệt lỗi nghiệp vụ với lỗi hệ thống.
-- [ ] Không trả chi tiết exception hoặc dữ liệu nhạy cảm cho client.
-- [ ] Ghi các error code quan trọng vào OpenAPI examples.
+- [x] Xây dựng danh sách error code ổn định cho validation, auth, not found, conflict và upload.
+- [x] Đảm bảo validation error luôn trả `field` trùng tên field trong request.
+- [x] Phân biệt lỗi nghiệp vụ với lỗi hệ thống.
+- [x] Không trả chi tiết exception hoặc dữ liệu nhạy cảm cho client/log.
+- [x] Ghi các error code quan trọng vào OpenAPI examples.
 
 ### 11. Quy định ngày, tuần và múi giờ
 
 Daily entry, streak và statistics phụ thuộc mạnh vào khái niệm “hôm nay”.
 
-- [ ] Chọn timezone nguồn sự thật: timezone người dùng hoặc timezone hệ thống.
-- [ ] Lưu timezone trong profile nếu sản phẩm hỗ trợ nhiều khu vực.
-- [ ] Quy định tuần bắt đầu vào thứ Hai hay Chủ nhật.
-- [ ] Kiểm thử thời điểm chuyển ngày và daylight saving time.
-- [ ] Ghi quy ước ngày/timezone trong API documentation.
+- [x] Dùng timezone hệ thống `Asia/Ho_Chi_Minh` làm nguồn sự thật.
+- [x] Chưa lưu timezone trong profile vì sản phẩm hiện không hỗ trợ nhiều khu vực.
+- [x] Quy định tuần bắt đầu vào thứ Hai.
+- [x] Kiểm thử thời điểm chuyển ngày và xác nhận không có DST transition tương lai.
+- [x] Ghi quy ước ngày/timezone trong API documentation.
 
 ### 12. Performance và observability
 
-- [ ] Kiểm tra index cho `userId + date` của daily entries.
-- [ ] Kiểm tra index phục vụ full-text search.
-- [ ] Kiểm tra aggregation index cho mood trend và missed habits.
-- [ ] Thiết lập timeout hợp lý cho Cloudinary và các dependency ngoài.
-- [ ] Gắn correlation/request ID vào log và error response nếu phù hợp.
-- [ ] Theo dõi latency và error rate của các endpoint dashboard-critical.
-- [ ] Không log access token, Authorization header hoặc nội dung nhạy cảm trong mood notes.
+- [x] Dùng unique compound index `userId + date` cho daily entries.
+- [x] Elasticsearch mapping có keyword filter cho `userId`, date và text fields phục vụ full-text search.
+- [x] Bổ sung compound index cho `userId + habits.done + habits.habitId`; mood trend dùng prefix `userId + date`.
+- [x] Cloudinary có connect timeout 2 giây và request timeout 5 giây, cấu hình được bằng environment.
+- [x] Gắn `X-Request-ID` vào MDC, response header và error response.
+- [x] Theo dõi latency/error rate qua `http.server.requests` và bật percentile histogram.
+- [x] Không log access token, Authorization header, nội dung mood note hoặc raw exception message.
 
 ## Đề xuất thứ tự triển khai
 
