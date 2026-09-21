@@ -84,53 +84,53 @@ Việc gọi streak theo từng habit tạo mô hình N+1 request và sẽ chậ
 
 OpenAPI hiện chỉ có list active habits và create habit. Giao diện tương lai chưa thể đổi tên, thay icon, archive hoặc khôi phục habit.
 
-- [ ] Thêm endpoint cập nhật habit.
-- [ ] Thêm endpoint archive/deactivate thay vì hard delete.
-- [ ] Xác định hành vi của historical entries sau khi habit bị archive.
-- [ ] Cân nhắc endpoint lấy cả active và archived habits với filter trạng thái.
-- [ ] Bổ sung optimistic-locking hoặc quy tắc xử lý concurrent update nếu cần.
+- [x] Thêm endpoint cập nhật habit.
+- [x] Thêm endpoint archive/deactivate thay vì hard delete.
+- [x] Historical entries giữ nguyên habit log sau khi habit bị archive.
+- [x] `GET /habits` hỗ trợ filter `active`, `archived` và `all`.
+- [x] Habit dùng optimistic locking; client gửi `version`, conflict trả HTTP 409.
 
 ### 5. Bổ sung pagination cho dữ liệu có thể tăng vô hạn
 
 Các endpoint entries và search hiện trả về toàn bộ kết quả trong phạm vi truy vấn.
 
-- [ ] Bổ sung pagination cho `GET /entries`.
-- [ ] Bổ sung pagination cho `GET /entries/search`.
-- [ ] Quy định `page/size` hoặc cursor nhất quán giữa các endpoint.
-- [ ] Trả metadata như `hasNext`, `nextCursor` hoặc `totalElements` nếu sản phẩm cần.
-- [ ] Đặt giới hạn `size` tối đa ở backend.
-- [ ] Khai báo đầy đủ pagination trong OpenAPI.
+- [x] Bổ sung pagination cho `GET /entries`.
+- [x] Bổ sung pagination cho `GET /entries/search`.
+- [x] Dùng `page` 0-based và `size` nhất quán giữa hai endpoint.
+- [x] Trả `totalElements`, `totalPages` và `hasNext`.
+- [x] Đặt giới hạn `size` tối đa là 100 ở backend.
+- [x] Khai báo đầy đủ pagination trong OpenAPI.
 
 ### 6. Siết validation và mô tả avatar upload
 
 Frontend hiện kiểm tra JPG, PNG, WebP và tối đa 5 MB, nhưng các giới hạn này chưa được biểu diễn đầy đủ trong schema OpenAPI.
 
-- [ ] Khai báo danh sách MIME type được hỗ trợ trong OpenAPI.
-- [ ] Khai báo kích thước file tối đa trong description hoặc schema extension.
-- [ ] Trả error code riêng cho sai content type, quá dung lượng và upload không tồn tại.
-- [ ] Xác định thời gian hết hạn của upload signature.
-- [ ] Xác định hành vi thay thế/xóa Cloudinary asset cũ sau khi confirm avatar mới.
-- [ ] Cân nhắc endpoint xóa avatar hoặc khôi phục avatar mặc định.
-- [ ] Bổ sung integration test cho signature hết hạn và confirm sai `publicId`.
+- [x] Khai báo danh sách MIME type được hỗ trợ trong OpenAPI.
+- [x] Khai báo kích thước file tối đa 5 MiB trong schema.
+- [x] Trả error code riêng cho sai content type, quá dung lượng và upload không tồn tại.
+- [x] Upload signature hết hạn sau 1 giờ và response trả `expiresAt`.
+- [x] Sau khi confirm avatar mới, backend lưu profile trước rồi xóa Cloudinary asset cũ.
+- [x] Thêm `DELETE /me/avatar` để xóa avatar và khôi phục mặc định.
+- [x] Bổ sung test cho signature hết hạn và confirm sai `publicId`.
 
 ### 7. Chuẩn hóa search highlights
 
 `EntrySearchResult.highlights` hiện là map từ tên field tới mảng string. Contract chưa nói chuỗi là plain text hay có HTML highlight.
 
-- [ ] Quy định rõ highlight là plain text hay markup.
-- [ ] Ưu tiên trả plain text kèm offsets/ranges để tránh rủi ro XSS.
-- [ ] Nếu trả markup, giới hạn tag được phép và ghi rõ trong OpenAPI.
-- [ ] Quy định danh sách field có thể xuất hiện trong `highlights`.
-- [ ] Bổ sung giới hạn độ dài `q` và hành vi với query chỉ có khoảng trắng.
-- [ ] Xác định sorting/relevance ổn định cho kết quả.
+- [x] Highlight được trả dưới dạng plain text, không phải markup.
+- [x] Trả plain text kèm ranges 0-based, end-exclusive để tránh rủi ro XSS.
+- [x] Không trả markup từ API.
+- [x] Chỉ các field `mood.note`, `habits.note`, `mood.tags` xuất hiện trong `highlights`.
+- [x] `q` sau trim phải khác rỗng và tối đa 200 ký tự.
+- [x] Kết quả sort ổn định theo `_score` giảm dần rồi `date` giảm dần.
 
 ### 8. Bổ sung endpoint đọc entry hôm nay
 
 Frontend hiện lấy entry hôm nay bằng cách gọi `GET /entries` với `from` và `to` cùng một ngày.
 
-- [ ] Cân nhắc thêm `GET /entries/today` để contract thể hiện đúng use case.
-- [ ] Trả entry rỗng có cấu trúc rõ ràng khi chưa check-in, thay vì buộc client suy luận từ danh sách rỗng.
-- [ ] Đảm bảo PUT/PATCH hôm nay trả về toàn bộ DailyEntry mới nhất.
+- [x] Thêm `GET /entries/today` để contract thể hiện đúng use case.
+- [x] Trả `{ date, checkedIn: false, entry: null }` khi chưa check-in.
+- [x] PUT/PATCH hôm nay trả về toàn bộ DailyEntry mới nhất.
 
 ## P2 — Cải thiện chất lượng contract và vận hành
 
