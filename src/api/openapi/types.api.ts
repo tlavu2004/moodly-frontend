@@ -193,7 +193,7 @@ export type ApiResponseListMoodTrendResponse = {
 };
 
 export type MoodTrendResponse = {
-    weekStart?: string;
+    date?: string;
     averageScore?: number;
     entryCount?: number;
 };
@@ -632,7 +632,7 @@ export type MoodTrendData = {
     body?: never;
     path?: never;
     query?: {
-        period?: string;
+        period?: 'week';
     };
     url: '/stats/mood-trend';
 };

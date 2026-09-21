@@ -149,9 +149,9 @@ export const mostMissedHabits = <ThrowOnError extends boolean = false>(options?:
 });
 
 /**
- * Get weekly mood trend
+ * Get current-week mood trend
  *
- * Returns the authenticated user's mood trend for the current week. Only `period=week` is currently supported.
+ * Returns daily mood buckets for the current Monday-through-Sunday week in the Asia/Ho_Chi_Minh timezone. Only `period=week` is supported.
  */
 export const moodTrend = <ThrowOnError extends boolean = false>(options?: Options<MoodTrendData, ThrowOnError>): RequestResult<MoodTrendResponses, MoodTrendErrors, ThrowOnError> => (options?.client ?? client).get<MoodTrendResponses, MoodTrendErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],

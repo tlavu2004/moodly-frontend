@@ -53,13 +53,13 @@ GET /stats/mood-trend?period=week
 
 Frontend vì vậy chỉ hiển thị thống kê “This week”. Nếu sản phẩm muốn có bộ chọn 4 tuần, 12 tuần hoặc 6 tháng, backend phải hỗ trợ trước.
 
-- [ ] Quyết định các period được hỗ trợ, ví dụ `week`, `month`, `quarter`, `year`.
-- [ ] Khai báo period bằng enum trong OpenAPI thay vì `string` tự do.
-- [ ] Xác định đơn vị bucket cho từng period: ngày, tuần hoặc tháng.
-- [ ] Đảm bảo response được sắp xếp tăng dần theo thời gian.
-- [ ] Ghi rõ múi giờ dùng để xác định đầu tuần.
-- [ ] Thêm validation error rõ ràng cho period không hợp lệ.
-- [ ] Bổ sung integration test cho từng period.
+- [x] Chỉ hỗ trợ period `week` trong phạm vi hiện tại.
+- [x] Khai báo `period` bằng enum chỉ gồm `week` trong OpenAPI.
+- [x] Period `week` trả các bucket theo ngày trong tuần hiện tại.
+- [x] Response được sắp xếp tăng dần theo ngày.
+- [x] Tuần bắt đầu vào thứ Hai theo múi giờ `Asia/Ho_Chi_Minh`.
+- [x] Period không hợp lệ trả `INVALID_REQUEST` với danh sách giá trị được hỗ trợ.
+- [x] Bổ sung integration coverage cho `week` và period không được hỗ trợ.
 
 ## P1 — Nên làm để frontend ổn định và hiệu quả hơn
 
