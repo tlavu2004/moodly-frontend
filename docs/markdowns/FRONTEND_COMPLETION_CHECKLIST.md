@@ -351,7 +351,7 @@ Chi tiết backend nằm tại [`BACKEND_IMPROVEMENT_CHECKLIST.md`](./BACKEND_IM
 - [ ] Tất cả chức năng chính hoạt động với backend/Auth0 thật trên staging.
 - [ ] Không còn lỗi P0/P1 đã biết trong critical flows.
 - [ ] Lint, typecheck, build, unit/component tests và E2E smoke tests đều đạt.
-- [ ] Generated API client khớp OpenAPI source of truth.
+- [x] Generated API client khớp OpenAPI source of truth (đã regenerate và xác nhận working tree không đổi).
 - [x] Initial bundle nằm trong performance budget đã thống nhất.
 - [ ] Không có accessibility violation nghiêm trọng hoặc critical.
 - [ ] Security/privacy review hoàn tất.
