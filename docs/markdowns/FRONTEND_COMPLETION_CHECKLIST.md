@@ -149,7 +149,7 @@ Repository đã có Vitest/Testing Library/MSW và coverage gate cho handwritten
 - [x] Test chỉ chấp nhận mood score từ 1 đến 5.
 - [x] Test chọn/bỏ mood tags.
 - [x] Test save mood success và failure.
-- [ ] Test toggle habit success và failure.
+- [x] Test toggle habit success và failure.
 - [x] Test khóa mutation lặp trong lúc đang lưu.
 - [x] Test lịch sử dùng `from/to` từ URL.
 - [ ] Test không cho chọn ngày tương lai hoặc khoảng ngày đảo ngược.

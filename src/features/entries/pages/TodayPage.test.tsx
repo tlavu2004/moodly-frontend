@@ -64,6 +64,16 @@ describe('TodayPage', () => {
     expect(await screen.findByText('Habit update failed')).toBeInTheDocument()
   })
 
+  it('toggles a habit successfully', async () => {
+    const user = userEvent.setup()
+    render(<TodayPage />)
+
+    await user.click(screen.getByRole('button', { name: /Walk/ }))
+
+    expect(toggleHabit).toHaveBeenCalledWith('habit-1', true)
+    expect(await screen.findByText('Habit completed—nice work.')).toBeInTheDocument()
+  })
+
   it('locks repeated mood mutations while saving', async () => {
     updateMood.mockReturnValue(new Promise(() => undefined))
     const user = userEvent.setup()
