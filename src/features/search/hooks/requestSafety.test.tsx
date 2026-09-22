@@ -22,6 +22,12 @@ function deferred<T>() {
 describe('request cancellation and stale response protection', () => {
   beforeEach(() => vi.clearAllMocks())
 
+  it('does not request blank queries or inverted date ranges', () => {
+    renderHook(() => useEntrySearch('   '))
+    renderHook(() => useEntrySearch('walk', '2026-09-22', '2026-09-01'))
+    expect(searchEntriesMock).not.toHaveBeenCalled()
+  })
+
   it('aborts the previous search and ignores its late response', async () => {
     const oldRequest = deferred<Array<{ entryId: string }>>()
     const newRequest = deferred<Array<{ entryId: string }>>()
