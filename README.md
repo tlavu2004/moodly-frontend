@@ -51,3 +51,4 @@ Change the backend OpenAPI source, run the generator, then review and commit the
 diff together with the handwritten adapters that consume it.
 
 Release verification and rollback steps are documented in [the frontend release runbook](docs/markdowns/FRONTEND_RELEASE_RUNBOOK.md).
+The handling rules for mood notes and other sensitive browser data are documented in [the frontend privacy review](docs/markdowns/FRONTEND_PRIVACY_REVIEW.md).

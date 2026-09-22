@@ -272,7 +272,7 @@ const StatsPage = lazy(() =>
 - [x] Chạy dependency audit trong CI.
 - [x] Thiết lập Dependabot cho npm và GitHub Actions.
 - [x] Xác nhận production build đặt `sourcemap: false` để không công khai ngoài ý muốn.
-- [ ] Rà soát nội dung mood note vì đây có thể là dữ liệu sức khỏe/tâm lý nhạy cảm.
+- [x] Rà soát nội dung mood note và ghi nhận frontend controls/production requirements trong `FRONTEND_PRIVACY_REVIEW.md`.
 
 ### 9.7. Environment và deployment
 
