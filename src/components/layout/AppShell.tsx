@@ -1,6 +1,7 @@
 import { useAuth0 } from '@auth0/auth0-react'
 import { NavLink, Outlet } from 'react-router'
 import { Icon, type IconName } from '../ui/Icon.tsx'
+import { safeImageUrl } from '../../lib/safeImageUrl.ts'
 
 const navigation: Array<{ label: string; to: string; icon: IconName }> = [
   { label: 'Overview', to: '/dashboard', icon: 'home' }, { label: 'Today', to: '/today', icon: 'check' },
@@ -14,6 +15,7 @@ function getInitials(name: string): string { return name.split(/\s+/).filter(Boo
 export function AppShell() {
   const { logout, user } = useAuth0()
   const displayName = user?.name ?? user?.email ?? 'Moodly user'
+  const pictureUrl = safeImageUrl(user?.picture)
   return (
     <div className="min-h-svh bg-background text-foreground lg:grid lg:grid-cols-[15rem_1fr]">
       <aside className="hidden border-r border-border bg-surface lg:fixed lg:inset-y-0 lg:flex lg:w-60 lg:flex-col">
@@ -23,7 +25,7 @@ export function AppShell() {
         </nav>
         <div className="border-t border-border p-4">
           <NavLink to="/profile" className="flex items-center gap-3 rounded-xl p-2 hover:bg-surface-muted">
-            {user?.picture ? <img className="size-9 rounded-full object-cover" src={user.picture} alt="" referrerPolicy="no-referrer" /> : <span className="grid size-9 place-items-center rounded-full bg-primary-soft text-xs font-bold text-primary">{getInitials(displayName)}</span>}
+            {pictureUrl ? <img className="size-9 rounded-full object-cover" src={pictureUrl} alt="" referrerPolicy="no-referrer" /> : <span className="grid size-9 place-items-center rounded-full bg-primary-soft text-xs font-bold text-primary">{getInitials(displayName)}</span>}
             <span className="min-w-0 flex-1"><span className="block truncate text-sm font-semibold">{displayName}</span><span className="block truncate text-xs text-foreground-muted">View profile</span></span>
           </NavLink>
           <button type="button" className="mt-2 w-full rounded-control px-3 py-2 text-left text-xs font-semibold text-foreground-muted hover:bg-surface-muted" onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}>Log out</button>

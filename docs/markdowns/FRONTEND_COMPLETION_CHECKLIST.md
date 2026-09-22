@@ -266,7 +266,7 @@ const StatsPage = lazy(() =>
 - [x] Xác nhận không log access token, Authorization header hoặc sensitive response.
 - [x] Không lưu access token vào localStorage/sessionStorage bằng code handwritten.
 - [x] Giữ search highlights dưới dạng text hoặc sanitize theo contract rõ ràng.
-- [ ] Validate URL/avatar source theo policy đã thống nhất.
+- [x] Validate URL/avatar source theo policy đã thống nhất (chỉ HTTPS, không credentials).
 - [ ] Thêm Content Security Policy phù hợp với Auth0 và Cloudinary.
 - [ ] Thêm `Referrer-Policy`, `X-Content-Type-Options` và các security headers tại hosting layer.
 - [x] Chạy dependency audit trong CI.
