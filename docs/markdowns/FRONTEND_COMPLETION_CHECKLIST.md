@@ -285,7 +285,7 @@ const StatsPage = lazy(() =>
 - [ ] Xác nhận HTTPS bắt buộc ở production.
 - [ ] Thêm cache policy cho hashed assets và không cache cứng `index.html`.
 - [x] Tạo smoke check sau deploy (`npm run smoke:deploy -- <deployment-url>`).
-- [ ] Viết rollback procedure cho frontend release.
+- [x] Viết rollback procedure cho frontend release trong `FRONTEND_RELEASE_RUNBOOK.md`.
 
 ### 9.8. Monitoring và diagnostics
 

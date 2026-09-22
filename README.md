@@ -49,3 +49,5 @@ Run `npm run generate:api` after the backend OpenAPI contract changes. The comma
 Files under `src/api/openapi/` are generated artifacts and must not be edited manually.
 Change the backend OpenAPI source, run the generator, then review and commit the generated
 diff together with the handwritten adapters that consume it.
+
+Release verification and rollback steps are documented in [the frontend release runbook](docs/markdowns/FRONTEND_RELEASE_RUNBOOK.md).
