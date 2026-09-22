@@ -14,11 +14,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Check out backend API contract
+        uses: actions/checkout@v4
+        with:
+          repository: tlavu2004/moodly-backend
+          path: moodly-backend
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
       - run: npm ci
+      - name: Verify generated API client
+        run: npm run generate:api && git diff --exit-code -- src/api/openapi
+        env:
+          OPENAPI_INPUT: moodly-backend/docs/api/moodly-openapi.json
       - run: npm run lint
       - run: npm run build
       - run: npm run test:run

@@ -302,7 +302,7 @@ const StatsPage = lazy(() =>
 - [x] Chạy TypeScript/build trên pull request.
 - [x] Chạy unit/component tests trên pull request.
 - [x] Chạy coverage threshold trên pull request.
-- [ ] Chạy API generation check và fail nếu generated output bị lệch.
+- [x] Chạy API generation check và fail nếu generated output bị lệch.
 - [x] Chạy dependency audit với policy fail ở mức `high` trở lên.
 - [ ] Chạy E2E smoke suite trên staging hoặc môi trường preview.
 - [ ] Lưu Playwright artifacts khi thất bại.
