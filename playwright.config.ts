@@ -7,6 +7,7 @@ for (const [name, value] of Object.entries(integrationEnv)) {
 }
 
 const baseURL = process.env.E2E_BASE_URL ?? 'http://127.0.0.1:4173'
+const targetsRemoteDeployment = Boolean(process.env.E2E_BASE_URL)
 
 export default defineConfig({
   testDir: './e2e',
@@ -44,7 +45,7 @@ export default defineConfig({
       },
     },
   ],
-  webServer: {
+  webServer: targetsRemoteDeployment ? undefined : {
     command: 'npm run dev -- --mode integration --host 127.0.0.1 --port 4173',
     url: baseURL,
     reuseExistingServer: !process.env.CI,
