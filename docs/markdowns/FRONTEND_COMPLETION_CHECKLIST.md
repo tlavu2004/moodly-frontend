@@ -298,7 +298,7 @@ const StatsPage = lazy(() =>
 
 ### 9.9. CI quality gates
 
-- [ ] Chạy lint trên pull request.
+- [x] Chạy lint trên pull request.
 - [ ] Chạy TypeScript/build trên pull request.
 - [ ] Chạy unit/component tests trên pull request.
 - [ ] Chạy coverage threshold trên pull request.
