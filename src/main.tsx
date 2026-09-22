@@ -6,14 +6,17 @@ import './index.css'
 import { AuthBootstrap } from './auth/AuthBootstrap.tsx'
 import App from './App.tsx'
 import { AppErrorBoundary } from './components/errors/AppErrorBoundary.tsx'
+import { getClientEnvironment } from './config/env.ts'
+
+const environment = getClientEnvironment()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <Auth0Provider
-      domain={import.meta.env.VITE_AUTH0_DOMAIN}
-      clientId={import.meta.env.VITE_AUTH0_CLIENT_ID}
+      domain={environment.auth0Domain}
+      clientId={environment.auth0ClientId}
       authorizationParams={{
-        audience: import.meta.env.VITE_AUTH0_AUDIENCE,
+        audience: environment.auth0Audience,
         redirect_uri: window.location.origin,
       }}
     >
