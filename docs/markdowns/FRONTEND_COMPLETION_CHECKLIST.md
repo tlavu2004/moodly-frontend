@@ -147,7 +147,7 @@ Repository đã có Vitest/Testing Library/MSW và coverage gate cho handwritten
 - [x] Test date key local không lệch ngày do UTC.
 - [x] Test initial mood, tags và note được hydrate từ entry hôm nay.
 - [x] Test chỉ chấp nhận mood score từ 1 đến 5.
-- [ ] Test chọn/bỏ mood tags.
+- [x] Test chọn/bỏ mood tags.
 - [x] Test save mood success và failure.
 - [ ] Test toggle habit success và failure.
 - [x] Test khóa mutation lặp trong lúc đang lưu.

@@ -41,6 +41,17 @@ describe('TodayPage', () => {
     expect(updateMood).toHaveBeenCalledWith({ score: 5, note: 'Thankful', tags: ['Grateful'] })
   })
 
+  it('selects and removes mood tags', async () => {
+    const user = userEvent.setup()
+    render(<TodayPage />)
+    const calm = screen.getByRole('button', { name: 'Calm' })
+
+    await user.click(calm)
+    expect(calm).toHaveAttribute('aria-pressed', 'true')
+    await user.click(calm)
+    expect(calm).toHaveAttribute('aria-pressed', 'false')
+  })
+
   it('surfaces mood-save and habit-toggle failures', async () => {
     updateMood.mockRejectedValue(new Error('Mood save failed'))
     toggleHabit.mockRejectedValue(new Error('Habit update failed'))
