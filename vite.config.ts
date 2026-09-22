@@ -35,6 +35,7 @@ export default defineConfig(({ mode }) => ({
   },
   build: {
     manifest: true,
+    sourcemap: false,
     rolldownOptions: {
       output: {
         manualChunks(id) {

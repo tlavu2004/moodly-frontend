@@ -271,7 +271,7 @@ const StatsPage = lazy(() =>
 - [ ] Thêm `Referrer-Policy`, `X-Content-Type-Options` và các security headers tại hosting layer.
 - [ ] Chạy dependency audit trong CI.
 - [ ] Thiết lập dependency update automation.
-- [ ] Xác nhận source map production không công khai ngoài ý muốn.
+- [x] Xác nhận production build đặt `sourcemap: false` để không công khai ngoài ý muốn.
 - [ ] Rà soát nội dung mood note vì đây có thể là dữ liệu sức khỏe/tâm lý nhạy cảm.
 
 ### 9.7. Environment và deployment
