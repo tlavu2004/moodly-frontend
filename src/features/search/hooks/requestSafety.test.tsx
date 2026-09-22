@@ -55,4 +55,15 @@ describe('request cancellation and stale response protection', () => {
 
     expect(oldSignal.aborted).toBe(true)
   })
+
+  it('does not request inverted or future history ranges', async () => {
+    const inverted = renderHook(() => useEntries('2026-09-22', '2026-09-01'))
+    const future = renderHook(() => useEntries('2999-01-01', '2999-01-02'))
+
+    await waitFor(() => expect(inverted.result.current.isLoading).toBe(false))
+    await waitFor(() => expect(future.result.current.isLoading).toBe(false))
+    expect(getEntriesMock).not.toHaveBeenCalled()
+    expect(inverted.result.current.error).toContain('valid date range')
+    expect(future.result.current.error).toContain('future dates')
+  })
 })

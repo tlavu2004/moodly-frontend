@@ -152,7 +152,7 @@ Repository đã có Vitest/Testing Library/MSW và coverage gate cho handwritten
 - [x] Test toggle habit success và failure.
 - [x] Test khóa mutation lặp trong lúc đang lưu.
 - [x] Test lịch sử dùng `from/to` từ URL.
-- [ ] Test không cho chọn ngày tương lai hoặc khoảng ngày đảo ngược.
+- [x] Test không cho chọn ngày tương lai hoặc khoảng ngày đảo ngược.
 - [x] Test entry chỉ có habit log nhưng chưa có mood.
 
 ### 8.7. Stats tests
