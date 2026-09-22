@@ -131,3 +131,7 @@ Before considering a change complete, confirm:
 ### Server-state cache
 
 Keep the current feature-local hooks and request cancellation instead of adding a query-cache library. The current route data has few shared consumers, and mutations already update or reload their owning feature state. Revisit this decision when the same server resource is fetched independently by multiple mounted routes, measured duplicate traffic becomes material, or offline/stale-while-revalidate behavior becomes a product requirement.
+
+### Import aliases
+
+Keep explicit relative imports for now. They make feature boundaries visible and avoid maintaining matching alias configuration across TypeScript, Vite, Vitest, ESLint, and editor tooling. Revisit an `@/` alias when routine imports cross three or more parent directories or refactors show that relative paths are causing measurable maintenance errors.

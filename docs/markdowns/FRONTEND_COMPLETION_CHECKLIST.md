@@ -318,7 +318,7 @@ const StatsPage = lazy(() =>
 - [x] Xóa nội dung TODO đã hoàn thành khỏi README.
 - [x] Xóa `src/assets/react.svg`, `src/assets/vite.svg` và asset không dùng khác.
 - [x] Quyết định LF convention trong `.gitattributes` để generator không làm working tree hiện modified giả.
-- [ ] Cân nhắc alias import `@/` khi đường dẫn tương đối bắt đầu cản trở bảo trì.
+- [x] Cân nhắc alias import `@/`; hiện giữ relative imports và đã ghi tiêu chí xem xét lại trong `FRONTEND_STANDARDS.md`.
 
 ## 10. Các quyết định đang phụ thuộc backend/product
 
