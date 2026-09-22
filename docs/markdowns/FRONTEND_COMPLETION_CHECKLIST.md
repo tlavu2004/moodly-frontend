@@ -241,7 +241,7 @@ const StatsPage = lazy(() =>
 - [ ] Kiểm tra toàn bộ ứng dụng chỉ bằng bàn phím.
 - [ ] Kiểm tra focus order trên desktop và mobile navigation.
 - [x] Di chuyển focus hợp lý khi mở/đóng form tạo habit.
-- [ ] Thông báo mutation success/error bằng live region không gây lặp.
+- [x] Thông báo mutation success/error bằng live region ổn định, atomic và không gây lặp.
 - [x] Bổ sung accessible name cho mọi loading skeleton.
 - [ ] Không dùng màu sắc làm tín hiệu duy nhất cho mood, success hoặc error.
 - [ ] Kiểm tra contrast ở trạng thái normal, hover, focus và disabled.

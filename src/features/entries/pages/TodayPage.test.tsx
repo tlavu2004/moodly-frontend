@@ -33,12 +33,14 @@ describe('TodayPage', () => {
     const user = userEvent.setup()
     render(<TodayPage />)
     await user.click(screen.getByRole('button', { name: /Save check-in/ }))
-    expect(screen.getByRole('status')).toHaveTextContent('Choose how you feel first.')
+    expect(screen.getByLabelText('Check-in update')).toHaveAttribute('aria-live', 'assertive')
+    expect(screen.getByLabelText('Check-in update')).toHaveTextContent('Choose how you feel first.')
     await user.click(screen.getByRole('button', { name: /Great/ }))
     await user.click(screen.getByRole('button', { name: 'Grateful' }))
     await user.type(screen.getByLabelText(/A note to yourself/), '  Thankful  ')
     await user.click(screen.getByRole('button', { name: /Save check-in/ }))
     expect(updateMood).toHaveBeenCalledWith({ score: 5, note: 'Thankful', tags: ['Grateful'] })
+    expect(screen.getByLabelText('Check-in update')).toHaveAttribute('aria-live', 'polite')
   })
 
   it('selects and removes mood tags', async () => {
@@ -59,7 +61,8 @@ describe('TodayPage', () => {
     render(<TodayPage />)
     await user.click(screen.getByRole('button', { name: /Okay/ }))
     await user.click(screen.getByRole('button', { name: /Save check-in/ }))
-    expect(await screen.findByRole('status')).toHaveTextContent('Mood save failed')
+    expect(await screen.findByText('Mood save failed')).toBeInTheDocument()
+    expect(screen.getByLabelText('Check-in update')).toHaveAttribute('aria-live', 'assertive')
     await user.click(screen.getByRole('button', { name: /Walk/ }))
     expect(await screen.findByText('Habit update failed')).toBeInTheDocument()
   })
@@ -72,6 +75,7 @@ describe('TodayPage', () => {
 
     expect(toggleHabit).toHaveBeenCalledWith('habit-1', true)
     expect(await screen.findByText('Habit completed—nice work.')).toBeInTheDocument()
+    expect(screen.getByLabelText('Habit update')).toHaveAttribute('aria-live', 'polite')
   })
 
   it('locks repeated mood mutations while saving', async () => {
