@@ -1,10 +1,20 @@
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
+import { visualizer } from 'rollup-plugin-visualizer'
 import { defineConfig } from 'vitest/config'
 
 // https://vite.dev/config/
-export default defineConfig({
-  plugins: [react(), tailwindcss()],
+export default defineConfig(({ mode }) => ({
+  plugins: [
+    react(),
+    tailwindcss(),
+    mode === 'analyze' && visualizer({
+      filename: 'reports/bundle.html',
+      gzipSize: true,
+      brotliSize: true,
+      open: false,
+    }),
+  ],
   test: {
     include: ['src/**/*.{test,spec}.{ts,tsx}'],
     environment: 'jsdom',
@@ -49,4 +59,4 @@ export default defineConfig({
       },
     },
   },
-})
+}))

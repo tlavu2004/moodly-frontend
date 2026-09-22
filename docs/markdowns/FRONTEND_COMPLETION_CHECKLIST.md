@@ -215,7 +215,7 @@ const StatsPage = lazy(() =>
 
 ### 9.2. Runtime performance
 
-- [ ] Dùng bundle analyzer để xác định dependency/chunk lớn nhất.
+- [x] Dùng bundle analyzer để xác định dependency/chunk lớn nhất (`npm run analyze`).
 - [ ] Tránh N+1 streak requests khi backend có summary hoặc batch endpoint.
 - [x] Thêm request cancellation bằng `AbortSignal` cho search và date-filtered queries.
 - [x] Đảm bảo response cũ không ghi đè response mới khi filter đổi nhanh.

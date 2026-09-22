@@ -15,6 +15,7 @@ coverage
 playwright/.auth/
 test-results/
 playwright-report/
+reports/
 
 # Editor directories and files
 .vscode/*
