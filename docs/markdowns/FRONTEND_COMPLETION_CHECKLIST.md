@@ -22,157 +22,169 @@ Vì vậy có thể đánh dấu bước “Dashboard, habits, daily entry/mood,
 
 ### 7.1. Chuẩn bị môi trường kiểm thử tích hợp
 
-- [ ] Tạo cấu hình frontend dành riêng cho test/integration environment.
+- [x] Tạo cấu hình frontend dành riêng cho test/integration environment.
 - [ ] Tạo Auth0 application hoặc tenant phù hợp cho automated testing.
 - [ ] Khai báo callback URL, logout URL và web origin cho môi trường test.
 - [ ] Chuẩn bị tài khoản test không dùng dữ liệu người thật.
 - [ ] Chuẩn bị cơ chế seed/reset dữ liệu backend có thể chạy lặp lại.
-- [ ] Không commit secret, test password hoặc access token vào repository.
-- [ ] Viết hướng dẫn khởi động frontend, backend và dependency phục vụ E2E.
+- [x] Không commit secret, test password hoặc access token vào repository.
+- [x] Viết hướng dẫn khởi động frontend, backend và dependency phục vụ E2E.
+
+Các mục còn mở ở trên cần được provision bên ngoài repository. Danh sách giá trị,
+ownership, reset contract và lệnh chạy nằm trong
+[`FRONTEND_INTEGRATION_TESTING.md`](./FRONTEND_INTEGRATION_TESTING.md). Public E2E đã
+được chạy local; authenticated E2E đã được viết nhưng chưa thể xác nhận với hệ thống
+thật cho tới khi Auth0 test tenant/account và backend reset endpoint được cung cấp.
 
 ### 7.2. Thiết lập Playwright
 
-- [ ] Cài `@playwright/test` và browser runtime cần thiết.
-- [ ] Tạo `playwright.config.ts` với base URL, timeout và trace phù hợp.
-- [ ] Thêm script `test:e2e`.
-- [ ] Thêm script `test:e2e:ui` để debug local.
-- [ ] Cấu hình screenshot, video và trace chỉ giữ khi test thất bại hoặc retry.
-- [ ] Tái sử dụng authenticated storage state thay vì đăng nhập UI trong mọi test.
-- [ ] Tách test public routes và protected routes.
+- [x] Cài `@playwright/test` và browser runtime cần thiết.
+- [x] Tạo `playwright.config.ts` với base URL, timeout và trace phù hợp.
+- [x] Thêm script `test:e2e`.
+- [x] Thêm script `test:e2e:ui` để debug local.
+- [x] Cấu hình screenshot, video và trace chỉ giữ khi test thất bại hoặc retry.
+- [x] Tái sử dụng authenticated storage state thay vì đăng nhập UI trong mọi test.
+- [x] Tách test public routes và protected routes.
 
 ### 7.3. E2E smoke tests bắt buộc
 
-- [ ] Người chưa đăng nhập mở `/` được và không bị redirect.
-- [ ] Người chưa đăng nhập mở protected URL sẽ được đưa vào Auth0 flow.
-- [ ] Sau đăng nhập, người dùng quay lại đúng URL ban đầu.
-- [ ] Profile backend được synchronize trước khi protected page gọi API nghiệp vụ.
-- [ ] Tạo habit mới và thấy habit xuất hiện trong danh sách.
-- [ ] Ghi mood hôm nay và thấy dữ liệu cập nhật trên dashboard.
-- [ ] Đánh dấu habit hoàn thành và thấy completion ratio cập nhật.
-- [ ] Mở history với khoảng ngày và thấy entry vừa tạo.
-- [ ] Stats hiển thị dữ liệu tuần mà không gửi period không được hỗ trợ.
-- [ ] Upload avatar hợp lệ và thấy avatar sau khi reload.
-- [ ] Từ chối avatar sai định dạng hoặc quá dung lượng.
-- [ ] Search theo từ khóa và ngày cập nhật query string chính xác.
-- [ ] Logout quay về public landing page.
-- [ ] URL không tồn tại hiển thị trang 404 có đường quay lại hợp lệ.
+- [x] Người chưa đăng nhập mở `/` được và không bị redirect.
+- [x] Người chưa đăng nhập mở protected URL sẽ được đưa vào Auth0 flow.
+- [x] Sau đăng nhập, người dùng quay lại đúng URL ban đầu.
+- [x] Profile backend được synchronize trước khi protected page gọi API nghiệp vụ.
+- [x] Tạo habit mới và thấy habit xuất hiện trong danh sách.
+- [x] Ghi mood hôm nay và thấy dữ liệu cập nhật trên dashboard.
+- [x] Đánh dấu habit hoàn thành và thấy completion ratio cập nhật.
+- [x] Mở history với khoảng ngày và thấy entry vừa tạo.
+- [x] Stats hiển thị dữ liệu tuần mà không gửi period không được hỗ trợ.
+- [x] Upload avatar hợp lệ và thấy avatar sau khi reload.
+- [x] Từ chối avatar sai định dạng hoặc quá dung lượng.
+- [x] Search theo từ khóa và ngày cập nhật query string chính xác.
+- [x] Logout quay về public landing page.
+- [x] URL không tồn tại hiển thị trang 404 có đường quay lại hợp lệ.
+
+Các checkbox 7.3 xác nhận test case đã được triển khai. Các case cần đăng nhập vẫn chờ
+một lần chạy xanh trên integration environment trước khi được tính vào Definition of Done.
 
 ### 7.4. E2E failure paths
 
-- [ ] Kiểm tra UI khi backend trả `400` validation error.
-- [ ] Kiểm tra UI khi token hết hạn hoặc backend trả `401`.
-- [ ] Kiểm tra UI khi backend trả `403`.
-- [ ] Kiểm tra UI khi API trả `500`.
-- [ ] Kiểm tra UI khi mạng timeout hoặc mất kết nối.
+- [x] Kiểm tra UI khi backend trả `400` validation error.
+- [x] Kiểm tra UI khi token hết hạn hoặc backend trả `401`.
+- [x] Kiểm tra UI khi backend trả `403`.
+- [x] Kiểm tra UI khi API trả `500`.
+- [x] Kiểm tra UI khi mạng timeout hoặc mất kết nối.
 - [ ] Kiểm tra retry không tạo mutation trùng lặp.
-- [ ] Kiểm tra upload Cloudinary thành công nhưng confirm backend thất bại.
-- [ ] Kiểm tra empty state cho habits, entries, stats và search.
+- [x] Kiểm tra upload Cloudinary thành công nhưng confirm backend thất bại.
+- [x] Kiểm tra empty state cho habits, entries, stats và search.
+
+Hiện đã test khóa double-submit khi mutation đang chạy; mục retry vẫn để mở vì cần
+chốt idempotency key hoặc retry contract cho mutation với backend.
 
 ## 8. Frontend automated tests
 
 ### 8.1. Test foundation
 
-Repository hiện chưa có test runner hoặc test dependencies.
+Repository đã có Vitest/Testing Library/MSW và coverage gate cho handwritten code.
 
-- [ ] Cài Vitest.
-- [ ] Cài React Testing Library.
-- [ ] Cài `@testing-library/jest-dom`.
-- [ ] Cài `@testing-library/user-event`.
-- [ ] Cài `jsdom`.
-- [ ] Cài MSW để mock network ở transport boundary.
-- [ ] Tạo `vitest.config.ts` hoặc cấu hình test trong Vite.
-- [ ] Tạo test setup file và đăng ký jest-dom matchers.
-- [ ] Thêm script `test` cho watch mode.
-- [ ] Thêm script `test:run` cho CI.
-- [ ] Thêm script `test:coverage`.
-- [ ] Bỏ qua generated OpenAPI code khỏi coverage.
-- [ ] Đặt coverage threshold ban đầu cho code handwritten; tăng dần thay vì ép 100% ngay.
+- [x] Cài Vitest.
+- [x] Cài React Testing Library.
+- [x] Cài `@testing-library/jest-dom`.
+- [x] Cài `@testing-library/user-event`.
+- [x] Cài `jsdom`.
+- [x] Cài MSW để mock network ở transport boundary.
+- [x] Tạo `vitest.config.ts` hoặc cấu hình test trong Vite.
+- [x] Tạo test setup file và đăng ký jest-dom matchers.
+- [x] Thêm script `test` cho watch mode.
+- [x] Thêm script `test:run` cho CI.
+- [x] Thêm script `test:coverage`.
+- [x] Bỏ qua generated OpenAPI code khỏi coverage.
+- [x] Đặt coverage threshold ban đầu cho code handwritten; tăng dần thay vì ép 100% ngay.
 
 ### 8.2. API và error tests
 
-- [ ] Test `normalizeApiError` với backend error envelope.
-- [ ] Test `normalizeApiError` với network error.
-- [ ] Test status, code, timestamp và field errors được giữ đúng.
-- [ ] Test API client thêm Bearer token nhưng không log token.
-- [ ] Test API base URL được chuẩn hóa khi có dấu `/` cuối.
-- [ ] Test hành vi rõ ràng khi thiếu `VITE_API_BASE_URL`.
-- [ ] Test feature adapters unwrap `success/data/error/timestamp` đúng cách.
-- [ ] Test response thiếu `data` không làm UI crash.
+- [x] Test `normalizeApiError` với backend error envelope.
+- [x] Test `normalizeApiError` với network error.
+- [x] Test status, code, timestamp và field errors được giữ đúng.
+- [x] Test API client thêm Bearer token nhưng không log token.
+- [x] Test API base URL được chuẩn hóa khi có dấu `/` cuối.
+- [x] Test hành vi rõ ràng khi thiếu `VITE_API_BASE_URL`.
+- [x] Test feature adapters unwrap `success/data/error/timestamp` đúng cách.
+- [x] Test response thiếu `data` không làm UI crash.
 
 ### 8.3. Authentication và routing tests
 
-- [ ] Test public landing không yêu cầu authentication.
-- [ ] Test protected routes được bọc bởi Auth0 guard.
-- [ ] Test loading state trong Auth bootstrap.
-- [ ] Test Auth0 initialization error.
-- [ ] Test profile synchronization loading/error/success.
-- [ ] Test protected children chỉ render sau khi profile sync hoàn tất.
-- [ ] Test logout dùng `returnTo: window.location.origin`.
-- [ ] Test intentional 404 route.
+- [x] Test public landing không yêu cầu authentication.
+- [x] Test protected routes được bọc bởi Auth0 guard.
+- [x] Test loading state trong Auth bootstrap.
+- [x] Test Auth0 initialization error.
+- [x] Test profile synchronization loading/error/success.
+- [x] Test protected children chỉ render sau khi profile sync hoàn tất.
+- [x] Test logout dùng `returnTo: window.location.origin`.
+- [x] Test intentional 404 route.
 
 ### 8.4. Dashboard tests
 
-- [ ] Test adapter tổng hợp entries, habits, mood trend và streaks.
-- [ ] Test dashboard loading/error/success.
-- [ ] Test trạng thái chưa có habit.
-- [ ] Test trạng thái chưa check-in mood.
-- [ ] Test completion percentage với 0, một phần và 100%.
-- [ ] Test best streak và weekly mood summary.
-- [ ] Test retry sau lỗi.
+- [x] Test dashboard summary adapter unwrap response từ aggregated endpoint; frontend không còn tự tổng hợp nhiều request.
+- [x] Test dashboard loading/error/success.
+- [x] Test trạng thái chưa có habit.
+- [x] Test trạng thái chưa check-in mood.
+- [x] Test completion percentage với 0, một phần và 100%.
+- [x] Test best streak và weekly mood summary.
+- [x] Test retry sau lỗi.
 
 ### 8.5. Habits tests
 
-- [ ] Test danh sách loading/error/empty/success.
-- [ ] Test validation tên habit rỗng.
-- [ ] Test form gửi đúng name, icon và target frequency.
+- [x] Test danh sách loading/error/empty/success.
+- [x] Test validation tên habit rỗng.
+- [x] Test form gửi đúng name, icon và target frequency.
 - [ ] Test create success thêm habit vào danh sách.
-- [ ] Test create validation error hiển thị cho người dùng.
-- [ ] Test streak loading và mapping theo habit ID.
-- [ ] Test lỗi một streak không làm mất toàn bộ danh sách nếu thiết kế được đổi sang partial success.
+- [x] Test create validation error hiển thị cho người dùng.
+- [x] Test streak loading và mapping theo habit ID.
+- [x] Test lỗi một streak không làm mất toàn bộ danh sách sau khi đổi sang partial success.
 
 ### 8.6. Daily entry và history tests
 
-- [ ] Test date key local không lệch ngày do UTC.
-- [ ] Test initial mood, tags và note được hydrate từ entry hôm nay.
-- [ ] Test chỉ chấp nhận mood score từ 1 đến 5.
+- [x] Test date key local không lệch ngày do UTC.
+- [x] Test initial mood, tags và note được hydrate từ entry hôm nay.
+- [x] Test chỉ chấp nhận mood score từ 1 đến 5.
 - [ ] Test chọn/bỏ mood tags.
-- [ ] Test save mood success và failure.
+- [x] Test save mood success và failure.
 - [ ] Test toggle habit success và failure.
-- [ ] Test khóa mutation lặp trong lúc đang lưu.
-- [ ] Test lịch sử dùng `from/to` từ URL.
+- [x] Test khóa mutation lặp trong lúc đang lưu.
+- [x] Test lịch sử dùng `from/to` từ URL.
 - [ ] Test không cho chọn ngày tương lai hoặc khoảng ngày đảo ngược.
-- [ ] Test entry chỉ có habit log nhưng chưa có mood.
+- [x] Test entry chỉ có habit log nhưng chưa có mood.
 
 ### 8.7. Stats tests
 
-- [ ] Test frontend luôn gửi `period=week` theo contract hiện tại.
-- [ ] Test average mood và entry count.
-- [ ] Test most-missed habit mapping từ ID sang tên.
-- [ ] Test chart với 0, 1 và nhiều data points.
-- [ ] Test empty state khi chưa có dữ liệu.
-- [ ] Test unknown habit ID có fallback an toàn.
+- [x] Test frontend luôn gửi `period=week` theo contract hiện tại.
+- [x] Test average mood và entry count.
+- [x] Test most-missed habit mapping từ ID sang tên.
+- [x] Test chart với 0, 1 và nhiều data points.
+- [x] Test empty state khi chưa có dữ liệu.
+- [x] Test unknown habit ID có fallback an toàn.
 
 ### 8.8. Profile/avatar tests
 
-- [ ] Test fallback avatar từ Auth0 picture và initials.
-- [ ] Test chỉ chấp nhận JPEG, PNG và WebP.
-- [ ] Test giới hạn file 5 MB.
-- [ ] Test upload signature payload.
-- [ ] Test Cloudinary multipart payload không chứa trường thừa.
-- [ ] Test lấy `version` từ Cloudinary response an toàn.
-- [ ] Test confirm avatar success/failure.
-- [ ] Test metadata content type và size.
+- [x] Test fallback avatar từ Auth0 picture và initials.
+- [x] Test chỉ chấp nhận JPEG, PNG và WebP.
+- [x] Test giới hạn file 5 MB.
+- [x] Test upload signature payload.
+- [x] Test Cloudinary multipart payload không chứa trường thừa.
+- [x] Test lấy `version` từ Cloudinary response an toàn.
+- [x] Test confirm avatar success/failure.
+- [x] Test metadata content type và size.
 
 ### 8.9. Search tests
 
-- [ ] Test submit cập nhật `?q=`.
-- [ ] Test date filters cập nhật `from/to`.
-- [ ] Test clear date filters.
-- [ ] Test không gọi API khi query rỗng.
-- [ ] Test không gọi API khi khoảng ngày đảo ngược.
-- [ ] Test stale response không ghi đè query mới hơn.
-- [ ] Test highlights được render dưới dạng text an toàn.
-- [ ] Test link từ search result tới đúng ngày trong history.
+- [x] Test submit cập nhật `?q=`.
+- [x] Test date filters cập nhật `from/to`.
+- [x] Test clear date filters.
+- [x] Test không gọi API khi query rỗng.
+- [x] Test không gọi API khi khoảng ngày đảo ngược.
+- [x] Test stale response không ghi đè query mới hơn.
+- [x] Test highlights được render dưới dạng text an toàn.
+- [x] Test link từ search result tới đúng ngày trong history.
 
 ## 9. Performance, accessibility và production readiness
 
@@ -205,8 +217,8 @@ const StatsPage = lazy(() =>
 
 - [ ] Dùng bundle analyzer để xác định dependency/chunk lớn nhất.
 - [ ] Tránh N+1 streak requests khi backend có summary hoặc batch endpoint.
-- [ ] Thêm request cancellation bằng `AbortSignal` cho search và date-filtered queries.
-- [ ] Đảm bảo response cũ không ghi đè response mới khi filter đổi nhanh.
+- [x] Thêm request cancellation bằng `AbortSignal` cho search và date-filtered queries.
+- [x] Đảm bảo response cũ không ghi đè response mới khi filter đổi nhanh.
 - [ ] Cân nhắc query cache sau khi có nhu cầu thật; không thêm state library chỉ để tối ưu sớm.
 - [ ] Đo Core Web Vitals trên production build.
 - [ ] Kiểm tra layout shift khi avatar và dữ liệu tải xong.
@@ -214,14 +226,14 @@ const StatsPage = lazy(() =>
 
 ### 9.3. Error resilience
 
-- [ ] Thêm application-level Error Boundary.
-- [ ] Tạo fallback cho lỗi lazy chunk/load deployment mismatch.
-- [ ] Cung cấp retry hoặc reload action phù hợp trong error fallback.
-- [ ] Phân biệt thông báo validation, authentication, network và server error.
-- [ ] Đảm bảo mutation message không bị loading request khác ghi đè.
-- [ ] Xử lý partial failure khi một trong nhiều dashboard requests thất bại.
-- [ ] Xử lý partial failure khi một streak request thất bại.
-- [ ] Không hiển thị raw internal backend message nếu chứa chi tiết kỹ thuật.
+- [x] Thêm application-level Error Boundary.
+- [x] Tạo fallback cho lỗi lazy chunk/load deployment mismatch.
+- [x] Cung cấp retry hoặc reload action phù hợp trong error fallback.
+- [x] Phân biệt thông báo validation, authentication, network và server error.
+- [x] Đảm bảo mutation message không bị loading request khác ghi đè.
+- [x] Dashboard dùng aggregated summary endpoint nguyên tử nên không còn nhiều request frontend cần partial handling.
+- [x] Xử lý partial failure khi một streak request thất bại.
+- [x] Không hiển thị raw internal backend message nếu chứa chi tiết kỹ thuật.
 
 ### 9.4. Accessibility
 
@@ -251,9 +263,9 @@ const StatsPage = lazy(() =>
 
 ### 9.6. Security và privacy
 
-- [ ] Xác nhận không log access token, Authorization header hoặc sensitive response.
-- [ ] Không lưu access token vào localStorage/sessionStorage bằng code handwritten.
-- [ ] Giữ search highlights dưới dạng text hoặc sanitize theo contract rõ ràng.
+- [x] Xác nhận không log access token, Authorization header hoặc sensitive response.
+- [x] Không lưu access token vào localStorage/sessionStorage bằng code handwritten.
+- [x] Giữ search highlights dưới dạng text hoặc sanitize theo contract rõ ràng.
 - [ ] Validate URL/avatar source theo policy đã thống nhất.
 - [ ] Thêm Content Security Policy phù hợp với Auth0 và Cloudinary.
 - [ ] Thêm `Referrer-Policy`, `X-Content-Type-Options` và các security headers tại hosting layer.
@@ -266,7 +278,7 @@ const StatsPage = lazy(() =>
 
 - [ ] Validate tất cả biến `VITE_*` khi ứng dụng khởi động hoặc build.
 - [ ] Tách `.env` cho development, test, staging và production.
-- [ ] Không đưa server-side secret vào biến `VITE_*`.
+- [x] Không đưa server-side secret vào biến `VITE_*`.
 - [ ] Cấu hình SPA fallback/rewrite cho mọi client route.
 - [ ] Cấu hình Auth0 callback/logout/web origins cho production domain.
 - [ ] Cấu hình API CORS đúng production origin.
@@ -299,10 +311,10 @@ const StatsPage = lazy(() =>
 ### 9.10. Documentation và repository hygiene
 
 - [ ] Cập nhật README với setup, environment variables và các lệnh thường dùng.
-- [ ] Ghi rõ cách regenerate OpenAPI client.
+- [x] Ghi rõ cách regenerate OpenAPI client.
 - [ ] Ghi rõ generated files không được sửa tay.
-- [ ] Ghi rõ cách chạy unit, integration và E2E tests.
-- [ ] Ghi rõ Auth0 local/staging setup.
+- [x] Ghi rõ cách chạy unit, integration và E2E tests.
+- [x] Ghi rõ Auth0 local/staging setup.
 - [ ] Xóa nội dung TODO đã hoàn thành khỏi README.
 - [ ] Xóa `src/assets/react.svg`, `src/assets/vite.svg` và asset không dùng khác.
 - [ ] Quyết định convention cho line endings để generator không làm working tree hiện modified giả.
@@ -340,7 +352,7 @@ Chi tiết backend nằm tại [`BACKEND_IMPROVEMENT_CHECKLIST.md`](./BACKEND_IM
 - [ ] Không còn lỗi P0/P1 đã biết trong critical flows.
 - [ ] Lint, typecheck, build, unit/component tests và E2E smoke tests đều đạt.
 - [ ] Generated API client khớp OpenAPI source of truth.
-- [ ] Initial bundle nằm trong performance budget đã thống nhất.
+- [x] Initial bundle nằm trong performance budget đã thống nhất.
 - [ ] Không có accessibility violation nghiêm trọng hoặc critical.
 - [ ] Security/privacy review hoàn tất.
 - [ ] Production environment, SPA routing, Auth0 và CORS được xác nhận.

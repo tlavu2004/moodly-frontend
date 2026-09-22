@@ -1,4 +1,10 @@
 import { defineConfig, devices } from '@playwright/test'
+import { loadEnv } from 'vite'
+
+const integrationEnv = loadEnv('integration', process.cwd(), '')
+for (const [name, value] of Object.entries(integrationEnv)) {
+  if (process.env[name] === undefined) process.env[name] = value
+}
 
 const baseURL = process.env.E2E_BASE_URL ?? 'http://127.0.0.1:4173'
 
