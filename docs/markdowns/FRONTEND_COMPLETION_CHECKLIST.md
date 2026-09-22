@@ -316,7 +316,7 @@ const StatsPage = lazy(() =>
 - [x] Ghi rõ cách chạy unit, integration và E2E tests.
 - [x] Ghi rõ Auth0 local/staging setup.
 - [ ] Xóa nội dung TODO đã hoàn thành khỏi README.
-- [ ] Xóa `src/assets/react.svg`, `src/assets/vite.svg` và asset không dùng khác.
+- [x] Xóa `src/assets/react.svg`, `src/assets/vite.svg` và asset không dùng khác.
 - [ ] Quyết định convention cho line endings để generator không làm working tree hiện modified giả.
 - [ ] Cân nhắc alias import `@/` khi đường dẫn tương đối bắt đầu cản trở bảo trì.
 
