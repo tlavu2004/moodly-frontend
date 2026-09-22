@@ -277,7 +277,7 @@ const StatsPage = lazy(() =>
 ### 9.7. Environment và deployment
 
 - [x] Validate tất cả biến `VITE_*` khi ứng dụng khởi động hoặc build.
-- [ ] Tách `.env` cho development, test, staging và production.
+- [x] Tách `.env` template cho development, integration, staging và production.
 - [x] Không đưa server-side secret vào biến `VITE_*`.
 - [ ] Cấu hình SPA fallback/rewrite cho mọi client route.
 - [ ] Cấu hình Auth0 callback/logout/web origins cho production domain.
