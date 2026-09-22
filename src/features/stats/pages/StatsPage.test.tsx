@@ -26,7 +26,9 @@ describe('StatsPage', () => {
     render(<StatsPage />)
     expect(screen.getByText('4.3')).toBeInTheDocument()
     expect(screen.getByText('4')).toBeInTheDocument()
-    expect(within(screen.getByLabelText('Daily mood trend for this week')).getAllByText(/2\.0|5\.0/)).toHaveLength(2)
+    const table = screen.getByRole('table', { name: 'Daily mood trend for this week' })
+    expect(within(table).getByRole('row', { name: '2026-09-21 2.0 1' })).toBeInTheDocument()
+    expect(within(table).getByRole('row', { name: '2026-09-22 5.0 3' })).toBeInTheDocument()
   })
 
   it('maps missed habit IDs to names and safely falls back for unknown IDs', () => {
@@ -42,6 +44,6 @@ describe('StatsPage', () => {
   it('renders a one-point chart safely', () => {
     vi.mocked(useStats).mockReturnValue(state({ trends: [{ date: '2026-09-22', averageScore: 3, entryCount: 1 }] }))
     render(<StatsPage />)
-    expect(within(screen.getByLabelText('Daily mood trend for this week')).getByText('3.0')).toBeInTheDocument()
+    expect(within(screen.getByRole('table', { name: 'Daily mood trend for this week' })).getByText('3.0')).toBeInTheDocument()
   })
 })
