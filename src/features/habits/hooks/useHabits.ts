@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { getUserFacingError } from '../../../api/errorMessages.ts'
 import { useApiClient } from '../../../api/useApiClient.ts'
 import type { CreateHabitRequest, Habit } from '../../../api/openapi/types.api.ts'
 import { createHabit, listHabits, listHabitStreaks } from '../api/habitsApi.ts'
@@ -12,7 +13,7 @@ export function useHabits() {
 
   const load = useCallback(async () => {
     setIsLoading(true); setError(null)
-    try { const items = await listHabits(client); setHabits(items); setStreaks(await listHabitStreaks(client, items)) } catch (reason) { setError(reason instanceof Error ? reason.message : 'Unable to load habits.') } finally { setIsLoading(false) }
+    try { const items = await listHabits(client); setHabits(items); setStreaks(await listHabitStreaks(client, items)) } catch (reason) { setError(getUserFacingError(reason, 'Unable to load habits.')) } finally { setIsLoading(false) }
   }, [client])
 
   useEffect(() => {
@@ -20,7 +21,7 @@ export function useHabits() {
     void listHabits(client)
       .then(async (items) => ({ items, nextStreaks: await listHabitStreaks(client, items) }))
       .then(({ items, nextStreaks }) => { if (active) { setHabits(items); setStreaks(nextStreaks) } })
-      .catch((reason: unknown) => { if (active) setError(reason instanceof Error ? reason.message : 'Unable to load habits.') })
+      .catch((reason: unknown) => { if (active) setError(getUserFacingError(reason, 'Unable to load habits.')) })
       .finally(() => { if (active) setIsLoading(false) })
     return () => { active = false }
   }, [client])

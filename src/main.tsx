@@ -5,6 +5,7 @@ import { BrowserRouter } from 'react-router'
 import './index.css'
 import { AuthBootstrap } from './auth/AuthBootstrap.tsx'
 import App from './App.tsx'
+import { AppErrorBoundary } from './components/errors/AppErrorBoundary.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -16,11 +17,13 @@ createRoot(document.getElementById('root')!).render(
         redirect_uri: window.location.origin,
       }}
     >
-      <BrowserRouter>
-        <AuthBootstrap>
-          <App />
-        </AuthBootstrap>
-      </BrowserRouter>
+      <AppErrorBoundary>
+        <BrowserRouter>
+          <AuthBootstrap>
+            <App />
+          </AuthBootstrap>
+        </BrowserRouter>
+      </AppErrorBoundary>
     </Auth0Provider>
   </StrictMode>,
 )

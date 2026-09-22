@@ -1,6 +1,7 @@
 import { useAuth0 } from '@auth0/auth0-react'
 import { useEffect, useState, type ReactNode } from 'react'
 import { createApiClient } from '../api/client.ts'
+import { getUserFacingError } from '../api/errorMessages.ts'
 import { synchronize } from '../api/openapi/sdk.api.ts'
 
 type AuthBootstrapProps = {
@@ -16,7 +17,7 @@ export function AuthBootstrap({ children }: AuthBootstrapProps) {
     if (!isAuthenticated) return
     let active = true
     const client = createApiClient(() => getAccessTokenSilently())
-    synchronize({ client, throwOnError: true }).then(() => { if (active) setIsProfileReady(true) }).catch((reason: unknown) => { if (active) setProfileError(reason instanceof Error ? reason.message : 'Unable to synchronize your profile.') })
+    synchronize({ client, throwOnError: true }).then(() => { if (active) setIsProfileReady(true) }).catch((reason: unknown) => { if (active) setProfileError(getUserFacingError(reason, 'Unable to synchronize your profile.')) })
     return () => { active = false }
   }, [getAccessTokenSilently, isAuthenticated])
 

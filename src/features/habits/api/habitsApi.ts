@@ -14,9 +14,9 @@ export async function createHabit(client: ApiClient, input: CreateHabitRequest):
 }
 
 export async function listHabitStreaks(client: ApiClient, habits: Habit[]): Promise<Record<string, number>> {
-  const pairs = await Promise.all(habits.filter((habit) => habit.id).map(async (habit) => {
-    const result = await currentStreak({ client, path: { habitId: habit.id! }, throwOnError: true })
-    return [habit.id!, result.data.data?.currentStreak ?? 0] as const
+  const settled = await Promise.allSettled(habits.filter((habit) => habit.id).map(async (habit) => {
+    const result = await currentStreak({ client, path: { habitId: habit.id }, throwOnError: true })
+    return [habit.id, result.data.data?.currentStreak ?? 0] as const
   }))
-  return Object.fromEntries(pairs)
+  return Object.fromEntries(settled.flatMap((result) => result.status === 'fulfilled' ? [result.value] : []))
 }

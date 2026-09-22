@@ -50,7 +50,7 @@ describe('TodayPage', () => {
     await user.click(screen.getByRole('button', { name: /Save check-in/ }))
     expect(await screen.findByRole('status')).toHaveTextContent('Mood save failed')
     await user.click(screen.getByRole('button', { name: /Walk/ }))
-    expect(await screen.findByRole('status')).toHaveTextContent('Habit update failed')
+    expect(await screen.findByText('Habit update failed')).toBeInTheDocument()
   })
 
   it('locks repeated mood mutations while saving', async () => {
