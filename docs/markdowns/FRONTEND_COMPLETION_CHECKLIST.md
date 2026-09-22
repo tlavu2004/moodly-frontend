@@ -222,7 +222,7 @@ const StatsPage = lazy(() =>
 - [ ] Cân nhắc query cache sau khi có nhu cầu thật; không thêm state library chỉ để tối ưu sớm.
 - [ ] Đo Core Web Vitals trên production build.
 - [ ] Kiểm tra layout shift khi avatar và dữ liệu tải xong.
-- [ ] Xóa assets mẫu Vite/React không còn sử dụng.
+- [x] Xóa assets mẫu Vite/React không còn sử dụng.
 
 ### 9.3. Error resilience
 
