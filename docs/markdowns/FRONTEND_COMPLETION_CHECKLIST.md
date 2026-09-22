@@ -269,7 +269,7 @@ const StatsPage = lazy(() =>
 - [ ] Validate URL/avatar source theo policy đã thống nhất.
 - [ ] Thêm Content Security Policy phù hợp với Auth0 và Cloudinary.
 - [ ] Thêm `Referrer-Policy`, `X-Content-Type-Options` và các security headers tại hosting layer.
-- [ ] Chạy dependency audit trong CI.
+- [x] Chạy dependency audit trong CI.
 - [ ] Thiết lập dependency update automation.
 - [x] Xác nhận production build đặt `sourcemap: false` để không công khai ngoài ý muốn.
 - [ ] Rà soát nội dung mood note vì đây có thể là dữ liệu sức khỏe/tâm lý nhạy cảm.
