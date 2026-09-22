@@ -137,7 +137,7 @@ Repository đã có Vitest/Testing Library/MSW và coverage gate cho handwritten
 - [x] Test danh sách loading/error/empty/success.
 - [x] Test validation tên habit rỗng.
 - [x] Test form gửi đúng name, icon và target frequency.
-- [ ] Test create success thêm habit vào danh sách.
+- [x] Test create success thêm habit vào danh sách.
 - [x] Test create validation error hiển thị cho người dùng.
 - [x] Test streak loading và mapping theo habit ID.
 - [x] Test lỗi một streak không làm mất toàn bộ danh sách sau khi đổi sang partial success.
