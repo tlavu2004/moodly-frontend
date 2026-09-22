@@ -62,3 +62,14 @@
   .field-label { @apply mb-2 block text-sm font-bold; }
   .field-input { @apply min-h-11 w-full rounded-control border border-border bg-surface px-3 py-2 text-sm outline-none transition placeholder:text-foreground-muted/60 focus:border-primary focus:ring-3 focus:ring-primary/10; }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

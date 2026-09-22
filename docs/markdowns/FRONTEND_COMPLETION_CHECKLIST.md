@@ -246,7 +246,7 @@ const StatsPage = lazy(() =>
 - [ ] Không dùng màu sắc làm tín hiệu duy nhất cho mood, success hoặc error.
 - [ ] Kiểm tra contrast ở trạng thái normal, hover, focus và disabled.
 - [ ] Cung cấp text/table equivalent cho biểu đồ Stats.
-- [ ] Tôn trọng `prefers-reduced-motion` cho pulse, spinner và transitions.
+- [x] Tôn trọng `prefers-reduced-motion` cho pulse, spinner và transitions.
 - [ ] Kiểm tra zoom 200% và reflow ở chiều rộng 320 px.
 - [ ] Kiểm tra screen reader với form labels, validation và navigation landmarks.
 
