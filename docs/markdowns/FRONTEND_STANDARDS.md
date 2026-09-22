@@ -125,3 +125,9 @@ Before considering a change complete, confirm:
 - Loading, error, empty, and success behavior is intentional where server data is used.
 - Protected routes enforce authentication at the routing boundary.
 - Lint and build pass, plus relevant manual browser checks.
+
+## Deferred architecture decisions
+
+### Server-state cache
+
+Keep the current feature-local hooks and request cancellation instead of adding a query-cache library. The current route data has few shared consumers, and mutations already update or reload their owning feature state. Revisit this decision when the same server resource is fetched independently by multiple mounted routes, measured duplicate traffic becomes material, or offline/stale-while-revalidate behavior becomes a product requirement.

@@ -219,7 +219,7 @@ const StatsPage = lazy(() =>
 - [ ] Tránh N+1 streak requests khi backend có summary hoặc batch endpoint.
 - [x] Thêm request cancellation bằng `AbortSignal` cho search và date-filtered queries.
 - [x] Đảm bảo response cũ không ghi đè response mới khi filter đổi nhanh.
-- [ ] Cân nhắc query cache sau khi có nhu cầu thật; không thêm state library chỉ để tối ưu sớm.
+- [x] Cân nhắc query cache sau khi có nhu cầu thật; quyết định và tiêu chí xem xét lại được ghi trong `FRONTEND_STANDARDS.md`.
 - [ ] Đo Core Web Vitals trên production build.
 - [ ] Kiểm tra layout shift khi avatar và dữ liệu tải xong.
 - [x] Xóa assets mẫu Vite/React không còn sử dụng.
