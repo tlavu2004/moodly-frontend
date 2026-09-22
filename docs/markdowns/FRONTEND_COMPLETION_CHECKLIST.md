@@ -310,7 +310,7 @@ const StatsPage = lazy(() =>
 
 ### 9.10. Documentation và repository hygiene
 
-- [ ] Cập nhật README với setup, environment variables và các lệnh thường dùng.
+- [x] Cập nhật README với setup, environment variables và các lệnh thường dùng.
 - [x] Ghi rõ cách regenerate OpenAPI client.
 - [ ] Ghi rõ generated files không được sửa tay.
 - [x] Ghi rõ cách chạy unit, integration và E2E tests.
