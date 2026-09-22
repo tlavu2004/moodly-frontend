@@ -34,6 +34,7 @@ production. Never put client secrets, passwords, reset tokens, or access tokens 
 | `npm run test:coverage` | Run tests with coverage thresholds. |
 | `npm run test:e2e` | Run the complete Playwright suite. |
 | `npm run test:e2e:ui` | Debug Playwright interactively. |
+| `npm run smoke:deploy -- https://your-deployment.example` | Verify the deployed app shell and SPA fallback. |
 | `npm run analyze` | Generate `reports/bundle.html`. |
 | `npm run generate:api` | Regenerate the OpenAPI client. |
 

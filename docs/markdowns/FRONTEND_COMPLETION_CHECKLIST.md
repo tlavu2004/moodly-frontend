@@ -284,7 +284,7 @@ const StatsPage = lazy(() =>
 - [ ] Cấu hình API CORS đúng production origin.
 - [ ] Xác nhận HTTPS bắt buộc ở production.
 - [ ] Thêm cache policy cho hashed assets và không cache cứng `index.html`.
-- [ ] Tạo smoke check sau deploy.
+- [x] Tạo smoke check sau deploy (`npm run smoke:deploy -- <deployment-url>`).
 - [ ] Viết rollback procedure cho frontend release.
 
 ### 9.8. Monitoring và diagnostics
