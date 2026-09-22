@@ -53,6 +53,17 @@ describe('HabitsPage', () => {
     expect(add).toHaveBeenCalledWith({ name: 'Read', icon: '📖', targetFrequency: 'DAILY' })
   })
 
+  it('moves focus into the create form and restores it on cancel', async () => {
+    const user = userEvent.setup()
+    render(<HabitsPage />)
+    const trigger = screen.getByRole('button', { name: 'New habit' })
+    await user.click(trigger)
+    expect(screen.getByLabelText('Habit name')).toHaveFocus()
+    await user.click(screen.getByRole('button', { name: 'Cancel' }))
+    await new Promise(requestAnimationFrame)
+    expect(trigger).toHaveFocus()
+  })
+
   it('shows API validation errors while creating', async () => {
     add.mockRejectedValue(new Error('A habit with this name already exists.'))
     const user = userEvent.setup()

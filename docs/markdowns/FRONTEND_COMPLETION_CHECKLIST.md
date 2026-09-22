@@ -240,7 +240,7 @@ const StatsPage = lazy(() =>
 - [ ] Chạy axe hoặc tương đương trên mọi route.
 - [ ] Kiểm tra toàn bộ ứng dụng chỉ bằng bàn phím.
 - [ ] Kiểm tra focus order trên desktop và mobile navigation.
-- [ ] Di chuyển focus hợp lý khi mở/đóng form tạo habit.
+- [x] Di chuyển focus hợp lý khi mở/đóng form tạo habit.
 - [ ] Thông báo mutation success/error bằng live region không gây lặp.
 - [ ] Bổ sung accessible name cho mọi loading skeleton.
 - [ ] Không dùng màu sắc làm tín hiệu duy nhất cho mood, success hoặc error.
