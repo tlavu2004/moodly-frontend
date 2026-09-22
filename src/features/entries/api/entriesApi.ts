@@ -2,8 +2,8 @@ import type { ApiClient } from '../../../api/client.ts'
 import { findByStatus, findBetween, setTodayMood, today, updateTodayHabit } from '../../../api/openapi/sdk.api.ts'
 import type { DailyEntry, Habit, SetMoodRequest } from '../../../api/openapi/types.api.ts'
 
-export async function getEntries(client: ApiClient, from: string, to: string): Promise<DailyEntry[]> {
-  const result = await findBetween({ client, query: { from, to }, throwOnError: true })
+export async function getEntries(client: ApiClient, from: string, to: string, signal?: AbortSignal): Promise<DailyEntry[]> {
+  const result = await findBetween({ client, query: { from, to }, signal, throwOnError: true })
   return result.data.data?.items ?? []
 }
 

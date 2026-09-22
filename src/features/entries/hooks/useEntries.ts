@@ -9,10 +9,11 @@ export function useEntries(from: string, to: string) {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   useEffect(() => {
+    const controller = new AbortController()
     let active = true
     queueMicrotask(() => { setIsLoading(true); setError(null) })
-    getEntries(client, from, to).then((data) => { if (active) setEntries(data.toReversed()) }).catch((reason: unknown) => { if (active) setError(reason instanceof Error ? reason.message : 'Unable to load entries.') }).finally(() => { if (active) setIsLoading(false) })
-    return () => { active = false }
+    getEntries(client, from, to, controller.signal).then((data) => { if (active) setEntries(data.toReversed()) }).catch((reason: unknown) => { if (active && !controller.signal.aborted) setError(reason instanceof Error ? reason.message : 'Unable to load entries.') }).finally(() => { if (active) setIsLoading(false) })
+    return () => { active = false; controller.abort() }
   }, [client, from, to])
   return { entries, isLoading, error }
 }
