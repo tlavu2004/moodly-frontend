@@ -312,7 +312,7 @@ const StatsPage = lazy(() =>
 
 - [x] Cập nhật README với setup, environment variables và các lệnh thường dùng.
 - [x] Ghi rõ cách regenerate OpenAPI client.
-- [ ] Ghi rõ generated files không được sửa tay.
+- [x] Ghi rõ generated files không được sửa tay.
 - [x] Ghi rõ cách chạy unit, integration và E2E tests.
 - [x] Ghi rõ Auth0 local/staging setup.
 - [x] Xóa nội dung TODO đã hoàn thành khỏi README.

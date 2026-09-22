@@ -44,3 +44,7 @@ for the required inputs and startup sequence.
 ## API client generation
 
 Run `npm run generate:api` after the backend OpenAPI contract changes. The command reads `../moodly-backend/docs/api/moodly-openapi.json` and refreshes the committed files under `src/api/openapi/`.
+
+Files under `src/api/openapi/` are generated artifacts and must not be edited manually.
+Change the backend OpenAPI source, run the generator, then review and commit the generated
+diff together with the handwritten adapters that consume it.
