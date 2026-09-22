@@ -301,7 +301,7 @@ const StatsPage = lazy(() =>
 - [x] Chạy lint trên pull request.
 - [x] Chạy TypeScript/build trên pull request.
 - [x] Chạy unit/component tests trên pull request.
-- [ ] Chạy coverage threshold trên pull request.
+- [x] Chạy coverage threshold trên pull request.
 - [ ] Chạy API generation check và fail nếu generated output bị lệch.
 - [ ] Chạy dependency audit theo policy đã thống nhất.
 - [ ] Chạy E2E smoke suite trên staging hoặc môi trường preview.
