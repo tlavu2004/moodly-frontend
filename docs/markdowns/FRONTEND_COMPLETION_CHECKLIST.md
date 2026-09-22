@@ -242,7 +242,7 @@ const StatsPage = lazy(() =>
 - [ ] Kiểm tra focus order trên desktop và mobile navigation.
 - [x] Di chuyển focus hợp lý khi mở/đóng form tạo habit.
 - [ ] Thông báo mutation success/error bằng live region không gây lặp.
-- [ ] Bổ sung accessible name cho mọi loading skeleton.
+- [x] Bổ sung accessible name cho mọi loading skeleton.
 - [ ] Không dùng màu sắc làm tín hiệu duy nhất cho mood, success hoặc error.
 - [ ] Kiểm tra contrast ở trạng thái normal, hover, focus và disabled.
 - [ ] Cung cấp text/table equivalent cho biểu đồ Stats.
