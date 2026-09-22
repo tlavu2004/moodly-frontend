@@ -26,6 +26,7 @@ describe('TodayPage', () => {
     render(<TodayPage />)
     await waitFor(() => expect(screen.getByRole('button', { name: /Good/ })).toHaveAttribute('aria-pressed', 'true'))
     expect(screen.getByRole('button', { name: 'Calm' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: /Walk/ })).toHaveAttribute('aria-pressed', 'true')
     expect(screen.getByLabelText(/A note to yourself/)).toHaveValue('A good day')
   })
 
@@ -71,7 +72,9 @@ describe('TodayPage', () => {
     const user = userEvent.setup()
     render(<TodayPage />)
 
-    await user.click(screen.getByRole('button', { name: /Walk/ }))
+    const habitButton = screen.getByRole('button', { name: /Walk/ })
+    expect(habitButton).toHaveAttribute('aria-pressed', 'false')
+    await user.click(habitButton)
 
     expect(toggleHabit).toHaveBeenCalledWith('habit-1', true)
     expect(await screen.findByText('Habit completed—nice work.')).toBeInTheDocument()
