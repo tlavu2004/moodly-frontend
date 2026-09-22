@@ -11,7 +11,9 @@
     "generate:api": "openapi-ts",
     "test": "vitest",
     "test:run": "vitest run",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
     "@auth0/auth0-react": "^2.25.0",
@@ -22,6 +24,7 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@hey-api/openapi-ts": "0.99.0",
+    "@playwright/test": "^1.63.0",
     "@tailwindcss/vite": "^4.3.3",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
