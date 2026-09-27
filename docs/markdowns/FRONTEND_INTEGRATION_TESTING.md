@@ -17,7 +17,7 @@ authenticated run still requires the following external resources:
 | `VITE_AUTH0_CLIENT_ID` | Public client ID of the Auth0 SPA; this is not a client secret. |
 | `VITE_AUTH0_AUDIENCE` | Audience of the integration backend API. |
 | `VITE_API_BASE_URL` | Reachable integration backend base URL, without a secret. |
-| `E2E_BASE_URL` | Frontend origin, normally `http://127.0.0.1:4173` locally. |
+| `E2E_BASE_URL` | Optional frontend origin. Leave unset for auto-started local Vite; set it for an already-running frontend or staging. |
 | `E2E_TEST_USER_EMAIL` | Synthetic database-connection user stored locally or in CI secrets. |
 | `E2E_TEST_USER_PASSWORD` | Password for that synthetic user, stored only as a secret. |
 | `E2E_DATA_RESET_URL` | Absolute URL of the non-production reset endpoint. |
@@ -81,7 +81,7 @@ The smoke flow creates its own habit, mood entry, completion, avatar, and search
 1. Install the browser once with `npx playwright install chromium`.
 2. Start backend dependencies and the backend integration profile.
 3. Verify the backend health and reset endpoints from the test machine.
-4. Copy `.env.integration.example` to `.env.integration.local` and fill every value.
+4. Copy `.env.integration.example` to `.env.integration.local`, fill the required values, and leave `E2E_BASE_URL` unset for auto-started local Vite.
 5. Run `npm run test:e2e`; Playwright starts Vite in integration mode automatically.
 
 Useful commands:
