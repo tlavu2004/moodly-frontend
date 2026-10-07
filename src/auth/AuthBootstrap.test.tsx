@@ -34,6 +34,16 @@ describe('AuthBootstrap', () => {
     expect(screen.queryByText('Protected child')).not.toBeInTheDocument()
   })
 
+  it('removes consumed error callback parameters and provides recovery actions', () => {
+    window.history.replaceState({}, '', '/?error=access_denied&error_description=Denied&state=used&keep=1')
+    vi.mocked(useAuth0).mockReturnValue(authState({ error: new Error('Denied') }) as unknown as ReturnType<typeof useAuth0>)
+    render(<AuthBootstrap><p>Child</p></AuthBootstrap>)
+    expect(window.location.search).toBe('?keep=1')
+    expect(screen.getByRole('link', { name: 'Back to home' })).toHaveAttribute('href', '/')
+    expect(screen.getByRole('button', { name: 'Sign in again' })).toBeInTheDocument()
+    window.history.replaceState({}, '', '/')
+  })
+
   it('renders public children without profile synchronization', () => {
     render(<AuthBootstrap><p>Public child</p></AuthBootstrap>)
     expect(screen.getByText('Public child')).toBeInTheDocument()
