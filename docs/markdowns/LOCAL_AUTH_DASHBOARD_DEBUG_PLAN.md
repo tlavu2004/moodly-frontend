@@ -1,6 +1,8 @@
 # Kế hoạch debug Auth0 và Dashboard local
 
-Ngày: 2026-10-05. Checkpoint 1.7: CẦN SỬA.
+Ngày lập: 2026-10-05. Cập nhật: 2026-10-08. Checkpoint 1.7: PASS theo kiểm tra thủ công của chủ dự án.
+
+Trạng thái debug: HOÀN TẤT — chủ dự án xác nhận không còn bug trong các luồng đã kiểm tra; HANDOFF mục 1.7 đã ghi tất cả PASS và lỗi quan sát được là KHÔNG CÓ. Đây là kết quả local/manual; Playwright auth-setup và full authenticated E2E chưa được xác minh trong đợt này.
 
 Nhánh FE: `codex/debug-local-auth-dashboard` (từ `test/frontend-quality-foundation`).
 Nhánh BE khi cần sửa code: `codex/debug-local-auth-dashboard` (từ `main`).
@@ -22,40 +24,39 @@ Commit FE cho mục này: `docs(debug): document local auth and dashboard invest
 - [x] Xử lý callback lỗi để URL đã dùng không bị xử lý lại khi refresh.
 - [x] Thêm đường về trang chủ và đăng nhập lại trên trang lỗi; không tự lặp redirect khi user chủ động từ chối.
 - [x] Giữ cơ chế kiểm tra OAuth state của SDK.
-- [ ] Kiểm tra Decline → trang lỗi có hành động → refresh không tái dùng callback → đăng nhập lại thành công.
+- [x] Chủ dự án kiểm tra Decline và phục hồi, không còn Invalid state. Sign in có thể hỏi consent lại vì phiên Auth0 vẫn còn; đây là hành vi cấp quyền bình thường.
 - [x] Chạy test auth liên quan, lint và build.
 
 Commit FE: `fix(auth): recover from denied authorization callbacks`.
 
 ## 3. FE/Auth0: consent lặp khi refresh và return route
 
-- [ ] Tái hiện sau khi Accept thành công; ghi nhận scope/audience, loại lỗi silent session và return route, không lưu token/cookie vào log.
+- [x] Chủ dự án xác nhận refresh không còn login loop sau sửa; không thu thập token/cookie hoặc request trace trong phiên này.
 - [x] Đối chiếu cache/session SDK và chính sách consent cho localhost với tài liệu Auth0 chính thức.
-- [ ] Phân biệt vấn đề cấu hình tenant với lỗi FE; chỉ sửa khi có bằng chứng. Không bật token localStorage chỉ để che lỗi.
+- [x] Đối chiếu chính sách localhost của Auth0 và cache memory FE; dùng sessionStorage chỉ cho local, không dùng localStorage.
 - [x] Chốt login từ landing giữ `/`; protected route giữ đường quay lại theo SDK.
-- [ ] Kiểm tra Accept → dashboard → refresh nhiều lần → logout → protected route yêu cầu login.
+- [x] Chủ dự án xác nhận login, Dashboard, refresh, logout và protected route đều PASS trong HANDOFF 1.7.
 
 Commit FE nếu có sửa: `fix(auth): stabilize session restoration and return navigation`.
 Nếu chỉ đổi cấu hình Auth0, commit tài liệu kết quả: `docs(auth): document verified local consent configuration`.
 
 ## 4. BE: xác minh và xử lý TargetFrequency.daily
 
-- [ ] Kiểm tra stack trace để xác định lỗi đọc MongoDB hay parse request.
-- [ ] Đếm habit có `targetFrequency: daily` trong đúng database local, tránh in dữ liệu user.
+- Không thực hiện: đọc stack trace BE hoặc đếm trực tiếp habit trong DB. Docker không chạy trong phiên sửa; regression test tái hiện lỗi đọc giá trị cũ và xác minh converter. Chủ dự án đã xác nhận Dashboard hoạt động sau sửa.
 - [x] Checkout nhánh BE đã nêu trước khi chỉnh.
 - [x] Thêm read converter cho giá trị cũ `daily`; giữ API/write contract `DAILY`. Test dùng MappingMongoConverter thực tế xác minh cả đọc và ghi.
-- [ ] Mọi thay đổi dữ liệu phải giới hạn đúng record local đã xác minh và có phương án khôi phục; không xóa toàn database.
-- [ ] Kiểm tra Dashboard và habits đọc được dữ liệu; kiểm tra regression mapping nếu sửa converter.
+- Không áp dụng: không migration, không chỉnh/xóa dữ liệu local.
+- [x] Regression mapping đạt; chủ dự án xác nhận không còn lỗi Dashboard và các lỗi còn lại sau khi chạy lại.
 
 Commit BE nếu có code: `fix(habits): handle legacy target frequency values`.
 Nếu chỉ cần migration có script, commit script/hướng dẫn với convention `fix(data): normalize legacy habit frequencies`.
 
 ## 5. Xác minh lại checkpoint 1.7
 
-- [ ] Chạy lại đủ login, callback, dashboard, refresh, logout và protected route.
-- [ ] Kiểm tra thêm Decline và khả năng bắt đầu lại.
-- [ ] Ghi kết quả thực tế vào HANDOFF; chỉ tick PASS khi có bằng chứng.
-- [ ] Chạy các checks phù hợp sau thay đổi và ghi kết quả vào file này.
+- [x] Chủ dự án chạy lại login, callback, dashboard, refresh, logout và protected route.
+- [x] Chủ dự án kiểm tra Decline và khả năng bắt đầu lại.
+- [x] Đã đọc HANDOFF 1.7 ngày 2026-10-08: cả 7 tiêu chí PASS, lỗi quan sát được KHÔNG CÓ.
+- [x] Các checks đã chạy được ghi bên dưới; không chạy lại tests cho lần cập nhật tài liệu này.
 
 Commit FE: `docs(debug): record local auth and dashboard verification`.
 
@@ -70,7 +71,9 @@ Mỗi mục sửa hoàn tất có một commit riêng trong repo tương ứng, 
 - BE `16ca873`: đọc `daily` cũ thành `DAILY`; không chạy migration/xóa dữ liệu. Hai regression tests đạt; giá trị không hỗ trợ vẫn bị từ chối.
 - Kiểm tra tự động: FE 25 files / 75 tests PASS; lint và build/bundle budget PASS. BE `mvn test -Dtest=HabitMongoConfigurationTest`: 2 tests PASS. Full FE suite lần đầu lỗi cache temp sandbox ENOENT; chạy lại ngoài sandbox đạt toàn bộ.
 - Auth0 có thể yêu cầu xác nhận trên callback không xác minh được như localhost: [Auth0 hướng dẫn](https://support.auth0.com/center/s/article/understanding-and-testing-the-non-verifiable-callback-uri-consent-screen). Cache giúp refresh khi token còn hạn; khi token hết hạn hoặc tab mới vẫn có thể cần đăng nhập/consent tương tác.
-- Docker chưa chạy trong phiên debug, chưa kiểm tra DB thật hoặc login Auth0 end-to-end. Các ô manual phía trên chưa tick; checkpoint 1.7 vẫn chờ chạy lại.
+- FE `c8ed7ce`: đồng bộ callback với React Router, sửa URL dashboard còn hiển thị landing; 8 auth tests, lint/build PASS.
+- FE `007d0c8`: thêm logout tại landing và logo về trang chủ trên desktop/mobile; lint/build PASS.
+- Docker chưa chạy trong phiên sửa của Codex. Sau đó chủ dự án đã chạy app thật, xác nhận không còn bug và lưu kết quả manual PASS trong HANDOFF 1.7. Không coi kết quả này là Playwright E2E PASS hoặc production release PASS.
 
 ### Khởi động
 
