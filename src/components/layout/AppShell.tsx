@@ -19,7 +19,7 @@ export function AppShell() {
   return (
     <div className="min-h-svh bg-background text-foreground lg:grid lg:grid-cols-[15rem_1fr]">
       <aside className="hidden border-r border-border bg-surface lg:fixed lg:inset-y-0 lg:flex lg:w-60 lg:flex-col">
-        <NavLink className="flex h-20 items-center gap-2 px-7 text-xl font-bold tracking-tight" to="/dashboard"><span className="grid size-9 place-items-center rounded-xl bg-primary text-primary-foreground"><Icon name="sparkles" className="size-5" /></span>Moodly</NavLink>
+        <NavLink className="flex h-20 items-center gap-2 px-7 text-xl font-bold tracking-tight" to="/" aria-label="Moodly home"><span className="grid size-9 place-items-center rounded-xl bg-primary text-primary-foreground"><Icon name="sparkles" className="size-5" /></span>Moodly</NavLink>
         <nav className="flex flex-1 flex-col gap-1 px-4 py-3" aria-label="Primary navigation">
           {navigation.map((item) => <NavLink key={item.to} to={item.to} className={({ isActive }) => `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${isActive ? 'bg-primary-soft text-primary' : 'text-foreground-muted hover:bg-surface-muted hover:text-foreground'}`}><Icon name={item.icon} className="size-5" />{item.label}</NavLink>)}
         </nav>
@@ -32,7 +32,7 @@ export function AppShell() {
         </div>
       </aside>
       <header className="sticky top-0 z-20 col-start-2 flex h-16 items-center justify-between border-b border-border bg-surface/90 px-4 backdrop-blur lg:hidden">
-        <NavLink className="flex items-center gap-2 font-bold" to="/dashboard"><span className="grid size-8 place-items-center rounded-lg bg-primary text-primary-foreground"><Icon name="sparkles" className="size-4" /></span>Moodly</NavLink>
+        <NavLink className="flex items-center gap-2 font-bold" to="/" aria-label="Moodly home"><span className="grid size-8 place-items-center rounded-lg bg-primary text-primary-foreground"><Icon name="sparkles" className="size-4" /></span>Moodly</NavLink>
         <NavLink to="/search" aria-label="Search" className="rounded-lg p-2 text-foreground-muted"><Icon name="search" className="size-5" /></NavLink>
       </header>
       <div className="min-w-0 lg:col-start-2"><Outlet /></div>
