@@ -35,8 +35,9 @@ ownership, reset contract và lệnh chạy nằm trong
 [`FRONTEND_INTEGRATION_TESTING.md`](./FRONTEND_INTEGRATION_TESTING.md). Public E2E đã
 được chạy local; authenticated E2E đã được viết nhưng chưa thể xác nhận với hệ thống
 thật. Auth0 non-production application/origins và test account đã được provision;
-manual login đã PASS theo chủ dự án ngày 2026-10-08. Playwright auth-setup còn chờ
-backend local hoạt động để xác minh; full authenticated suite còn cần reset endpoint.
+manual login đã PASS theo chủ dự án ngày 2026-10-08. Playwright auth-setup đã PASS
+ngày 2026-10-08 (1 test); full authenticated suite còn cần reset endpoint và xác minh
+tái sử dụng session giữa các test.
 
 ### 7.2. Thiết lập Playwright
 
