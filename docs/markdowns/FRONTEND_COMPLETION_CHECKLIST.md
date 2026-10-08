@@ -23,9 +23,9 @@ Vì vậy có thể đánh dấu bước “Dashboard, habits, daily entry/mood,
 ### 7.1. Chuẩn bị môi trường kiểm thử tích hợp
 
 - [x] Tạo cấu hình frontend dành riêng cho test/integration environment.
-- [ ] Tạo Auth0 application hoặc tenant phù hợp cho automated testing.
-- [ ] Khai báo callback URL, logout URL và web origin cho môi trường test.
-- [ ] Chuẩn bị tài khoản test không dùng dữ liệu người thật.
+- [x] Tạo Auth0 application hoặc tenant phù hợp cho automated testing.
+- [x] Khai báo callback URL, logout URL và web origin cho môi trường test.
+- [x] Chuẩn bị tài khoản test không dùng dữ liệu người thật.
 - [ ] Chuẩn bị cơ chế seed/reset dữ liệu backend có thể chạy lặp lại.
 - [x] Không commit secret, test password hoặc access token vào repository.
 - [x] Viết hướng dẫn khởi động frontend, backend và dependency phục vụ E2E.
@@ -34,7 +34,9 @@ Các mục còn mở ở trên cần được provision bên ngoài repository. 
 ownership, reset contract và lệnh chạy nằm trong
 [`FRONTEND_INTEGRATION_TESTING.md`](./FRONTEND_INTEGRATION_TESTING.md). Public E2E đã
 được chạy local; authenticated E2E đã được viết nhưng chưa thể xác nhận với hệ thống
-thật cho tới khi Auth0 test tenant/account và backend reset endpoint được cung cấp.
+thật. Auth0 non-production application/origins và test account đã được provision;
+manual login đã PASS theo chủ dự án ngày 2026-10-08. Playwright auth-setup còn chờ
+backend local hoạt động để xác minh; full authenticated suite còn cần reset endpoint.
 
 ### 7.2. Thiết lập Playwright
 
