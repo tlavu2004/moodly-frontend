@@ -81,6 +81,10 @@ Mỗi mục sửa hoàn tất có một commit riêng trong repo tương ứng, 
 
 ### Các kịch bản cần xác nhận
 
+Bug bổ sung ngày 2026-10-08: URL `/dashboard` nhưng còn hiển thị landing sau callback. Nguyên nhân: callback mặc định Auth0 dùng `history.replaceState`, không cập nhật location của BrowserRouter đang mount. Đã đặt BrowserRouter ngoài Auth0Provider và dùng `navigate(..., { replace: true })` trong callback. Regression test xác minh cả URL lẫn nội dung route đổi ngay, không cần F5.
+
+Chạy lại riêng bug này: logout → mở thẳng `/dashboard` → hoàn tất login/Accept → phải thấy Dashboard ngay. Không bấm F5 hoặc Open dashboard để hoàn tất phép thử. Sau đó thử refresh để xác nhận nội dung vẫn là Dashboard.
+
 1. Từ landing, bấm Sign in → đăng nhập → Accept nếu được hỏi. Quay về landing với nút Open dashboard là đúng; bấm Open dashboard. Dashboard và Habits phải tải được, không còn lỗi TargetFrequency.daily.
 2. Trong cùng tab, refresh Dashboard 3 lần liên tiếp. Phải ở Dashboard, dữ liệu tải được và không xuất hiện consent lại khi token còn hạn.
 3. Logout → về landing. Mở trực tiếp `/dashboard` khi chưa đăng nhập → Auth0 → hoàn tất đăng nhập → trở về `/dashboard`. Đây là kịch bản dùng để điền dòng Login quay lại /dashboard trong 1.7.
