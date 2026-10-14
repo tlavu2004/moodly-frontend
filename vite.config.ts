@@ -1,12 +1,41 @@
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
-import { defineConfig } from 'vite'
+import { visualizer } from 'rollup-plugin-visualizer'
+import { defineConfig } from 'vitest/config'
 
 // https://vite.dev/config/
-export default defineConfig({
-  plugins: [react(), tailwindcss()],
+export default defineConfig(({ mode }) => ({
+  plugins: [
+    react(),
+    tailwindcss(),
+    mode === 'analyze' && visualizer({
+      filename: 'reports/bundle.html',
+      gzipSize: true,
+      brotliSize: true,
+      open: false,
+    }),
+  ],
+  test: {
+    include: ['src/**/*.{test,spec}.{ts,tsx}'],
+    environment: 'jsdom',
+    globals: true,
+    setupFiles: ['./src/test/setup.ts'],
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'html', 'lcov'],
+      include: ['src/**/*.{ts,tsx}'],
+      exclude: ['src/api/openapi/**', 'src/main.tsx', 'src/test/**'],
+      thresholds: {
+        lines: 60,
+        functions: 55,
+        branches: 50,
+        statements: 60,
+      },
+    },
+  },
   build: {
     manifest: true,
+    sourcemap: false,
     rolldownOptions: {
       output: {
         manualChunks(id) {
@@ -31,4 +60,4 @@ export default defineConfig({
       },
     },
   },
-})
+}))

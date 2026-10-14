@@ -22,157 +22,169 @@ Vì vậy có thể đánh dấu bước “Dashboard, habits, daily entry/mood,
 
 ### 7.1. Chuẩn bị môi trường kiểm thử tích hợp
 
-- [ ] Tạo cấu hình frontend dành riêng cho test/integration environment.
+- [x] Tạo cấu hình frontend dành riêng cho test/integration environment.
 - [ ] Tạo Auth0 application hoặc tenant phù hợp cho automated testing.
 - [ ] Khai báo callback URL, logout URL và web origin cho môi trường test.
 - [ ] Chuẩn bị tài khoản test không dùng dữ liệu người thật.
 - [ ] Chuẩn bị cơ chế seed/reset dữ liệu backend có thể chạy lặp lại.
-- [ ] Không commit secret, test password hoặc access token vào repository.
-- [ ] Viết hướng dẫn khởi động frontend, backend và dependency phục vụ E2E.
+- [x] Không commit secret, test password hoặc access token vào repository.
+- [x] Viết hướng dẫn khởi động frontend, backend và dependency phục vụ E2E.
+
+Các mục còn mở ở trên cần được provision bên ngoài repository. Danh sách giá trị,
+ownership, reset contract và lệnh chạy nằm trong
+[`FRONTEND_INTEGRATION_TESTING.md`](./FRONTEND_INTEGRATION_TESTING.md). Public E2E đã
+được chạy local; authenticated E2E đã được viết nhưng chưa thể xác nhận với hệ thống
+thật cho tới khi Auth0 test tenant/account và backend reset endpoint được cung cấp.
 
 ### 7.2. Thiết lập Playwright
 
-- [ ] Cài `@playwright/test` và browser runtime cần thiết.
-- [ ] Tạo `playwright.config.ts` với base URL, timeout và trace phù hợp.
-- [ ] Thêm script `test:e2e`.
-- [ ] Thêm script `test:e2e:ui` để debug local.
-- [ ] Cấu hình screenshot, video và trace chỉ giữ khi test thất bại hoặc retry.
-- [ ] Tái sử dụng authenticated storage state thay vì đăng nhập UI trong mọi test.
-- [ ] Tách test public routes và protected routes.
+- [x] Cài `@playwright/test` và browser runtime cần thiết.
+- [x] Tạo `playwright.config.ts` với base URL, timeout và trace phù hợp.
+- [x] Thêm script `test:e2e`.
+- [x] Thêm script `test:e2e:ui` để debug local.
+- [x] Cấu hình screenshot, video và trace chỉ giữ khi test thất bại hoặc retry.
+- [x] Tái sử dụng authenticated storage state thay vì đăng nhập UI trong mọi test.
+- [x] Tách test public routes và protected routes.
 
 ### 7.3. E2E smoke tests bắt buộc
 
-- [ ] Người chưa đăng nhập mở `/` được và không bị redirect.
-- [ ] Người chưa đăng nhập mở protected URL sẽ được đưa vào Auth0 flow.
-- [ ] Sau đăng nhập, người dùng quay lại đúng URL ban đầu.
-- [ ] Profile backend được synchronize trước khi protected page gọi API nghiệp vụ.
-- [ ] Tạo habit mới và thấy habit xuất hiện trong danh sách.
-- [ ] Ghi mood hôm nay và thấy dữ liệu cập nhật trên dashboard.
-- [ ] Đánh dấu habit hoàn thành và thấy completion ratio cập nhật.
-- [ ] Mở history với khoảng ngày và thấy entry vừa tạo.
-- [ ] Stats hiển thị dữ liệu tuần mà không gửi period không được hỗ trợ.
-- [ ] Upload avatar hợp lệ và thấy avatar sau khi reload.
-- [ ] Từ chối avatar sai định dạng hoặc quá dung lượng.
-- [ ] Search theo từ khóa và ngày cập nhật query string chính xác.
-- [ ] Logout quay về public landing page.
-- [ ] URL không tồn tại hiển thị trang 404 có đường quay lại hợp lệ.
+- [x] Người chưa đăng nhập mở `/` được và không bị redirect.
+- [x] Người chưa đăng nhập mở protected URL sẽ được đưa vào Auth0 flow.
+- [x] Sau đăng nhập, người dùng quay lại đúng URL ban đầu.
+- [x] Profile backend được synchronize trước khi protected page gọi API nghiệp vụ.
+- [x] Tạo habit mới và thấy habit xuất hiện trong danh sách.
+- [x] Ghi mood hôm nay và thấy dữ liệu cập nhật trên dashboard.
+- [x] Đánh dấu habit hoàn thành và thấy completion ratio cập nhật.
+- [x] Mở history với khoảng ngày và thấy entry vừa tạo.
+- [x] Stats hiển thị dữ liệu tuần mà không gửi period không được hỗ trợ.
+- [x] Upload avatar hợp lệ và thấy avatar sau khi reload.
+- [x] Từ chối avatar sai định dạng hoặc quá dung lượng.
+- [x] Search theo từ khóa và ngày cập nhật query string chính xác.
+- [x] Logout quay về public landing page.
+- [x] URL không tồn tại hiển thị trang 404 có đường quay lại hợp lệ.
+
+Các checkbox 7.3 xác nhận test case đã được triển khai. Các case cần đăng nhập vẫn chờ
+một lần chạy xanh trên integration environment trước khi được tính vào Definition of Done.
 
 ### 7.4. E2E failure paths
 
-- [ ] Kiểm tra UI khi backend trả `400` validation error.
-- [ ] Kiểm tra UI khi token hết hạn hoặc backend trả `401`.
-- [ ] Kiểm tra UI khi backend trả `403`.
-- [ ] Kiểm tra UI khi API trả `500`.
-- [ ] Kiểm tra UI khi mạng timeout hoặc mất kết nối.
+- [x] Kiểm tra UI khi backend trả `400` validation error.
+- [x] Kiểm tra UI khi token hết hạn hoặc backend trả `401`.
+- [x] Kiểm tra UI khi backend trả `403`.
+- [x] Kiểm tra UI khi API trả `500`.
+- [x] Kiểm tra UI khi mạng timeout hoặc mất kết nối.
 - [ ] Kiểm tra retry không tạo mutation trùng lặp.
-- [ ] Kiểm tra upload Cloudinary thành công nhưng confirm backend thất bại.
-- [ ] Kiểm tra empty state cho habits, entries, stats và search.
+- [x] Kiểm tra upload Cloudinary thành công nhưng confirm backend thất bại.
+- [x] Kiểm tra empty state cho habits, entries, stats và search.
+
+Hiện đã test khóa double-submit khi mutation đang chạy; mục retry vẫn để mở vì cần
+chốt idempotency key hoặc retry contract cho mutation với backend.
 
 ## 8. Frontend automated tests
 
 ### 8.1. Test foundation
 
-Repository hiện chưa có test runner hoặc test dependencies.
+Repository đã có Vitest/Testing Library/MSW và coverage gate cho handwritten code.
 
-- [ ] Cài Vitest.
-- [ ] Cài React Testing Library.
-- [ ] Cài `@testing-library/jest-dom`.
-- [ ] Cài `@testing-library/user-event`.
-- [ ] Cài `jsdom`.
-- [ ] Cài MSW để mock network ở transport boundary.
-- [ ] Tạo `vitest.config.ts` hoặc cấu hình test trong Vite.
-- [ ] Tạo test setup file và đăng ký jest-dom matchers.
-- [ ] Thêm script `test` cho watch mode.
-- [ ] Thêm script `test:run` cho CI.
-- [ ] Thêm script `test:coverage`.
-- [ ] Bỏ qua generated OpenAPI code khỏi coverage.
-- [ ] Đặt coverage threshold ban đầu cho code handwritten; tăng dần thay vì ép 100% ngay.
+- [x] Cài Vitest.
+- [x] Cài React Testing Library.
+- [x] Cài `@testing-library/jest-dom`.
+- [x] Cài `@testing-library/user-event`.
+- [x] Cài `jsdom`.
+- [x] Cài MSW để mock network ở transport boundary.
+- [x] Tạo `vitest.config.ts` hoặc cấu hình test trong Vite.
+- [x] Tạo test setup file và đăng ký jest-dom matchers.
+- [x] Thêm script `test` cho watch mode.
+- [x] Thêm script `test:run` cho CI.
+- [x] Thêm script `test:coverage`.
+- [x] Bỏ qua generated OpenAPI code khỏi coverage.
+- [x] Đặt coverage threshold ban đầu cho code handwritten; tăng dần thay vì ép 100% ngay.
 
 ### 8.2. API và error tests
 
-- [ ] Test `normalizeApiError` với backend error envelope.
-- [ ] Test `normalizeApiError` với network error.
-- [ ] Test status, code, timestamp và field errors được giữ đúng.
-- [ ] Test API client thêm Bearer token nhưng không log token.
-- [ ] Test API base URL được chuẩn hóa khi có dấu `/` cuối.
-- [ ] Test hành vi rõ ràng khi thiếu `VITE_API_BASE_URL`.
-- [ ] Test feature adapters unwrap `success/data/error/timestamp` đúng cách.
-- [ ] Test response thiếu `data` không làm UI crash.
+- [x] Test `normalizeApiError` với backend error envelope.
+- [x] Test `normalizeApiError` với network error.
+- [x] Test status, code, timestamp và field errors được giữ đúng.
+- [x] Test API client thêm Bearer token nhưng không log token.
+- [x] Test API base URL được chuẩn hóa khi có dấu `/` cuối.
+- [x] Test hành vi rõ ràng khi thiếu `VITE_API_BASE_URL`.
+- [x] Test feature adapters unwrap `success/data/error/timestamp` đúng cách.
+- [x] Test response thiếu `data` không làm UI crash.
 
 ### 8.3. Authentication và routing tests
 
-- [ ] Test public landing không yêu cầu authentication.
-- [ ] Test protected routes được bọc bởi Auth0 guard.
-- [ ] Test loading state trong Auth bootstrap.
-- [ ] Test Auth0 initialization error.
-- [ ] Test profile synchronization loading/error/success.
-- [ ] Test protected children chỉ render sau khi profile sync hoàn tất.
-- [ ] Test logout dùng `returnTo: window.location.origin`.
-- [ ] Test intentional 404 route.
+- [x] Test public landing không yêu cầu authentication.
+- [x] Test protected routes được bọc bởi Auth0 guard.
+- [x] Test loading state trong Auth bootstrap.
+- [x] Test Auth0 initialization error.
+- [x] Test profile synchronization loading/error/success.
+- [x] Test protected children chỉ render sau khi profile sync hoàn tất.
+- [x] Test logout dùng `returnTo: window.location.origin`.
+- [x] Test intentional 404 route.
 
 ### 8.4. Dashboard tests
 
-- [ ] Test adapter tổng hợp entries, habits, mood trend và streaks.
-- [ ] Test dashboard loading/error/success.
-- [ ] Test trạng thái chưa có habit.
-- [ ] Test trạng thái chưa check-in mood.
-- [ ] Test completion percentage với 0, một phần và 100%.
-- [ ] Test best streak và weekly mood summary.
-- [ ] Test retry sau lỗi.
+- [x] Test dashboard summary adapter unwrap response từ aggregated endpoint; frontend không còn tự tổng hợp nhiều request.
+- [x] Test dashboard loading/error/success.
+- [x] Test trạng thái chưa có habit.
+- [x] Test trạng thái chưa check-in mood.
+- [x] Test completion percentage với 0, một phần và 100%.
+- [x] Test best streak và weekly mood summary.
+- [x] Test retry sau lỗi.
 
 ### 8.5. Habits tests
 
-- [ ] Test danh sách loading/error/empty/success.
-- [ ] Test validation tên habit rỗng.
-- [ ] Test form gửi đúng name, icon và target frequency.
-- [ ] Test create success thêm habit vào danh sách.
-- [ ] Test create validation error hiển thị cho người dùng.
-- [ ] Test streak loading và mapping theo habit ID.
-- [ ] Test lỗi một streak không làm mất toàn bộ danh sách nếu thiết kế được đổi sang partial success.
+- [x] Test danh sách loading/error/empty/success.
+- [x] Test validation tên habit rỗng.
+- [x] Test form gửi đúng name, icon và target frequency.
+- [x] Test create success thêm habit vào danh sách.
+- [x] Test create validation error hiển thị cho người dùng.
+- [x] Test streak loading và mapping theo habit ID.
+- [x] Test lỗi một streak không làm mất toàn bộ danh sách sau khi đổi sang partial success.
 
 ### 8.6. Daily entry và history tests
 
-- [ ] Test date key local không lệch ngày do UTC.
-- [ ] Test initial mood, tags và note được hydrate từ entry hôm nay.
-- [ ] Test chỉ chấp nhận mood score từ 1 đến 5.
-- [ ] Test chọn/bỏ mood tags.
-- [ ] Test save mood success và failure.
-- [ ] Test toggle habit success và failure.
-- [ ] Test khóa mutation lặp trong lúc đang lưu.
-- [ ] Test lịch sử dùng `from/to` từ URL.
-- [ ] Test không cho chọn ngày tương lai hoặc khoảng ngày đảo ngược.
-- [ ] Test entry chỉ có habit log nhưng chưa có mood.
+- [x] Test date key local không lệch ngày do UTC.
+- [x] Test initial mood, tags và note được hydrate từ entry hôm nay.
+- [x] Test chỉ chấp nhận mood score từ 1 đến 5.
+- [x] Test chọn/bỏ mood tags.
+- [x] Test save mood success và failure.
+- [x] Test toggle habit success và failure.
+- [x] Test khóa mutation lặp trong lúc đang lưu.
+- [x] Test lịch sử dùng `from/to` từ URL.
+- [x] Test không cho chọn ngày tương lai hoặc khoảng ngày đảo ngược.
+- [x] Test entry chỉ có habit log nhưng chưa có mood.
 
 ### 8.7. Stats tests
 
-- [ ] Test frontend luôn gửi `period=week` theo contract hiện tại.
-- [ ] Test average mood và entry count.
-- [ ] Test most-missed habit mapping từ ID sang tên.
-- [ ] Test chart với 0, 1 và nhiều data points.
-- [ ] Test empty state khi chưa có dữ liệu.
-- [ ] Test unknown habit ID có fallback an toàn.
+- [x] Test frontend luôn gửi `period=week` theo contract hiện tại.
+- [x] Test average mood và entry count.
+- [x] Test most-missed habit mapping từ ID sang tên.
+- [x] Test chart với 0, 1 và nhiều data points.
+- [x] Test empty state khi chưa có dữ liệu.
+- [x] Test unknown habit ID có fallback an toàn.
 
 ### 8.8. Profile/avatar tests
 
-- [ ] Test fallback avatar từ Auth0 picture và initials.
-- [ ] Test chỉ chấp nhận JPEG, PNG và WebP.
-- [ ] Test giới hạn file 5 MB.
-- [ ] Test upload signature payload.
-- [ ] Test Cloudinary multipart payload không chứa trường thừa.
-- [ ] Test lấy `version` từ Cloudinary response an toàn.
-- [ ] Test confirm avatar success/failure.
-- [ ] Test metadata content type và size.
+- [x] Test fallback avatar từ Auth0 picture và initials.
+- [x] Test chỉ chấp nhận JPEG, PNG và WebP.
+- [x] Test giới hạn file 5 MB.
+- [x] Test upload signature payload.
+- [x] Test Cloudinary multipart payload không chứa trường thừa.
+- [x] Test lấy `version` từ Cloudinary response an toàn.
+- [x] Test confirm avatar success/failure.
+- [x] Test metadata content type và size.
 
 ### 8.9. Search tests
 
-- [ ] Test submit cập nhật `?q=`.
-- [ ] Test date filters cập nhật `from/to`.
-- [ ] Test clear date filters.
-- [ ] Test không gọi API khi query rỗng.
-- [ ] Test không gọi API khi khoảng ngày đảo ngược.
-- [ ] Test stale response không ghi đè query mới hơn.
-- [ ] Test highlights được render dưới dạng text an toàn.
-- [ ] Test link từ search result tới đúng ngày trong history.
+- [x] Test submit cập nhật `?q=`.
+- [x] Test date filters cập nhật `from/to`.
+- [x] Test clear date filters.
+- [x] Test không gọi API khi query rỗng.
+- [x] Test không gọi API khi khoảng ngày đảo ngược.
+- [x] Test stale response không ghi đè query mới hơn.
+- [x] Test highlights được render dưới dạng text an toàn.
+- [x] Test link từ search result tới đúng ngày trong history.
 
 ## 9. Performance, accessibility và production readiness
 
@@ -203,38 +215,38 @@ const StatsPage = lazy(() =>
 
 ### 9.2. Runtime performance
 
-- [ ] Dùng bundle analyzer để xác định dependency/chunk lớn nhất.
+- [x] Dùng bundle analyzer để xác định dependency/chunk lớn nhất (`npm run analyze`).
 - [ ] Tránh N+1 streak requests khi backend có summary hoặc batch endpoint.
-- [ ] Thêm request cancellation bằng `AbortSignal` cho search và date-filtered queries.
-- [ ] Đảm bảo response cũ không ghi đè response mới khi filter đổi nhanh.
-- [ ] Cân nhắc query cache sau khi có nhu cầu thật; không thêm state library chỉ để tối ưu sớm.
+- [x] Thêm request cancellation bằng `AbortSignal` cho search và date-filtered queries.
+- [x] Đảm bảo response cũ không ghi đè response mới khi filter đổi nhanh.
+- [x] Cân nhắc query cache sau khi có nhu cầu thật; quyết định và tiêu chí xem xét lại được ghi trong `FRONTEND_STANDARDS.md`.
 - [ ] Đo Core Web Vitals trên production build.
 - [ ] Kiểm tra layout shift khi avatar và dữ liệu tải xong.
-- [ ] Xóa assets mẫu Vite/React không còn sử dụng.
+- [x] Xóa assets mẫu Vite/React không còn sử dụng.
 
 ### 9.3. Error resilience
 
-- [ ] Thêm application-level Error Boundary.
-- [ ] Tạo fallback cho lỗi lazy chunk/load deployment mismatch.
-- [ ] Cung cấp retry hoặc reload action phù hợp trong error fallback.
-- [ ] Phân biệt thông báo validation, authentication, network và server error.
-- [ ] Đảm bảo mutation message không bị loading request khác ghi đè.
-- [ ] Xử lý partial failure khi một trong nhiều dashboard requests thất bại.
-- [ ] Xử lý partial failure khi một streak request thất bại.
-- [ ] Không hiển thị raw internal backend message nếu chứa chi tiết kỹ thuật.
+- [x] Thêm application-level Error Boundary.
+- [x] Tạo fallback cho lỗi lazy chunk/load deployment mismatch.
+- [x] Cung cấp retry hoặc reload action phù hợp trong error fallback.
+- [x] Phân biệt thông báo validation, authentication, network và server error.
+- [x] Đảm bảo mutation message không bị loading request khác ghi đè.
+- [x] Dashboard dùng aggregated summary endpoint nguyên tử nên không còn nhiều request frontend cần partial handling.
+- [x] Xử lý partial failure khi một streak request thất bại.
+- [x] Không hiển thị raw internal backend message nếu chứa chi tiết kỹ thuật.
 
 ### 9.4. Accessibility
 
 - [ ] Chạy axe hoặc tương đương trên mọi route.
 - [ ] Kiểm tra toàn bộ ứng dụng chỉ bằng bàn phím.
 - [ ] Kiểm tra focus order trên desktop và mobile navigation.
-- [ ] Di chuyển focus hợp lý khi mở/đóng form tạo habit.
-- [ ] Thông báo mutation success/error bằng live region không gây lặp.
-- [ ] Bổ sung accessible name cho mọi loading skeleton.
-- [ ] Không dùng màu sắc làm tín hiệu duy nhất cho mood, success hoặc error.
+- [x] Di chuyển focus hợp lý khi mở/đóng form tạo habit.
+- [x] Thông báo mutation success/error bằng live region ổn định, atomic và không gây lặp.
+- [x] Bổ sung accessible name cho mọi loading skeleton.
+- [x] Không dùng màu sắc làm tín hiệu duy nhất cho mood, success hoặc error.
 - [ ] Kiểm tra contrast ở trạng thái normal, hover, focus và disabled.
-- [ ] Cung cấp text/table equivalent cho biểu đồ Stats.
-- [ ] Tôn trọng `prefers-reduced-motion` cho pulse, spinner và transitions.
+- [x] Cung cấp text/table equivalent cho biểu đồ Stats.
+- [x] Tôn trọng `prefers-reduced-motion` cho pulse, spinner và transitions.
 - [ ] Kiểm tra zoom 200% và reflow ở chiều rộng 320 px.
 - [ ] Kiểm tra screen reader với form labels, validation và navigation landmarks.
 
@@ -251,29 +263,29 @@ const StatsPage = lazy(() =>
 
 ### 9.6. Security và privacy
 
-- [ ] Xác nhận không log access token, Authorization header hoặc sensitive response.
-- [ ] Không lưu access token vào localStorage/sessionStorage bằng code handwritten.
-- [ ] Giữ search highlights dưới dạng text hoặc sanitize theo contract rõ ràng.
-- [ ] Validate URL/avatar source theo policy đã thống nhất.
+- [x] Xác nhận không log access token, Authorization header hoặc sensitive response.
+- [x] Không lưu access token vào localStorage/sessionStorage bằng code handwritten.
+- [x] Giữ search highlights dưới dạng text hoặc sanitize theo contract rõ ràng.
+- [x] Validate URL/avatar source theo policy đã thống nhất (chỉ HTTPS, không credentials).
 - [ ] Thêm Content Security Policy phù hợp với Auth0 và Cloudinary.
 - [ ] Thêm `Referrer-Policy`, `X-Content-Type-Options` và các security headers tại hosting layer.
-- [ ] Chạy dependency audit trong CI.
-- [ ] Thiết lập dependency update automation.
-- [ ] Xác nhận source map production không công khai ngoài ý muốn.
-- [ ] Rà soát nội dung mood note vì đây có thể là dữ liệu sức khỏe/tâm lý nhạy cảm.
+- [x] Chạy dependency audit trong CI.
+- [x] Thiết lập Dependabot cho npm và GitHub Actions.
+- [x] Xác nhận production build đặt `sourcemap: false` để không công khai ngoài ý muốn.
+- [x] Rà soát nội dung mood note và ghi nhận frontend controls/production requirements trong `FRONTEND_PRIVACY_REVIEW.md`.
 
 ### 9.7. Environment và deployment
 
-- [ ] Validate tất cả biến `VITE_*` khi ứng dụng khởi động hoặc build.
-- [ ] Tách `.env` cho development, test, staging và production.
-- [ ] Không đưa server-side secret vào biến `VITE_*`.
+- [x] Validate tất cả biến `VITE_*` khi ứng dụng khởi động hoặc build.
+- [x] Tách `.env` template cho development, integration, staging và production.
+- [x] Không đưa server-side secret vào biến `VITE_*`.
 - [ ] Cấu hình SPA fallback/rewrite cho mọi client route.
 - [ ] Cấu hình Auth0 callback/logout/web origins cho production domain.
 - [ ] Cấu hình API CORS đúng production origin.
 - [ ] Xác nhận HTTPS bắt buộc ở production.
 - [ ] Thêm cache policy cho hashed assets và không cache cứng `index.html`.
-- [ ] Tạo smoke check sau deploy.
-- [ ] Viết rollback procedure cho frontend release.
+- [x] Tạo smoke check sau deploy (`npm run smoke:deploy -- <deployment-url>`).
+- [x] Viết rollback procedure cho frontend release trong `FRONTEND_RELEASE_RUNBOOK.md`.
 
 ### 9.8. Monitoring và diagnostics
 
@@ -286,27 +298,27 @@ const StatsPage = lazy(() =>
 
 ### 9.9. CI quality gates
 
-- [ ] Chạy lint trên pull request.
-- [ ] Chạy TypeScript/build trên pull request.
-- [ ] Chạy unit/component tests trên pull request.
-- [ ] Chạy coverage threshold trên pull request.
-- [ ] Chạy API generation check và fail nếu generated output bị lệch.
-- [ ] Chạy dependency audit theo policy đã thống nhất.
+- [x] Chạy lint trên pull request.
+- [x] Chạy TypeScript/build trên pull request.
+- [x] Chạy unit/component tests trên pull request.
+- [x] Chạy coverage threshold trên pull request.
+- [x] Chạy API generation check và fail nếu generated output bị lệch.
+- [x] Chạy dependency audit với policy fail ở mức `high` trở lên.
 - [ ] Chạy E2E smoke suite trên staging hoặc môi trường preview.
 - [ ] Lưu Playwright artifacts khi thất bại.
 - [ ] Chặn merge khi quality gate bắt buộc thất bại.
 
 ### 9.10. Documentation và repository hygiene
 
-- [ ] Cập nhật README với setup, environment variables và các lệnh thường dùng.
-- [ ] Ghi rõ cách regenerate OpenAPI client.
-- [ ] Ghi rõ generated files không được sửa tay.
-- [ ] Ghi rõ cách chạy unit, integration và E2E tests.
-- [ ] Ghi rõ Auth0 local/staging setup.
-- [ ] Xóa nội dung TODO đã hoàn thành khỏi README.
-- [ ] Xóa `src/assets/react.svg`, `src/assets/vite.svg` và asset không dùng khác.
-- [ ] Quyết định convention cho line endings để generator không làm working tree hiện modified giả.
-- [ ] Cân nhắc alias import `@/` khi đường dẫn tương đối bắt đầu cản trở bảo trì.
+- [x] Cập nhật README với setup, environment variables và các lệnh thường dùng.
+- [x] Ghi rõ cách regenerate OpenAPI client.
+- [x] Ghi rõ generated files không được sửa tay.
+- [x] Ghi rõ cách chạy unit, integration và E2E tests.
+- [x] Ghi rõ Auth0 local/staging setup.
+- [x] Xóa nội dung TODO đã hoàn thành khỏi README.
+- [x] Xóa `src/assets/react.svg`, `src/assets/vite.svg` và asset không dùng khác.
+- [x] Quyết định LF convention trong `.gitattributes` để generator không làm working tree hiện modified giả.
+- [x] Cân nhắc alias import `@/`; hiện giữ relative imports và đã ghi tiêu chí xem xét lại trong `FRONTEND_STANDARDS.md`.
 
 ## 10. Các quyết định đang phụ thuộc backend/product
 
@@ -339,10 +351,87 @@ Chi tiết backend nằm tại [`BACKEND_IMPROVEMENT_CHECKLIST.md`](./BACKEND_IM
 - [ ] Tất cả chức năng chính hoạt động với backend/Auth0 thật trên staging.
 - [ ] Không còn lỗi P0/P1 đã biết trong critical flows.
 - [ ] Lint, typecheck, build, unit/component tests và E2E smoke tests đều đạt.
-- [ ] Generated API client khớp OpenAPI source of truth.
-- [ ] Initial bundle nằm trong performance budget đã thống nhất.
+- [x] Generated API client khớp OpenAPI source of truth (đã regenerate và xác nhận working tree không đổi).
+- [x] Initial bundle nằm trong performance budget đã thống nhất.
 - [ ] Không có accessibility violation nghiêm trọng hoặc critical.
 - [ ] Security/privacy review hoàn tất.
 - [ ] Production environment, SPA routing, Auth0 và CORS được xác nhận.
 - [ ] Error monitoring và rollback procedure sẵn sàng.
 - [ ] README và runbook đủ để một thành viên mới chạy dự án.
+
+## 11. Handoff để hoàn tất các mục còn lại
+
+Phần này phân biệt rõ cấu hình/tài nguyên cần chủ dự án cung cấp với công việc Codex có thể tiếp tục sau đó. Không ghi secret, password, access token hoặc Auth0 client secret vào repository, issue, tài liệu hay nội dung chat. Hãy lưu secret trong `.env.*.local` đã được ignore hoặc secret store của GitHub/hosting provider; chỉ cần báo rằng tên biến đã được cấu hình.
+
+### 11.1. Những gì chủ dự án cần làm hoặc cấu hình
+
+#### A. Auth0 và tài khoản E2E non-production
+
+1. Tạo một Auth0 Single Page Application dành cho non-production. Có thể dùng chung non-production tenant cho local và test khi tenant chưa có người dùng thật; production nên có application/tenant và user store tách biệt trước khi ra mắt.
+2. Khai báo Allowed Callback URLs, Allowed Logout URLs và Allowed Web Origins cho origin local cùng staging/preview thực tế.
+3. Tạo một tài khoản automation chỉ chứa dữ liệu giả, email đã verify, không MFA/CAPTCHA/forced password change và chỉ có quyền người dùng Moodly thông thường.
+4. Điền `VITE_AUTH0_DOMAIN`, `VITE_AUTH0_CLIENT_ID`, `VITE_AUTH0_AUDIENCE`, `E2E_TEST_USER_EMAIL` và `E2E_TEST_USER_PASSWORD` vào local ignored env hoặc GitHub `staging` environment. Không cung cấp Auth0 client secret cho SPA.
+
+Sau khi hoàn tất, Codex có thể kiểm tra Auth0 redirect/callback/logout, chạy `auth-setup` và authenticated Playwright suite, sửa lỗi phát hiện được, rồi tick các ô còn mở trong mục 7.1–7.4, mục 9.9 E2E và các Definition of Done liên quan nếu toàn bộ bằng chứng đạt.
+
+#### B. Backend integration và reset dữ liệu
+
+1. Cung cấp integration backend có thể truy cập từ máy chạy Playwright.
+2. Cài đặt reset/seed endpoint chỉ tồn tại ở non-production, idempotent và bị giới hạn vào đúng synthetic test account theo contract trong `FRONTEND_INTEGRATION_TESTING.md`.
+3. Cấu hình `E2E_DATA_RESET_URL` dưới dạng variable và `E2E_DATA_RESET_TOKEN` dưới dạng secret; không dùng tiền tố `VITE_` cho hai giá trị này.
+4. Chốt hoặc triển khai idempotency contract cho mutation cần retry và batch/summary endpoint cho streak của trang Habits nếu muốn loại bỏ hoàn toàn N+1.
+
+Sau khi hoàn tất, Codex có thể xác minh reset chạy lặp lại không ảnh hưởng user khác, chạy failure/retry flows, kiểm tra mutation không bị nhân đôi, chuyển Habits sang batch endpoint nếu có, bổ sung tests và tick các mục backend-dependent tương ứng.
+
+#### C. Staging, production domain và hosting provider
+
+1. Chọn hosting provider và cung cấp tên provider cùng staging/production domain; không cần cung cấp credential trong chat.
+2. Tạo staging deployment từ branch/commit cần kiểm thử và cấu hình bốn biến `VITE_*` bằng giá trị staging.
+3. Cấu hình production Auth0 origins, API CORS và Cloudinary delivery domain cho đúng production origin.
+4. Bật HTTPS redirect/HSTS theo khả năng của provider và xác định cách rollback/promote một immutable deployment.
+
+Sau khi hoàn tất, Codex có thể tạo cấu hình đúng provider cho SPA fallback, CSP, `Referrer-Policy`, `X-Content-Type-Options` và cache headers; chạy post-deploy smoke check; xác minh deep links, HTTPS, Auth0 và CORS; sau đó tick mục 9.6, 9.7 và Definition of Done tương ứng khi kết quả thực tế đạt.
+
+#### D. GitHub environments và branch protection
+
+1. Tạo GitHub environment `staging` và cấu hình các `vars`/`secrets` được liệt kê trong workflow cùng `FRONTEND_INTEGRATION_TESTING.md`.
+2. Quyết định artifact policy cho authenticated Playwright: loại dữ liệu được phép lưu, masking/redaction, người được truy cập và retention. Mặc định hiện tại là không upload để tránh rò rỉ mood note, email, token hoặc session state.
+3. Sau khi CI checks đã chạy ổn định, bật branch protection/ruleset cho branch mặc định và chọn các required checks cần chặn merge.
+
+Sau khi hoàn tất, Codex có thể chạy hoặc rà soát staging workflow, bổ sung artifact upload theo policy đã duyệt, xác nhận không chứa `playwright/.auth`, kiểm tra required checks và tick ba mục CI còn lại khi GitHub báo thành công.
+
+#### E. Monitoring và privacy approval
+
+1. Chọn error-monitoring provider hoặc quyết định rõ chưa triển khai monitoring ở release này.
+2. Nếu triển khai, tạo project/DSN cho từng environment và phê duyệt danh sách field được phép gửi theo `FRONTEND_PRIVACY_REVIEW.md`.
+3. Quyết định có thu thập Web Vitals hay không; không bật session replay trên màn hình chứa mood data nếu chưa có privacy review riêng.
+4. Hoàn tất backend/product policy cho retention, deletion, backup và support access đối với mood note.
+
+Sau khi hoàn tất, Codex có thể tích hợp SDK đã chọn, thêm release/version và error-source tagging, redact PII/token/body, theo dõi API failures/Web Vitals theo quyết định, viết tests và tick mục 9.8 cùng các mục security/privacy liên quan sau khi được xác minh.
+
+#### F. Manual accessibility, responsive và browser QA
+
+1. Chuẩn bị các browser/device mục tiêu, tối thiểu Chrome, Edge, Firefox, Safari, iOS Safari và Android Chrome; có thể dùng thiết bị thật hoặc dịch vụ device farm đã được phê duyệt.
+2. Chạy keyboard-only, screen reader, zoom 200%, 320 px reflow, focus order, virtual keyboard và contrast checks trên staging với dữ liệu giả.
+3. Ghi browser/OS, viewport, route, trạng thái dữ liệu và bằng chứng cho mỗi lỗi; không chụp hoặc tải artifact chứa dữ liệu thật.
+
+Sau khi hoàn tất, Codex có thể phân tích kết quả, sửa các lỗi có thể tái hiện, bổ sung automated regression tests/axe checks, chạy lại các quality gates và tick từng mục 9.4–9.5 chỉ khi kiểm tra tương ứng thực sự đạt.
+
+### 11.2. Thông tin cần gửi lại để Codex tiếp tục
+
+Chỉ cần cung cấp các thông tin không nhạy cảm sau:
+
+- Auth0 non-production application và synthetic account đã sẵn sàng hay chưa; không gửi password.
+- Tên các env vars/secrets đã được cấu hình và environment chứa chúng; không gửi giá trị secret.
+- Staging URL, API base URL công khai, hosting provider và default branch.
+- Backend reset endpoint đã triển khai hay chưa và contract idempotency/batch nào đã sẵn sàng; không gửi reset token.
+- Monitoring provider/artifact policy đã được phê duyệt hay chưa.
+- Kết quả hoặc đường dẫn nội bộ đến báo cáo manual QA không chứa dữ liệu nhạy cảm.
+
+### 11.3. Quy tắc cập nhật checklist
+
+- Cấu hình đã tạo nhưng chưa chạy kiểm chứng vẫn giữ trạng thái chưa hoàn thành.
+- Codex chỉ đổi `[ ]` thành `[x]` sau khi có bằng chứng phù hợp: automated test thành công, kiểm tra deployment thực tế, CI required check thành công hoặc biên bản manual QA.
+- Khi một lần kiểm chứng hoàn tất nhiều ô, mỗi thay đổi chức năng vẫn giữ commit riêng; các cập nhật checkbox có thể đi cùng commit triển khai trực tiếp tương ứng.
+- Nếu kiểm tra thất bại, giữ nguyên checkbox, ghi lại blocker và sửa lỗi trước khi chạy lại.
+- Sau mỗi đợt thực hiện, rà lại cả các mục chi tiết phía trên và Definition of Done để tick đồng bộ, không chỉ cập nhật mục 11.

@@ -1,6 +1,6 @@
 export default {
   // The backend OpenAPI document is the source of truth for generated files.
-  input: '../moodly-backend/docs/api/moodly-openapi.json',
+  input: process.env.OPENAPI_INPUT ?? '../moodly-backend/docs/api/moodly-openapi.json',
   output: {
     fileName: {
       name: '{{name}}.api',
