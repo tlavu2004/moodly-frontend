@@ -9,9 +9,20 @@ type AuthBootstrapProps = {
 }
 
 export function AuthBootstrap({ children }: AuthBootstrapProps) {
-  const { error, getAccessTokenSilently, isAuthenticated, isLoading } = useAuth0()
+  const { error, getAccessTokenSilently, isAuthenticated, isLoading, loginWithRedirect } = useAuth0()
   const [isProfileReady, setIsProfileReady] = useState(false)
   const [profileError, setProfileError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!error) return
+    // The SDK has validated/consumed the callback. Never replay it on reload.
+    const url = new URL(window.location.href)
+    if (!url.searchParams.has('state')) return
+    for (const key of ['code', 'state', 'error', 'error_description', 'error_uri']) {
+      url.searchParams.delete(key)
+    }
+    window.history.replaceState(window.history.state, '', url.pathname + url.search + url.hash)
+  }, [error])
 
   useEffect(() => {
     if (!isAuthenticated) return
@@ -42,6 +53,11 @@ export function AuthBootstrap({ children }: AuthBootstrapProps) {
         >
           <h1 className="text-lg font-semibold">Unable to prepare Moodly</h1>
           <p className="mt-2 text-sm text-foreground/75">{error?.message ?? profileError}</p>
+          <div className="mt-4 flex flex-wrap gap-3">
+            <a className="button-secondary" href="/">Back to home</a>
+            {error && <button className="button-primary" type="button" onClick={() => loginWithRedirect({ appState: { returnTo: '/dashboard' } })}>Sign in again</button>}
+            {profileError && <button className="button-primary" type="button" onClick={() => window.location.reload()}>Try again</button>}
+          </div>
         </section>
       </main>
     )

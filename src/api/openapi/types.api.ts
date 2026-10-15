@@ -766,6 +766,10 @@ export type RestoreErrors = {
      */
     403: ApiResponseApiError;
     /**
+     * The resource conflicts with its current state.
+     */
+    409: ApiResponseApiError;
+    /**
      * An unexpected server error occurred.
      */
     500: ApiResponseApiError;
@@ -805,6 +809,10 @@ export type ArchiveErrors = {
      */
     403: ApiResponseApiError;
     /**
+     * The resource conflicts with its current state.
+     */
+    409: ApiResponseApiError;
+    /**
      * An unexpected server error occurred.
      */
     500: ApiResponseApiError;
@@ -843,6 +851,10 @@ export type UpdateErrors = {
      * The authenticated user is not allowed to perform this operation.
      */
     403: ApiResponseApiError;
+    /**
+     * The resource conflicts with its current state.
+     */
+    409: ApiResponseApiError;
     /**
      * An unexpected server error occurred.
      */

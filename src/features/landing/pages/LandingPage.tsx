@@ -3,12 +3,15 @@ import { Link } from 'react-router'
 import { Icon } from '../../../components/ui/Icon.tsx'
 
 export function LandingPage() {
-  const { isAuthenticated, loginWithRedirect } = useAuth0()
+  const { isAuthenticated, loginWithRedirect, logout } = useAuth0()
   return (
     <main className="min-h-svh overflow-hidden bg-background">
-      <header className="mx-auto flex h-20 max-w-7xl items-center justify-between px-5 sm:px-8">
+      <header className="mx-auto flex min-h-20 max-w-7xl flex-wrap items-center justify-between gap-3 px-5 py-3 sm:px-8">
         <Link className="flex items-center gap-2 text-xl font-bold tracking-tight" to="/"><span className="grid size-9 place-items-center rounded-xl bg-primary text-primary-foreground"><Icon name="sparkles" className="size-5" /></span>Moodly</Link>
-        {isAuthenticated ? <Link className="button-secondary" to="/dashboard">Open dashboard</Link> : <button className="button-secondary" type="button" onClick={() => loginWithRedirect()}>Sign in</button>}
+        {isAuthenticated ? <div className="flex flex-wrap items-center gap-2">
+          <Link className="button-secondary" to="/dashboard">Open dashboard</Link>
+          <button className="button-secondary" type="button" onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}>Log out</button>
+        </div> : <button className="button-secondary" type="button" onClick={() => loginWithRedirect()}>Sign in</button>}
       </header>
       <section className="relative mx-auto grid max-w-7xl items-center gap-12 px-5 py-16 sm:px-8 lg:grid-cols-2 lg:py-24">
         <div className="relative z-10">

@@ -135,5 +135,27 @@ Files under `src/api/openapi/` are generated artifacts and must not be edited ma
 Change the backend OpenAPI source, run the generator, then review and commit the generated
 diff together with the handwritten adapters that consume it.
 
+## Mutation retries
+
+The browser client does not automatically retry write requests after a network
+failure, timeout, or server error. A lost response does not prove that the write
+failed. In particular, `POST /habits` has no idempotency key; submitting it
+again can create another habit. The creation form asks users to check their
+habits before trying again when the outcome is unknown.
+
+Habit update, archive, and restore requests must send the latest `version`.
+On HTTP 409, fetch the current habit and decide whether to apply the change
+again; do not replay the old request automatically.
+
+## Habit streak loading
+
+The Habits page makes one list request and one parallel streak request per
+active habit. This N+1 pattern is accepted temporarily for small habit lists.
+If one streak request fails, its card shows “Streak unavailable” while the
+other streaks remain visible. Recheck this choice during staging performance
+testing with representative history and 10 active habits; move to a summary
+endpoint if the Habits page exceeds a 1-second p95 load time or typical habit
+counts grow beyond 10.
+
 Release verification and rollback steps are documented in [the frontend release runbook](docs/markdowns/FRONTEND_RELEASE_RUNBOOK.md).
 The handling rules for mood notes and other sensitive browser data are documented in [the frontend privacy review](docs/markdowns/FRONTEND_PRIVACY_REVIEW.md).

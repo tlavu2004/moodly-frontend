@@ -1,8 +1,10 @@
 import { expect, test, type Page, type Route } from '@playwright/test'
 import { resetTestData } from './support/reset.ts'
+import { restoreAuthSession } from './support/authSession.ts'
 
 test.describe.configure({ mode: 'serial' })
 test.beforeAll(async ({ request }) => resetTestData(request))
+test.beforeEach(async ({ page }) => restoreAuthSession(page))
 
 const envelope = (data: unknown) => ({ success: true, data, timestamp: new Date().toISOString() })
 const errorEnvelope = (status: number, message: string) => ({
@@ -25,7 +27,9 @@ for (const [status, expected] of [
   [500, 'having trouble'],
 ] as const) {
   test(`shows a safe message for HTTP ${status}`, async ({ page }) => {
-    await page.route('**/dashboard', (route) => fulfillJson(route, status, errorEnvelope(status, 'internal implementation detail')))
+    await page.route('**/dashboard', (route) => route.request().isNavigationRequest()
+      ? route.fallback()
+      : fulfillJson(route, status, errorEnvelope(status, 'internal implementation detail')))
     await page.goto('/dashboard')
     await expect(page.getByRole('alert')).toContainText(expected)
     await expect(page.getByRole('alert')).not.toContainText('internal implementation detail')
@@ -33,7 +37,9 @@ for (const [status, expected] of [
 }
 
 test('shows a connection message when a request times out', async ({ page }) => {
-  await page.route('**/dashboard', (route) => route.abort('timedout'))
+  await page.route('**/dashboard', (route) => route.request().isNavigationRequest()
+    ? route.fallback()
+    : route.abort('timedout'))
   await page.goto('/dashboard')
   await expect(page.getByRole('alert')).toContainText('Check your connection')
 })
@@ -70,6 +76,22 @@ test('locks a mutation while its request is in flight', async ({ page }) => {
   const pendingClick = submit.click()
   await expect(page.getByRole('button', { name: 'Creating…' })).toBeDisabled()
   await pendingClick
+  expect(createCount).toBe(1)
+})
+
+test('does not automatically retry a failed habit creation', async ({ page }) => {
+  await mockEmptyHabits(page)
+  let createCount = 0
+  await page.route('**/habits', (route) => {
+    if (route.request().method() !== 'POST') return route.fallback()
+    createCount += 1
+    return route.abort('timedout')
+  })
+  await page.goto('/habits')
+  await page.getByRole('button', { name: 'New habit' }).click()
+  await page.getByLabel('Habit name').fill('Walk')
+  await page.getByRole('button', { name: 'Create habit' }).click()
+  await expect(page.getByRole('alert')).toContainText('Check your habits before trying again')
   expect(createCount).toBe(1)
 })
 
