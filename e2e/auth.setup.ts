@@ -1,4 +1,4 @@
-import { mkdir } from 'node:fs/promises'
+import { mkdir, writeFile } from 'node:fs/promises'
 import { dirname } from 'node:path'
 import { expect, test as setup } from '@playwright/test'
 
@@ -20,4 +20,10 @@ setup('authenticate synthetic test user', async ({ page }) => {
 
   await mkdir(dirname(authFile), { recursive: true })
   await page.context().storageState({ path: authFile })
+  const entries = await page.evaluate(() => Object.keys(sessionStorage)
+    .filter((key) => key.startsWith('moodly:auth:'))
+    .map((key) => [key, sessionStorage.getItem(key)] as const)
+    .filter((entry): entry is readonly [string, string] => entry[1] !== null))
+  if (entries.length === 0) throw new Error('Auth0 session cache was not available after login.')
+  await writeFile('playwright/.auth/session.json', JSON.stringify({ origin: new URL(page.url()).origin, entries }))
 })
