@@ -16,7 +16,9 @@ export async function createHabit(client: ApiClient, input: CreateHabitRequest):
 export async function listHabitStreaks(client: ApiClient, habits: Habit[]): Promise<Record<string, number>> {
   const settled = await Promise.allSettled(habits.filter((habit) => habit.id).map(async (habit) => {
     const result = await currentStreak({ client, path: { habitId: habit.id }, throwOnError: true })
-    return [habit.id, result.data.data?.currentStreak ?? 0] as const
+    const streak = result.data.data?.currentStreak
+    if (streak === undefined) throw new Error('The habit streak response was empty.')
+    return [habit.id, streak] as const
   }))
   return Object.fromEntries(settled.flatMap((result) => result.status === 'fulfilled' ? [result.value] : []))
 }

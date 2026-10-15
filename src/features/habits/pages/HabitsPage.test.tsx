@@ -41,6 +41,16 @@ describe('HabitsPage', () => {
     expect(screen.getByText('6-day streak')).toBeInTheDocument()
   })
 
+  it('shows an unavailable streak separately from a zero streak', () => {
+    vi.mocked(useHabits).mockReturnValue(state({
+      habits: [habit, { ...habit, id: 'habit-2', name: 'Evening walk' }],
+      streaks: { 'habit-1': 0 },
+    }))
+    render(<HabitsPage />)
+    expect(screen.getByText('Ready to begin')).toBeInTheDocument()
+    expect(screen.getByText('Streak unavailable')).toBeInTheDocument()
+  })
+
   it('validates a blank name and submits trimmed values', async () => {
     const user = userEvent.setup()
     render(<HabitsPage />)
