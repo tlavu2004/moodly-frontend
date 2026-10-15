@@ -6,10 +6,10 @@ This environment is isolated from production and must contain synthetic data onl
 precedence. Never commit test passwords, Auth0 client secrets, reset tokens, access
 tokens, or captured authenticated browser state.
 
-## Inputs still required
+## Environment inputs
 
-The repository provides the runner, tests, and configuration contract. A full
-authenticated run still requires the following external resources:
+The repository provides the runner, tests, and configuration contract. Supply
+the following values through ignored local env files or CI/hosting secret stores:
 
 | Input | Required value / owner |
 | --- | --- |
@@ -18,14 +18,15 @@ authenticated run still requires the following external resources:
 | `VITE_AUTH0_AUDIENCE` | Audience of the integration backend API. |
 | `VITE_API_BASE_URL` | Reachable integration backend base URL, without a secret. |
 | `E2E_BASE_URL` | Optional frontend origin. Leave unset for auto-started local Vite; set it for an already-running frontend or staging. |
-| `E2E_TEST_USER_EMAIL` | Synthetic database-connection user stored locally or in CI secrets. |
+| `E2E_TEST_USER_EMAIL` | Synthetic Auth0 database-connection user stored locally or in CI secrets. |
 | `E2E_TEST_USER_PASSWORD` | Password for that synthetic user, stored only as a secret. |
 | `E2E_DATA_RESET_URL` | Absolute URL of the non-production reset endpoint. |
 | `E2E_DATA_RESET_TOKEN` | Server-side reset credential stored only as a secret. |
 
-Current repository status: none of the four `E2E_*` credentials/endpoints is supplied
-by the repository. This is intentional; the authenticated suites cannot pass until the
-test tenant/account and backend reset service are provisioned.
+Local status (2026-10-15): the non-production Auth0 application, synthetic account,
+backend, and reset service are configured outside Git; the authenticated E2E suite
+passed 13/13. The repository intentionally contains no E2E credentials or reset token.
+Provision and verify staging separately before running its suite.
 
 ## Auth0 application
 
@@ -50,13 +51,14 @@ CI artifact.
 
 ## Backend test data contract
 
-The backend integration environment must expose an authenticated seed/reset mechanism
-that is unavailable in production. Before each isolated E2E run it must:
+The backend provides `POST /internal/e2e/reset`, disabled by default and excluded from
+the `prod` and `production` profiles. Before each isolated E2E run it:
 
-1. Resolve the synthetic Auth0 subject to one test profile.
-2. Delete that profile's entries, habit logs, habits, avatar metadata, and search data.
-3. Recreate a deterministic baseline and wait for search indexing to finish.
-4. Return success only after reads observe the seeded state.
+1. Resolves the synthetic Auth0 subject from server configuration, never from the request.
+2. Deletes only that subject's habits, daily entries, and search documents. It leaves
+   the Auth0 account and application profile untouched.
+3. Seeds a deterministic baseline of 2 habits and 3 entries, then refreshes and verifies
+   all three search documents before returning success.
 
 Configure its URL and credential as `E2E_DATA_RESET_URL` and
 `E2E_DATA_RESET_TOKEN`. These are runner-side variables and must never use the `VITE_`
@@ -66,15 +68,15 @@ The current runner calls the endpoint as follows:
 
 ```http
 POST <E2E_DATA_RESET_URL>
-Authorization: Bearer <E2E_DATA_RESET_TOKEN>
+X-E2E-Reset-Token: <E2E_DATA_RESET_TOKEN>
 ```
 
 Any `2xx` response is accepted. A non-`2xx` response fails the authenticated suite
-before browser scenarios start. The reset token should identify or be restricted to the
-single synthetic Auth0 subject; do not accept a user ID supplied by the browser test.
-
-The deterministic baseline should contain no habits, entries, avatar, or search hits.
-The smoke flow creates its own habit, mood entry, completion, avatar, and search result.
+before browser scenarios start. A missing or wrong reset token returns `403`.
+`MOODLY_E2E_USER_ID` on the backend fixes the target subject; the browser test cannot
+choose another user. Two resets must return the same 2-habit/3-entry baseline and
+`searchIndexing: "verified"` without changing other users' data. The smoke flow may
+create its own habit, mood entry, completion, avatar, and search result.
 
 ## Local startup order
 
@@ -108,6 +110,6 @@ Keep Playwright traces, screenshots, and videos only for failed or retried tests
 - Resetting twice produces the same baseline and never modifies another user.
 - No secret or authenticated storage-state file appears in `git status`.
 
-The public project is locally runnable without external credentials. The `auth-setup`
-and `authenticated` projects are considered environment-verified only after the full
-suite passes against the provisioned Auth0 tenant and integration backend.
+The public project is locally runnable without external credentials. The full local
+E2E suite passed against the provisioned Auth0 tenant and integration backend on
+2026-10-15 (13/13). Staging remains unverified.

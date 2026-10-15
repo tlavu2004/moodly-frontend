@@ -26,18 +26,15 @@ Vì vậy có thể đánh dấu bước “Dashboard, habits, daily entry/mood,
 - [x] Tạo Auth0 application hoặc tenant phù hợp cho automated testing.
 - [x] Khai báo callback URL, logout URL và web origin cho môi trường test.
 - [x] Chuẩn bị tài khoản test không dùng dữ liệu người thật.
-- [ ] Chuẩn bị cơ chế seed/reset dữ liệu backend có thể chạy lặp lại.
+- [x] Chuẩn bị cơ chế seed/reset dữ liệu backend có thể chạy lặp lại.
 - [x] Không commit secret, test password hoặc access token vào repository.
 - [x] Viết hướng dẫn khởi động frontend, backend và dependency phục vụ E2E.
 
-Các mục còn mở ở trên cần được provision bên ngoài repository. Danh sách giá trị,
-ownership, reset contract và lệnh chạy nằm trong
-[`FRONTEND_INTEGRATION_TESTING.md`](./FRONTEND_INTEGRATION_TESTING.md). Public E2E đã
-được chạy local; authenticated E2E đã được viết nhưng chưa thể xác nhận với hệ thống
-thật. Auth0 non-production application/origins và test account đã được provision;
-manual login đã PASS theo chủ dự án ngày 2026-10-08. Playwright auth-setup đã PASS
-ngày 2026-10-08 (1 test); full authenticated suite còn cần reset endpoint và xác minh
-tái sử dụng session giữa các test.
+Auth0 non-production, synthetic account và reset endpoint đã được cấu hình cho local.
+Reset hai lần trả cùng baseline 2 habits/3 entries, không thay đổi dữ liệu user khác;
+authenticated E2E đã PASS 13/13 ngày 2026-10-15. Biến môi trường và contract nằm trong
+[`FRONTEND_INTEGRATION_TESTING.md`](./FRONTEND_INTEGRATION_TESTING.md).
+Staging cần được cấu hình và xác minh riêng ở checkpoint 3–4.
 
 ### 7.2. Thiết lập Playwright
 
@@ -66,8 +63,9 @@ tái sử dụng session giữa các test.
 - [x] Logout quay về public landing page.
 - [x] URL không tồn tại hiển thị trang 404 có đường quay lại hợp lệ.
 
-Các checkbox 7.3 xác nhận test case đã được triển khai. Các case cần đăng nhập vẫn chờ
-một lần chạy xanh trên integration environment trước khi được tính vào Definition of Done.
+Các checkbox 7.3 xác nhận test case đã được triển khai. Authenticated suite đã PASS
+13/13 ở local ngày 2026-10-15; chạy lại trên staging ở checkpoint 4 trước khi tính
+staging E2E vào Definition of Done.
 
 ### 7.4. E2E failure paths
 
@@ -76,12 +74,14 @@ một lần chạy xanh trên integration environment trước khi được tín
 - [x] Kiểm tra UI khi backend trả `403`.
 - [x] Kiểm tra UI khi API trả `500`.
 - [x] Kiểm tra UI khi mạng timeout hoặc mất kết nối.
-- [ ] Kiểm tra retry không tạo mutation trùng lặp.
+- [x] Kiểm tra retry không tạo mutation trùng lặp theo contract không tự retry mutation.
 - [x] Kiểm tra upload Cloudinary thành công nhưng confirm backend thất bại.
 - [x] Kiểm tra empty state cho habits, entries, stats và search.
 
-Hiện đã test khóa double-submit khi mutation đang chạy; mục retry vẫn để mở vì cần
-chốt idempotency key hoặc retry contract cho mutation với backend.
+Frontend không tự gửi lại HTTP mutation khi lỗi kết nối, timeout hoặc 5xx. E2E đã xác
+nhận POST đang chờ bị khóa và POST lỗi kết nối chỉ gửi một lần. Khi kết quả tạo habit
+không rõ, UI hướng dẫn kiểm tra danh sách trước khi thử lại; các habit mutation có
+version trả 409 khi dùng version cũ. Chưa có Idempotency-Key.
 
 ## 8. Frontend automated tests
 
@@ -227,6 +227,10 @@ const StatsPage = lazy(() =>
 - [ ] Kiểm tra layout shift khi avatar và dữ liệu tải xong.
 - [x] Xóa assets mẫu Vite/React không còn sử dụng.
 
+N+1 trên trang Habits được chấp nhận tạm thời ở checkpoint 2. Đo p95 ở staging với
+lịch sử đại diện và 10 active habits; nếu p95 > 1 giây hoặc số habits thường gặp > 10,
+chuyển sang summary endpoint.
+
 ### 9.3. Error resilience
 
 - [x] Thêm application-level Error Boundary.
@@ -368,6 +372,10 @@ Phần này phân biệt rõ cấu hình/tài nguyên cần chủ dự án cung 
 
 ### 11.1. Những gì chủ dự án cần làm hoặc cấu hình
 
+Phần A và B đã hoàn tất cho local ở checkpoint 1–2. Các bước dưới đây còn dùng để
+đối chiếu cấu hình staging và production; không cần tạo lại tài khoản hoặc reset
+endpoint local.
+
 #### A. Auth0 và tài khoản E2E non-production
 
 1. Tạo một Auth0 Single Page Application dành cho non-production. Có thể dùng chung non-production tenant cho local và test khi tenant chưa có người dùng thật; production nên có application/tenant và user store tách biệt trước khi ra mắt.
@@ -375,7 +383,8 @@ Phần này phân biệt rõ cấu hình/tài nguyên cần chủ dự án cung 
 3. Tạo một tài khoản automation chỉ chứa dữ liệu giả, email đã verify, không MFA/CAPTCHA/forced password change và chỉ có quyền người dùng Moodly thông thường.
 4. Điền `VITE_AUTH0_DOMAIN`, `VITE_AUTH0_CLIENT_ID`, `VITE_AUTH0_AUDIENCE`, `E2E_TEST_USER_EMAIL` và `E2E_TEST_USER_PASSWORD` vào local ignored env hoặc GitHub `staging` environment. Không cung cấp Auth0 client secret cho SPA.
 
-Sau khi hoàn tất, Codex có thể kiểm tra Auth0 redirect/callback/logout, chạy `auth-setup` và authenticated Playwright suite, sửa lỗi phát hiện được, rồi tick các ô còn mở trong mục 7.1–7.4, mục 9.9 E2E và các Definition of Done liên quan nếu toàn bộ bằng chứng đạt.
+Local auth và authenticated Playwright suite đã PASS. Cần xác minh lại URL Auth0
+và suite trên staging trước khi tick các Definition of Done liên quan đến staging.
 
 #### B. Backend integration và reset dữ liệu
 
@@ -384,7 +393,9 @@ Sau khi hoàn tất, Codex có thể kiểm tra Auth0 redirect/callback/logout, 
 3. Cấu hình `E2E_DATA_RESET_URL` dưới dạng variable và `E2E_DATA_RESET_TOKEN` dưới dạng secret; không dùng tiền tố `VITE_` cho hai giá trị này.
 4. Chốt hoặc triển khai idempotency contract cho mutation cần retry và batch/summary endpoint cho streak của trang Habits nếu muốn loại bỏ hoàn toàn N+1.
 
-Sau khi hoàn tất, Codex có thể xác minh reset chạy lặp lại không ảnh hưởng user khác, chạy failure/retry flows, kiểm tra mutation không bị nhân đôi, chuyển Habits sang batch endpoint nếu có, bổ sung tests và tick các mục backend-dependent tương ứng.
+Local reset chạy lặp lại, giữ nguyên dữ liệu user khác và failure/retry flows đã PASS.
+Staging cần cấu hình URL/token riêng và kiểm tra lại; quyết định chuyển Habits sang
+summary endpoint dựa trên phép đo p95 ở staging.
 
 #### C. Staging, production domain và hosting provider
 
@@ -424,10 +435,10 @@ Sau khi hoàn tất, Codex có thể phân tích kết quả, sửa các lỗi c
 
 Chỉ cần cung cấp các thông tin không nhạy cảm sau:
 
-- Auth0 non-production application và synthetic account đã sẵn sàng hay chưa; không gửi password.
+- Auth0 application và synthetic account cho staging đã cấu hình hay chưa; không gửi password.
 - Tên các env vars/secrets đã được cấu hình và environment chứa chúng; không gửi giá trị secret.
 - Staging URL, API base URL công khai, hosting provider và default branch.
-- Backend reset endpoint đã triển khai hay chưa và contract idempotency/batch nào đã sẵn sàng; không gửi reset token.
+- Backend staging có bật reset endpoint cho synthetic user và đo streak p95 chưa; không gửi reset token.
 - Monitoring provider/artifact policy đã được phê duyệt hay chưa.
 - Kết quả hoặc đường dẫn nội bộ đến báo cáo manual QA không chứa dữ liệu nhạy cảm.
 
