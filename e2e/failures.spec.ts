@@ -79,6 +79,22 @@ test('locks a mutation while its request is in flight', async ({ page }) => {
   expect(createCount).toBe(1)
 })
 
+test('does not automatically retry a failed habit creation', async ({ page }) => {
+  await mockEmptyHabits(page)
+  let createCount = 0
+  await page.route('**/habits', (route) => {
+    if (route.request().method() !== 'POST') return route.fallback()
+    createCount += 1
+    return route.abort('timedout')
+  })
+  await page.goto('/habits')
+  await page.getByRole('button', { name: 'New habit' }).click()
+  await page.getByLabel('Habit name').fill('Walk')
+  await page.getByRole('button', { name: 'Create habit' }).click()
+  await expect(page.getByRole('alert')).toContainText('Check your habits before trying again')
+  expect(createCount).toBe(1)
+})
+
 test('reports Cloudinary success followed by backend confirm failure', async ({ page }) => {
   await page.route('**/me/avatar', (route) => fulfillJson(route, 200, envelope(null)))
   await page.route('**/me/avatar/upload-signature', (route) => fulfillJson(route, 200, envelope({

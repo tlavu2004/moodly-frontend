@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { getUserFacingError } from '../../../api/errorMessages.ts'
+import { ApiRequestError } from '../../../api/errors.ts'
 import { Icon } from '../../../components/ui/Icon.tsx'
 import { useHabits } from '../hooks/useHabits.ts'
 
@@ -29,7 +30,12 @@ export function HabitsPage() {
     if (!name.trim()) { setFormError('Give your habit a name.'); return }
     setIsSaving(true); setFormError(null)
     try { await add({ name: name.trim(), icon, targetFrequency: 'DAILY' }); setName(''); setIsCreating(false) }
-    catch (reason) { setFormError(getUserFacingError(reason, 'Unable to create your habit.')) }
+    catch (reason) {
+      const outcomeUnknown = reason instanceof ApiRequestError && (reason.status === null || reason.status >= 500)
+      setFormError(outcomeUnknown
+        ? 'We could not confirm whether your habit was created. Check your habits before trying again.'
+        : getUserFacingError(reason, 'Unable to create your habit.'))
+    }
     finally { setIsSaving(false) }
   }
 
