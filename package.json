@@ -18,9 +18,9 @@
     "smoke:deploy": "node scripts/postdeploy-smoke.mjs"
   },
   "dependencies": {
-    "@auth0/auth0-react": "^2.25.0",
-    "react": "^19.2.8",
-    "react-dom": "^19.2.8",
+    "@auth0/auth0-react": "^2.28.2",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
     "react-router": "^7.18.4"
   },
   "devDependencies": {
