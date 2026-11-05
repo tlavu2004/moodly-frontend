@@ -1,5 +1,6 @@
 import { useAuth0 } from '@auth0/auth0-react'
 import { useEffect, useState, type ReactNode } from 'react'
+import { ApiRequestError } from '../api/errors.ts'
 import { createApiClient } from '../api/client.ts'
 import { getUserFacingError } from '../api/errorMessages.ts'
 import { synchronize } from '../api/openapi/sdk.api.ts'
@@ -11,6 +12,7 @@ type AuthBootstrapProps = {
 export function AuthBootstrap({ children }: AuthBootstrapProps) {
   const { error, getAccessTokenSilently, isAuthenticated, isLoading, loginWithRedirect } = useAuth0()
   const [isProfileReady, setIsProfileReady] = useState(false)
+  const [profileUnauthorized, setProfileUnauthorized] = useState(false)
   const [profileError, setProfileError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -28,7 +30,7 @@ export function AuthBootstrap({ children }: AuthBootstrapProps) {
     if (!isAuthenticated) return
     let active = true
     const client = createApiClient(() => getAccessTokenSilently())
-    synchronize({ client, throwOnError: true }).then(() => { if (active) setIsProfileReady(true) }).catch((reason: unknown) => { if (active) setProfileError(getUserFacingError(reason, 'Unable to synchronize your profile.')) })
+    synchronize({ client, throwOnError: true }).then(() => { if (active) setIsProfileReady(true) }).catch((reason: unknown) => { if (active) { setProfileUnauthorized(reason instanceof ApiRequestError && reason.status === 401); setProfileError(getUserFacingError(reason, 'Unable to synchronize your profile.')) } })
     return () => { active = false }
   }, [getAccessTokenSilently, isAuthenticated])
 
@@ -55,8 +57,8 @@ export function AuthBootstrap({ children }: AuthBootstrapProps) {
           <p className="mt-2 text-sm text-foreground/75">{error?.message ?? profileError}</p>
           <div className="mt-4 flex flex-wrap gap-3">
             <a className="button-secondary" href="/">Back to home</a>
-            {error && <button className="button-primary" type="button" onClick={() => loginWithRedirect({ appState: { returnTo: '/dashboard' } })}>Sign in again</button>}
-            {profileError && <button className="button-primary" type="button" onClick={() => window.location.reload()}>Try again</button>}
+            {(error || profileUnauthorized) && <button className="button-primary" type="button" onClick={() => loginWithRedirect({ appState: { returnTo: '/dashboard' } })}>Sign in again</button>}
+            {profileError && !profileUnauthorized && <button className="button-primary" type="button" onClick={() => window.location.reload()}>Try again</button>}
           </div>
         </section>
       </main>

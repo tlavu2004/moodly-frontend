@@ -1,3 +1,5 @@
+import { ApiRequestError } from '../api/errors.ts'
+import userEvent from '@testing-library/user-event'
 import { render, screen, waitFor } from '@testing-library/react'
 import { useAuth0 } from '@auth0/auth0-react'
 import { vi } from 'vitest'
@@ -74,4 +76,14 @@ describe('AuthBootstrap', () => {
     rerender(<AuthBootstrap><p>Child</p></AuthBootstrap>)
     await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('Profile synchronization failed'))
   })
+})
+
+it('provides sign-in recovery when the backend rejects profile sync with 401', async () => {
+  const loginWithRedirect = vi.fn()
+  synchronizeMock.mockRejectedValue(new ApiRequestError({ status: 401, message: 'Unauthorized' }))
+  vi.mocked(useAuth0).mockReturnValue(authState({ isAuthenticated: true, loginWithRedirect }) as unknown as ReturnType<typeof useAuth0>)
+  render(<AuthBootstrap><p>Child</p></AuthBootstrap>)
+  await userEvent.setup().click(await screen.findByRole('button', { name: 'Sign in again' }))
+  expect(loginWithRedirect).toHaveBeenCalledWith({ appState: { returnTo: '/dashboard' } })
+  expect(screen.queryByRole('button', { name: 'Try again' })).not.toBeInTheDocument()
 })
