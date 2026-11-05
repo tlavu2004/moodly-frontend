@@ -1,4 +1,5 @@
 import { createClient } from './openapi/client/index.api.ts'
+import { createRateLimitedFetch } from './rateLimit.ts'
 import { normalizeApiError } from './errors.ts'
 
 type GetAccessToken = () => Promise<string | undefined>
@@ -17,6 +18,7 @@ function getApiBaseUrl() {
 export function createApiClient(getAccessToken: GetAccessToken) {
   const client = createClient({
     baseUrl: getApiBaseUrl(),
+    fetch: createRateLimitedFetch(),
     auth: getAccessToken,
     throwOnError: true,
   })
