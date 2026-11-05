@@ -1,12 +1,12 @@
 import { readPage } from '../../../utils/pagination.ts'
 import { Pagination } from '../../../components/ui/Pagination.tsx'
 import { useSearchParams } from 'react-router'
-import { toLocalDateKey } from '../../../utils/date.ts'
+import { toMoodlyDateKey } from '../../../utils/date.ts'
 import { useEntries } from '../hooks/useEntries.ts'
 
 const moodEmoji: Record<number, string> = { 1: '😞', 2: '😕', 3: '😌', 4: '🙂', 5: '🤩' }
 export function EntriesPage() {
-  const [params, setParams] = useSearchParams(); const today = new Date(); const monthAgo = new Date(); monthAgo.setDate(monthAgo.getDate() - 30); const defaultTo = toLocalDateKey(today); const defaultFrom = toLocalDateKey(monthAgo); const from = params.get('from') ?? defaultFrom; const to = params.get('to') ?? defaultTo; const page = readPage(params.get('page')); const { entries, isLoading, error, totalElements, totalPages } = useEntries(from, to, page)
+  const [params, setParams] = useSearchParams(); const defaultTo = toMoodlyDateKey(new Date()); const monthAgo = new Date(`${defaultTo}T12:00:00Z`); monthAgo.setUTCDate(monthAgo.getUTCDate() - 30); const defaultFrom = monthAgo.toISOString().slice(0, 10); const from = params.get('from') ?? defaultFrom; const to = params.get('to') ?? defaultTo; const page = readPage(params.get('page')); const { entries, isLoading, error, totalElements, totalPages } = useEntries(from, to, page)
   function changeDate(name: 'from' | 'to', value: string) { const next = new URLSearchParams(params); next.delete('page'); if (value) next.set(name, value); else next.delete(name); setParams(next) }
   return <main className="page-container pb-24 lg:pb-10"><div className="flex flex-wrap items-end justify-between gap-4"><div><p className="eyebrow">Your journal</p><h1 className="page-title mt-3">Moments worth remembering</h1><p className="page-subtitle">A gentle record of how your days have felt.</p></div><div className="card flex flex-wrap gap-3 p-3"><label className="text-xs font-bold text-foreground-muted">From <input type="date" max={to < defaultTo ? to : defaultTo} className="ml-2 rounded-control border border-border px-2 py-1.5 text-foreground" value={from} onChange={(event) => changeDate('from', event.target.value)} /></label><label className="text-xs font-bold text-foreground-muted">To <input type="date" min={from} max={defaultTo} className="ml-2 rounded-control border border-border px-2 py-1.5 text-foreground" value={to} onChange={(event) => changeDate('to', event.target.value)} /></label></div></div><section className="mt-8" aria-live="polite">
     {isLoading && <div className="space-y-4" aria-label="Loading journal entries">{[1,2,3].map((item) => <div key={item} className="card h-36 animate-pulse bg-surface-muted" />)}</div>}

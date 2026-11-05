@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { getUserFacingError } from '../../../api/errorMessages.ts'
 import { useApiClient } from '../../../api/useApiClient.ts'
 import type { DailyEntryResponse as DailyEntry } from '../../../api/openapi/types.api.ts'
-import { toLocalDateKey } from '../../../utils/date.ts'
+import { toMoodlyDateKey } from '../../../utils/date.ts'
 import { getEntriesPage } from '../api/entriesApi.ts'
 
 export function useEntries(from: string, to: string, page = 0) {
@@ -12,7 +12,7 @@ export function useEntries(from: string, to: string, page = 0) {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   useEffect(() => {
-    const today = toLocalDateKey(new Date())
+    const today = toMoodlyDateKey(new Date())
     if (from > to || from > today || to > today) {
       queueMicrotask(() => {
         setEntries([])
