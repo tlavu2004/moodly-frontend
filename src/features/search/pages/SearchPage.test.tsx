@@ -16,7 +16,7 @@ function renderPage(url = '/search') {
 }
 
 describe('SearchPage', () => {
-  beforeEach(() => vi.mocked(useEntrySearch).mockReturnValue({ results: [], isLoading: false, error: null }))
+  beforeEach(() => vi.mocked(useEntrySearch).mockReturnValue({ results: [], totalElements: 1, totalPages: 1, isLoading: false, error: null }))
 
   it('submits a trimmed query into the URL', async () => {
     renderPage()
@@ -49,7 +49,7 @@ describe('SearchPage', () => {
         date: '2026-09-20',
         highlights: { 'mood.note': [{ text: '<img src=x onerror=alert(1)>', ranges: [{ start: 0, end: 3 }] }] },
       }],
-      isLoading: false,
+      totalElements: 1, totalPages: 1, isLoading: false,
       error: null,
     })
     const { container } = renderPage('/search?q=walk')
@@ -57,4 +57,18 @@ describe('SearchPage', () => {
     expect(container.querySelector('img')).toBeNull()
     expect(screen.getByRole('link', { name: 'View in journal' })).toHaveAttribute('href', '/entries?from=2026-09-20&to=2026-09-20')
   })
+})
+
+it('navigates pages and resets the page when submitting a new query', async () => {
+  vi.mocked(useEntrySearch).mockReturnValue({ results: [], totalElements: 21, totalPages: 2, isLoading: false, error: null })
+  renderPage('/search?q=walk')
+  const user = userEvent.setup()
+  expect(screen.getByRole('button', { name: 'Previous page' })).toBeDisabled()
+  await user.click(screen.getByRole('button', { name: 'Next page' }))
+  expect(screen.getByLabelText('Current URL')).toHaveTextContent('page=1')
+  expect(useEntrySearch).toHaveBeenLastCalledWith('walk', '', '', 1)
+  expect(screen.getByRole('button', { name: 'Next page' })).toBeDisabled()
+  await user.click(screen.getByRole('button', { name: 'Search' }))
+  expect(screen.getByLabelText('Current URL')).toHaveTextContent('?q=walk')
+  expect(screen.getByLabelText('Current URL')).not.toHaveTextContent('page=')
 })

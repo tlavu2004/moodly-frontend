@@ -3,11 +3,12 @@ import { getUserFacingError } from '../../../api/errorMessages.ts'
 import { useApiClient } from '../../../api/useApiClient.ts'
 import type { DailyEntryResponse as DailyEntry } from '../../../api/openapi/types.api.ts'
 import { toLocalDateKey } from '../../../utils/date.ts'
-import { getEntries } from '../api/entriesApi.ts'
+import { getEntriesPage } from '../api/entriesApi.ts'
 
-export function useEntries(from: string, to: string) {
+export function useEntries(from: string, to: string, page = 0) {
   const client = useApiClient()
   const [entries, setEntries] = useState<DailyEntry[]>([])
+  const [pagination, setPagination] = useState({ totalElements: 0, totalPages: 0 })
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   useEffect(() => {
@@ -23,8 +24,8 @@ export function useEntries(from: string, to: string) {
     const controller = new AbortController()
     let active = true
     queueMicrotask(() => { setIsLoading(true); setError(null) })
-    getEntries(client, from, to, controller.signal).then((data) => { if (active) setEntries(data.toReversed()) }).catch((reason: unknown) => { if (active && !controller.signal.aborted) setError(getUserFacingError(reason, 'Unable to load entries.')) }).finally(() => { if (active) setIsLoading(false) })
+    getEntriesPage(client, from, to, page, controller.signal).then((data) => { if (active) { setEntries(data.items); setPagination(data) } }).catch((reason: unknown) => { if (active && !controller.signal.aborted) setError(getUserFacingError(reason, 'Unable to load entries.')) }).finally(() => { if (active) setIsLoading(false) })
     return () => { active = false; controller.abort() }
-  }, [client, from, to])
-  return { entries, isLoading, error }
+  }, [client, from, to, page])
+  return { entries, isLoading, error, ...pagination }
 }
