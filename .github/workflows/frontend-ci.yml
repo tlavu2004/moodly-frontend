@@ -27,7 +27,7 @@ jobs:
       - name: Verify generated API client
         run: npm run generate:api && git diff --exit-code -- src/api/openapi
         env:
-          OPENAPI_INPUT: moodly-backend/docs/api/moodly-openapi.json
+          OPENAPI_INPUT: moodly-backend/docs/api/json/moodly-openapi.json
       - run: npm run lint
       - run: npm run build
       - run: npm run test:run

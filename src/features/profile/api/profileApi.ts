@@ -1,6 +1,6 @@
 import type { ApiClient } from '../../../api/client.ts'
 import { confirm, current, signature } from '../../../api/openapi/sdk.api.ts'
-import type { Avatar, UploadRequest } from '../../../api/openapi/types.api.ts'
+import type { AvatarResponse as Avatar, UploadRequest } from '../../../api/openapi/types.api.ts'
 
 export async function getAvatar(client: ApiClient): Promise<Avatar | null> {
   const result = await current({ client, throwOnError: true })

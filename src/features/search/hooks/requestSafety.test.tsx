@@ -1,3 +1,4 @@
+import { normalizeApiError } from '../../../api/errors.ts'
 import { act, renderHook, waitFor } from '@testing-library/react'
 import { vi } from 'vitest'
 import { useEntries } from '../../entries/hooks/useEntries.ts'
@@ -66,4 +67,21 @@ describe('request cancellation and stale response protection', () => {
     expect(inverted.result.current.error).toContain('valid date range')
     expect(future.result.current.error).toContain('future dates')
   })
+})
+
+it.each([[500, 'INTERNAL_SERVER_ERROR'], [503, 'SEARCH_UNAVAILABLE']] as const)('shows a safe search error without automatically retrying %s / %s', async (status, code) => {
+  vi.useFakeTimers()
+  try {
+    searchEntriesMock.mockReset().mockRejectedValue(normalizeApiError({ success: false, error: { status, code, message: 'hit has no source' } }, new Response(null, { status })))
+    const { result, rerender } = renderHook(() => useEntrySearch('walk'))
+    await act(async () => { await vi.advanceTimersByTimeAsync(60_000) })
+    expect(result.current.error).toContain('having trouble')
+    expect(result.current.error).not.toContain('source')
+    expect(result.current.isLoading).toBe(false)
+    rerender()
+    await act(async () => { await vi.advanceTimersByTimeAsync(60_000) })
+    expect(searchEntriesMock).toHaveBeenCalledTimes(1)
+  } finally {
+    vi.useRealTimers()
+  }
 })

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
+import { getUserFacingError } from '../../../api/errorMessages.ts'
 import { useApiClient } from '../../../api/useApiClient.ts'
-import type { DailyEntry, Habit, SetMoodRequest } from '../../../api/openapi/types.api.ts'
+import type { DailyEntryResponse as DailyEntry, HabitResponse as Habit, SetMoodRequest } from '../../../api/openapi/types.api.ts'
 import { getActiveHabits, getTodayEntry, saveHabitLog, saveMood } from '../api/entriesApi.ts'
 
 export function useTodayEntry() {
@@ -12,7 +13,7 @@ export function useTodayEntry() {
 
   useEffect(() => {
     let active = true
-    Promise.all([getTodayEntry(client), getActiveHabits(client)]).then(([todayEntry, activeHabits]) => { if (active) { setEntry(todayEntry); setHabits(activeHabits) } }).catch((reason: unknown) => { if (active) setError(reason instanceof Error ? reason.message : 'Unable to load today.') }).finally(() => { if (active) setIsLoading(false) })
+    Promise.all([getTodayEntry(client), getActiveHabits(client)]).then(([todayEntry, activeHabits]) => { if (active) { setEntry(todayEntry); setHabits(activeHabits) } }).catch((reason: unknown) => { if (active) setError(getUserFacingError(reason, 'Unable to load today.')) }).finally(() => { if (active) setIsLoading(false) })
     return () => { active = false }
   }, [client])
 

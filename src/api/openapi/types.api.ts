@@ -31,12 +31,12 @@ export type ApiError = {
     requestId: string;
 };
 
-export type ApiResponseDailyEntry = {
+export type ApiResponseDailyEntryResponse = {
     success: boolean;
     /**
      * Present for successful responses.
      */
-    data?: DailyEntry;
+    data?: DailyEntryResponse;
     /**
      * Present for error responses.
      */
@@ -44,12 +44,12 @@ export type ApiResponseDailyEntry = {
     timestamp: string;
 };
 
-export type DailyEntry = {
+export type DailyEntryResponse = {
     id: string;
     userId: string;
     date: string;
-    mood?: Mood;
-    habits: Array<HabitLog>;
+    mood?: MoodResponse;
+    habits: Array<HabitLogResponse>;
     createdAt: string;
     updatedAt: string;
 };
@@ -59,13 +59,13 @@ export type FieldErrorResponse = {
     message?: string;
 };
 
-export type HabitLog = {
+export type HabitLogResponse = {
     habitId: string;
     done: boolean;
     note?: string | null;
 };
 
-export type Mood = {
+export type MoodResponse = {
     score: number;
     tags: Array<string>;
     note?: string | null;
@@ -99,12 +99,12 @@ export type UploadRequest = {
     sizeBytes?: number;
 };
 
-export type ApiResponseUploadSignature = {
+export type ApiResponseUploadSignatureResponse = {
     success: boolean;
     /**
      * Present for successful responses.
      */
-    data?: UploadSignature;
+    data?: UploadSignatureResponse;
     /**
      * Present for error responses.
      */
@@ -112,7 +112,7 @@ export type ApiResponseUploadSignature = {
     timestamp: string;
 };
 
-export type UploadSignature = {
+export type UploadSignatureResponse = {
     cloudName?: string;
     apiKey?: string;
     uploadPreset?: string;
@@ -128,12 +128,12 @@ export type ConfirmRequest = {
     version?: number;
 };
 
-export type ApiResponseAvatar = {
+export type ApiResponseAvatarResponse = {
     success: boolean;
     /**
      * Present for successful responses.
      */
-    data?: Avatar;
+    data?: AvatarResponse;
     /**
      * Present for error responses.
      */
@@ -141,19 +141,19 @@ export type ApiResponseAvatar = {
     timestamp: string;
 };
 
-export type Avatar = {
+export type AvatarResponse = {
     publicId?: string;
     contentType?: string;
     sizeBytes?: number;
     deliveryUrl?: string;
 };
 
-export type ApiResponseReindexResult = {
+export type ApiResponseCdcReindexResponse = {
     success: boolean;
     /**
      * Present for successful responses.
      */
-    data?: ReindexResult;
+    data?: CdcReindexResponse;
     /**
      * Present for error responses.
      */
@@ -161,7 +161,7 @@ export type ApiResponseReindexResult = {
     timestamp: string;
 };
 
-export type ReindexResult = {
+export type CdcReindexResponse = {
     indexedEntries?: number;
 };
 
@@ -180,12 +180,12 @@ export type CreateHabitRequest = {
     targetFrequency: 'DAILY';
 };
 
-export type ApiResponseHabit = {
+export type ApiResponseHabitResponse = {
     success: boolean;
     /**
      * Present for successful responses.
      */
-    data?: Habit;
+    data?: HabitResponse;
     /**
      * Present for error responses.
      */
@@ -193,7 +193,7 @@ export type ApiResponseHabit = {
     timestamp: string;
 };
 
-export type Habit = {
+export type HabitResponse = {
     id: string;
     userId: string;
     name: string;
@@ -277,12 +277,12 @@ export type MoodTrendResponse = {
     entryCount: number;
 };
 
-export type ApiResponseListHabit = {
+export type ApiResponseListHabitResponse = {
     success: boolean;
     /**
      * Present for successful responses.
      */
-    data?: Array<Habit> | null;
+    data?: Array<HabitResponse> | null;
     /**
      * Present for error responses.
      */
@@ -308,12 +308,12 @@ export type HabitStreakResponse = {
     currentStreak: number;
 };
 
-export type ApiResponsePageResponseDailyEntry = {
+export type ApiResponsePageResponseDailyEntryResponse = {
     success: boolean;
     /**
      * Present for successful responses.
      */
-    data?: PageResponseDailyEntry;
+    data?: PageResponseDailyEntryResponse;
     /**
      * Present for error responses.
      */
@@ -321,8 +321,8 @@ export type ApiResponsePageResponseDailyEntry = {
     timestamp: string;
 };
 
-export type PageResponseDailyEntry = {
-    items: Array<DailyEntry>;
+export type PageResponseDailyEntryResponse = {
+    items: Array<DailyEntryResponse>;
     page: number;
     size: number;
     totalElements: number;
@@ -349,7 +349,7 @@ export type TodayEntryResponse = {
     /**
      * The complete entry, or null when the user has not checked in today.
      */
-    entry?: DailyEntry;
+    entry?: DailyEntryResponse;
 };
 
 export type ApiResponsePageResponseEntrySearchResult = {
@@ -409,8 +409,8 @@ export type ApiResponseDashboardResponse = {
 };
 
 export type DashboardResponse = {
-    todayEntry?: DailyEntry;
-    activeHabits: Array<Habit>;
+    todayEntry?: DailyEntryResponse;
+    activeHabits: Array<HabitResponse>;
     completedHabitCount: number;
     totalHabitCount: number;
     completionRatio: number;
@@ -453,6 +453,22 @@ export type SetTodayMoodErrors = {
      */
     403: ApiResponseApiError;
     /**
+     * The HTTP method is not supported for this endpoint.
+     */
+    405: ApiResponseApiError;
+    /**
+     * The requested response content type is not supported.
+     */
+    406: ApiResponseApiError;
+    /**
+     * The request content type is not supported.
+     */
+    415: ApiResponseApiError;
+    /**
+     * The authenticated API quota or the instance subject capacity has been reached.
+     */
+    429: ApiResponseApiError;
+    /**
      * An unexpected server error occurred.
      */
     500: ApiResponseApiError;
@@ -464,7 +480,7 @@ export type SetTodayMoodResponses = {
     /**
      * OK
      */
-    200: ApiResponseDailyEntry;
+    200: ApiResponseDailyEntryResponse;
 };
 
 export type SetTodayMoodResponse = SetTodayMoodResponses[keyof SetTodayMoodResponses];
@@ -489,6 +505,22 @@ export type SynchronizeErrors = {
      * The authenticated user is not allowed to perform this operation.
      */
     403: ApiResponseApiError;
+    /**
+     * The HTTP method is not supported for this endpoint.
+     */
+    405: ApiResponseApiError;
+    /**
+     * The requested response content type is not supported.
+     */
+    406: ApiResponseApiError;
+    /**
+     * The request content type is not supported.
+     */
+    415: ApiResponseApiError;
+    /**
+     * The authenticated API quota or the instance subject capacity has been reached.
+     */
+    429: ApiResponseApiError;
     /**
      * An unexpected server error occurred.
      */
@@ -527,9 +559,29 @@ export type SignatureErrors = {
      */
     403: ApiResponseApiError;
     /**
+     * The HTTP method is not supported for this endpoint.
+     */
+    405: ApiResponseApiError;
+    /**
+     * The requested response content type is not supported.
+     */
+    406: ApiResponseApiError;
+    /**
+     * The request content type is not supported.
+     */
+    415: ApiResponseApiError;
+    /**
+     * The authenticated API quota or the instance subject capacity has been reached.
+     */
+    429: ApiResponseApiError;
+    /**
      * An unexpected server error occurred.
      */
     500: ApiResponseApiError;
+    /**
+     * Avatar service is temporarily unavailable.
+     */
+    503: ApiResponseApiError;
 };
 
 export type SignatureError = SignatureErrors[keyof SignatureErrors];
@@ -538,7 +590,7 @@ export type SignatureResponses = {
     /**
      * OK
      */
-    200: ApiResponseUploadSignature;
+    200: ApiResponseUploadSignatureResponse;
 };
 
 export type SignatureResponse = SignatureResponses[keyof SignatureResponses];
@@ -564,9 +616,33 @@ export type ConfirmErrors = {
      */
     403: ApiResponseApiError;
     /**
+     * The HTTP method is not supported for this endpoint.
+     */
+    405: ApiResponseApiError;
+    /**
+     * The requested response content type is not supported.
+     */
+    406: ApiResponseApiError;
+    /**
+     * The avatar changed during this request.
+     */
+    409: ApiResponseApiError;
+    /**
+     * The request content type is not supported.
+     */
+    415: ApiResponseApiError;
+    /**
+     * The authenticated API quota or the instance subject capacity has been reached.
+     */
+    429: ApiResponseApiError;
+    /**
      * An unexpected server error occurred.
      */
     500: ApiResponseApiError;
+    /**
+     * Avatar service is temporarily unavailable.
+     */
+    503: ApiResponseApiError;
 };
 
 export type ConfirmError = ConfirmErrors[keyof ConfirmErrors];
@@ -575,7 +651,7 @@ export type ConfirmResponses = {
     /**
      * OK
      */
-    200: ApiResponseAvatar;
+    200: ApiResponseAvatarResponse;
 };
 
 export type ConfirmResponse = ConfirmResponses[keyof ConfirmResponses];
@@ -599,13 +675,29 @@ export type ReindexErrors = {
      */
     400: ApiResponseApiError;
     /**
-     * A valid X-Maintenance-Key header is required.
+     * A valid maintenance key is required.
      */
     403: ApiResponseApiError;
+    /**
+     * The HTTP method is not supported for this endpoint.
+     */
+    405: ApiResponseApiError;
+    /**
+     * The requested response content type is not supported.
+     */
+    406: ApiResponseApiError;
+    /**
+     * The request content type is not supported.
+     */
+    415: ApiResponseApiError;
     /**
      * An unexpected server error occurred.
      */
     500: ApiResponseApiError;
+    /**
+     * Search is temporarily unavailable.
+     */
+    503: ApiResponseApiError;
 };
 
 export type ReindexError = ReindexErrors[keyof ReindexErrors];
@@ -614,7 +706,7 @@ export type ReindexResponses = {
     /**
      * OK
      */
-    200: ApiResponseReindexResult;
+    200: ApiResponseCdcReindexResponse;
 };
 
 export type ReindexResponse = ReindexResponses[keyof ReindexResponses];
@@ -640,17 +732,33 @@ export type ReplayErrors = {
      */
     400: ApiResponseApiError;
     /**
-     * A valid X-Maintenance-Key header is required.
+     * A valid maintenance key is required.
      */
     403: ApiResponseApiError;
     /**
-     * The requested resource was not found.
+     * The CDC dead letter was not found.
      */
     404: ApiResponseApiError;
+    /**
+     * The HTTP method is not supported for this endpoint.
+     */
+    405: ApiResponseApiError;
+    /**
+     * The requested response content type is not supported.
+     */
+    406: ApiResponseApiError;
+    /**
+     * The request content type is not supported.
+     */
+    415: ApiResponseApiError;
     /**
      * An unexpected server error occurred.
      */
     500: ApiResponseApiError;
+    /**
+     * Search is temporarily unavailable.
+     */
+    503: ApiResponseApiError;
 };
 
 export type ReplayError = ReplayErrors[keyof ReplayErrors];
@@ -678,7 +786,7 @@ export type FindByStatusData = {
 
 export type FindByStatusErrors = {
     /**
-     * The request is invalid.
+     * The habit status filter is invalid.
      */
     400: ApiResponseApiError;
     /**
@@ -689,6 +797,22 @@ export type FindByStatusErrors = {
      * The authenticated user is not allowed to perform this operation.
      */
     403: ApiResponseApiError;
+    /**
+     * The HTTP method is not supported for this endpoint.
+     */
+    405: ApiResponseApiError;
+    /**
+     * The requested response content type is not supported.
+     */
+    406: ApiResponseApiError;
+    /**
+     * The request content type is not supported.
+     */
+    415: ApiResponseApiError;
+    /**
+     * The authenticated API quota or the instance subject capacity has been reached.
+     */
+    429: ApiResponseApiError;
     /**
      * An unexpected server error occurred.
      */
@@ -701,7 +825,7 @@ export type FindByStatusResponses = {
     /**
      * OK
      */
-    200: ApiResponseListHabit;
+    200: ApiResponseListHabitResponse;
 };
 
 export type FindByStatusResponse = FindByStatusResponses[keyof FindByStatusResponses];
@@ -727,6 +851,22 @@ export type CreateErrors = {
      */
     403: ApiResponseApiError;
     /**
+     * The HTTP method is not supported for this endpoint.
+     */
+    405: ApiResponseApiError;
+    /**
+     * The requested response content type is not supported.
+     */
+    406: ApiResponseApiError;
+    /**
+     * The request content type is not supported.
+     */
+    415: ApiResponseApiError;
+    /**
+     * The authenticated API quota or the instance subject capacity has been reached.
+     */
+    429: ApiResponseApiError;
+    /**
      * An unexpected server error occurred.
      */
     500: ApiResponseApiError;
@@ -738,7 +878,7 @@ export type CreateResponses = {
     /**
      * Created
      */
-    201: ApiResponseHabit;
+    201: ApiResponseHabitResponse;
 };
 
 export type CreateResponse = CreateResponses[keyof CreateResponses];
@@ -766,9 +906,25 @@ export type RestoreErrors = {
      */
     403: ApiResponseApiError;
     /**
-     * The resource conflicts with its current state.
+     * The HTTP method is not supported for this endpoint.
+     */
+    405: ApiResponseApiError;
+    /**
+     * The requested response content type is not supported.
+     */
+    406: ApiResponseApiError;
+    /**
+     * The habit version is stale.
      */
     409: ApiResponseApiError;
+    /**
+     * The request content type is not supported.
+     */
+    415: ApiResponseApiError;
+    /**
+     * The authenticated API quota or the instance subject capacity has been reached.
+     */
+    429: ApiResponseApiError;
     /**
      * An unexpected server error occurred.
      */
@@ -781,7 +937,7 @@ export type RestoreResponses = {
     /**
      * OK
      */
-    200: ApiResponseHabit;
+    200: ApiResponseHabitResponse;
 };
 
 export type RestoreResponse = RestoreResponses[keyof RestoreResponses];
@@ -809,9 +965,25 @@ export type ArchiveErrors = {
      */
     403: ApiResponseApiError;
     /**
-     * The resource conflicts with its current state.
+     * The HTTP method is not supported for this endpoint.
+     */
+    405: ApiResponseApiError;
+    /**
+     * The requested response content type is not supported.
+     */
+    406: ApiResponseApiError;
+    /**
+     * The habit version is stale.
      */
     409: ApiResponseApiError;
+    /**
+     * The request content type is not supported.
+     */
+    415: ApiResponseApiError;
+    /**
+     * The authenticated API quota or the instance subject capacity has been reached.
+     */
+    429: ApiResponseApiError;
     /**
      * An unexpected server error occurred.
      */
@@ -824,7 +996,7 @@ export type ArchiveResponses = {
     /**
      * OK
      */
-    200: ApiResponseHabit;
+    200: ApiResponseHabitResponse;
 };
 
 export type ArchiveResponse = ArchiveResponses[keyof ArchiveResponses];
@@ -852,9 +1024,25 @@ export type UpdateErrors = {
      */
     403: ApiResponseApiError;
     /**
-     * The resource conflicts with its current state.
+     * The HTTP method is not supported for this endpoint.
+     */
+    405: ApiResponseApiError;
+    /**
+     * The requested response content type is not supported.
+     */
+    406: ApiResponseApiError;
+    /**
+     * The habit version is stale.
      */
     409: ApiResponseApiError;
+    /**
+     * The request content type is not supported.
+     */
+    415: ApiResponseApiError;
+    /**
+     * The authenticated API quota or the instance subject capacity has been reached.
+     */
+    429: ApiResponseApiError;
     /**
      * An unexpected server error occurred.
      */
@@ -867,7 +1055,7 @@ export type UpdateResponses = {
     /**
      * OK
      */
-    200: ApiResponseHabit;
+    200: ApiResponseHabitResponse;
 };
 
 export type UpdateResponse = UpdateResponses[keyof UpdateResponses];
@@ -892,6 +1080,22 @@ export type TodayErrors = {
      * The authenticated user is not allowed to perform this operation.
      */
     403: ApiResponseApiError;
+    /**
+     * The HTTP method is not supported for this endpoint.
+     */
+    405: ApiResponseApiError;
+    /**
+     * The requested response content type is not supported.
+     */
+    406: ApiResponseApiError;
+    /**
+     * The request content type is not supported.
+     */
+    415: ApiResponseApiError;
+    /**
+     * The authenticated API quota or the instance subject capacity has been reached.
+     */
+    429: ApiResponseApiError;
     /**
      * An unexpected server error occurred.
      */
@@ -930,6 +1134,30 @@ export type UpdateTodayHabitErrors = {
      */
     403: ApiResponseApiError;
     /**
+     * Habit is missing or does not belong to this user.
+     */
+    404: ApiResponseApiError;
+    /**
+     * The HTTP method is not supported for this endpoint.
+     */
+    405: ApiResponseApiError;
+    /**
+     * The requested response content type is not supported.
+     */
+    406: ApiResponseApiError;
+    /**
+     * A new log cannot be created for an archived habit.
+     */
+    409: ApiResponseApiError;
+    /**
+     * The request content type is not supported.
+     */
+    415: ApiResponseApiError;
+    /**
+     * The authenticated API quota or the instance subject capacity has been reached.
+     */
+    429: ApiResponseApiError;
+    /**
      * An unexpected server error occurred.
      */
     500: ApiResponseApiError;
@@ -941,7 +1169,7 @@ export type UpdateTodayHabitResponses = {
     /**
      * OK
      */
-    200: ApiResponseDailyEntry;
+    200: ApiResponseDailyEntryResponse;
 };
 
 export type UpdateTodayHabitResponse = UpdateTodayHabitResponses[keyof UpdateTodayHabitResponses];
@@ -966,6 +1194,22 @@ export type MostMissedHabitsErrors = {
      * The authenticated user is not allowed to perform this operation.
      */
     403: ApiResponseApiError;
+    /**
+     * The HTTP method is not supported for this endpoint.
+     */
+    405: ApiResponseApiError;
+    /**
+     * The requested response content type is not supported.
+     */
+    406: ApiResponseApiError;
+    /**
+     * The request content type is not supported.
+     */
+    415: ApiResponseApiError;
+    /**
+     * The authenticated API quota or the instance subject capacity has been reached.
+     */
+    429: ApiResponseApiError;
     /**
      * An unexpected server error occurred.
      */
@@ -994,7 +1238,7 @@ export type MoodTrendData = {
 
 export type MoodTrendErrors = {
     /**
-     * The request is invalid.
+     * The mood trend period is unsupported.
      */
     400: ApiResponseApiError;
     /**
@@ -1005,6 +1249,22 @@ export type MoodTrendErrors = {
      * The authenticated user is not allowed to perform this operation.
      */
     403: ApiResponseApiError;
+    /**
+     * The HTTP method is not supported for this endpoint.
+     */
+    405: ApiResponseApiError;
+    /**
+     * The requested response content type is not supported.
+     */
+    406: ApiResponseApiError;
+    /**
+     * The request content type is not supported.
+     */
+    415: ApiResponseApiError;
+    /**
+     * The authenticated API quota or the instance subject capacity has been reached.
+     */
+    429: ApiResponseApiError;
     /**
      * An unexpected server error occurred.
      */
@@ -1043,9 +1303,33 @@ export type DeleteErrors = {
      */
     403: ApiResponseApiError;
     /**
+     * The HTTP method is not supported for this endpoint.
+     */
+    405: ApiResponseApiError;
+    /**
+     * The requested response content type is not supported.
+     */
+    406: ApiResponseApiError;
+    /**
+     * The avatar changed during this request.
+     */
+    409: ApiResponseApiError;
+    /**
+     * The request content type is not supported.
+     */
+    415: ApiResponseApiError;
+    /**
+     * The authenticated API quota or the instance subject capacity has been reached.
+     */
+    429: ApiResponseApiError;
+    /**
      * An unexpected server error occurred.
      */
     500: ApiResponseApiError;
+    /**
+     * Avatar service is temporarily unavailable.
+     */
+    503: ApiResponseApiError;
 };
 
 export type DeleteError = DeleteErrors[keyof DeleteErrors];
@@ -1054,7 +1338,7 @@ export type DeleteResponses = {
     /**
      * OK
      */
-    200: ApiResponseAvatar;
+    200: ApiResponseAvatarResponse;
 };
 
 export type DeleteResponse = DeleteResponses[keyof DeleteResponses];
@@ -1080,9 +1364,29 @@ export type CurrentErrors = {
      */
     403: ApiResponseApiError;
     /**
+     * The HTTP method is not supported for this endpoint.
+     */
+    405: ApiResponseApiError;
+    /**
+     * The requested response content type is not supported.
+     */
+    406: ApiResponseApiError;
+    /**
+     * The request content type is not supported.
+     */
+    415: ApiResponseApiError;
+    /**
+     * The authenticated API quota or the instance subject capacity has been reached.
+     */
+    429: ApiResponseApiError;
+    /**
      * An unexpected server error occurred.
      */
     500: ApiResponseApiError;
+    /**
+     * Avatar service is temporarily unavailable.
+     */
+    503: ApiResponseApiError;
 };
 
 export type CurrentError = CurrentErrors[keyof CurrentErrors];
@@ -1091,7 +1395,7 @@ export type CurrentResponses = {
     /**
      * OK
      */
-    200: ApiResponseAvatar;
+    200: ApiResponseAvatarResponse;
 };
 
 export type CurrentResponse = CurrentResponses[keyof CurrentResponses];
@@ -1118,6 +1422,26 @@ export type CurrentStreakErrors = {
      * The authenticated user is not allowed to perform this operation.
      */
     403: ApiResponseApiError;
+    /**
+     * Habit is missing or does not belong to this user.
+     */
+    404: ApiResponseApiError;
+    /**
+     * The HTTP method is not supported for this endpoint.
+     */
+    405: ApiResponseApiError;
+    /**
+     * The requested response content type is not supported.
+     */
+    406: ApiResponseApiError;
+    /**
+     * The request content type is not supported.
+     */
+    415: ApiResponseApiError;
+    /**
+     * The authenticated API quota or the instance subject capacity has been reached.
+     */
+    429: ApiResponseApiError;
     /**
      * An unexpected server error occurred.
      */
@@ -1149,7 +1473,7 @@ export type FindBetweenData = {
 
 export type FindBetweenErrors = {
     /**
-     * The request is invalid.
+     * The entry date range or pagination is invalid.
      */
     400: ApiResponseApiError;
     /**
@@ -1160,6 +1484,22 @@ export type FindBetweenErrors = {
      * The authenticated user is not allowed to perform this operation.
      */
     403: ApiResponseApiError;
+    /**
+     * The HTTP method is not supported for this endpoint.
+     */
+    405: ApiResponseApiError;
+    /**
+     * The requested response content type is not supported.
+     */
+    406: ApiResponseApiError;
+    /**
+     * The request content type is not supported.
+     */
+    415: ApiResponseApiError;
+    /**
+     * The authenticated API quota or the instance subject capacity has been reached.
+     */
+    429: ApiResponseApiError;
     /**
      * An unexpected server error occurred.
      */
@@ -1172,7 +1512,7 @@ export type FindBetweenResponses = {
     /**
      * OK
      */
-    200: ApiResponsePageResponseDailyEntry;
+    200: ApiResponsePageResponseDailyEntryResponse;
 };
 
 export type FindBetweenResponse = FindBetweenResponses[keyof FindBetweenResponses];
@@ -1192,7 +1532,7 @@ export type SearchData = {
 
 export type SearchErrors = {
     /**
-     * The request is invalid.
+     * The search query or pagination is invalid.
      */
     400: ApiResponseApiError;
     /**
@@ -1204,9 +1544,29 @@ export type SearchErrors = {
      */
     403: ApiResponseApiError;
     /**
+     * The HTTP method is not supported for this endpoint.
+     */
+    405: ApiResponseApiError;
+    /**
+     * The requested response content type is not supported.
+     */
+    406: ApiResponseApiError;
+    /**
+     * The request content type is not supported.
+     */
+    415: ApiResponseApiError;
+    /**
+     * The authenticated API quota or the instance subject capacity has been reached.
+     */
+    429: ApiResponseApiError;
+    /**
      * An unexpected server error occurred.
      */
     500: ApiResponseApiError;
+    /**
+     * Search is temporarily unavailable.
+     */
+    503: ApiResponseApiError;
 };
 
 export type SearchError = SearchErrors[keyof SearchErrors];
@@ -1240,6 +1600,22 @@ export type GetDashboardErrors = {
      * The authenticated user is not allowed to perform this operation.
      */
     403: ApiResponseApiError;
+    /**
+     * The HTTP method is not supported for this endpoint.
+     */
+    405: ApiResponseApiError;
+    /**
+     * The requested response content type is not supported.
+     */
+    406: ApiResponseApiError;
+    /**
+     * The request content type is not supported.
+     */
+    415: ApiResponseApiError;
+    /**
+     * The authenticated API quota or the instance subject capacity has been reached.
+     */
+    429: ApiResponseApiError;
     /**
      * An unexpected server error occurred.
      */

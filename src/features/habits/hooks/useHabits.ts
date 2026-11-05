@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { getUserFacingError } from '../../../api/errorMessages.ts'
 import { useApiClient } from '../../../api/useApiClient.ts'
-import type { CreateHabitRequest, Habit } from '../../../api/openapi/types.api.ts'
+import type { CreateHabitRequest, HabitResponse as Habit } from '../../../api/openapi/types.api.ts'
 import { createHabit, listHabits, listHabitStreaks } from '../api/habitsApi.ts'
 
 export function useHabits() {

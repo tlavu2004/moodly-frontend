@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { getUserFacingError } from '../../../api/errorMessages.ts'
 import { useApiClient } from '../../../api/useApiClient.ts'
-import type { Habit, MoodTrendResponse, MostMissedHabitResponse } from '../../../api/openapi/types.api.ts'
+import type { HabitResponse as Habit, MoodTrendResponse, MostMissedHabitResponse } from '../../../api/openapi/types.api.ts'
 import { getStats } from '../api/statsApi.ts'
 
 export function useStats() {

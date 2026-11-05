@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { getUserFacingError } from '../../../api/errorMessages.ts'
 import { useApiClient } from '../../../api/useApiClient.ts'
-import type { Avatar } from '../../../api/openapi/types.api.ts'
+import type { AvatarResponse as Avatar } from '../../../api/openapi/types.api.ts'
 import { getAvatar, uploadAvatar } from '../api/profileApi.ts'
 
 export function useAvatar() {

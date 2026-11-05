@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { getUserFacingError } from '../../../api/errorMessages.ts'
 import { useApiClient } from '../../../api/useApiClient.ts'
-import type { DailyEntry } from '../../../api/openapi/types.api.ts'
+import type { DailyEntryResponse as DailyEntry } from '../../../api/openapi/types.api.ts'
 import { toLocalDateKey } from '../../../utils/date.ts'
 import { getEntries } from '../api/entriesApi.ts'
 

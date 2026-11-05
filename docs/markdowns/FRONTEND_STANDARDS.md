@@ -69,7 +69,7 @@ src/
 The backend OpenAPI document is the source of truth. It is read from:
 
 ```text
-../moodly-backend/docs/api/moodly-openapi.json
+../moodly-backend/docs/api/json/moodly-openapi.json
 ```
 
 - Run `npm run generate:api` after the contract changes.
