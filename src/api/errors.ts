@@ -65,7 +65,7 @@ export class ApiRequestError extends Error {
 export function normalizeApiError(error: unknown, response?: Response): ApiRequestError {
   if (error instanceof ApiRequestError) return error
   const status = response?.status ?? null
-  const retryAt = status === 429 ? parseRetryAfter(response?.headers.get('Retry-After') ?? null) : null
+  const retryAt = status === 429 ? getRetryDeadline(response?.headers.get('Retry-After') ?? null) : null
 
   if (isApiErrorEnvelope(error)) {
     return new ApiRequestError({
@@ -84,10 +84,23 @@ export function normalizeApiError(error: unknown, response?: Response): ApiReque
   })
 }
 
-/** Convert Retry-After to a deadline; invalid or absent headers do not invent a delay. */
+/** Parse seconds or an HTTP-date without accepting arbitrary date-like strings. */
 export function parseRetryAfter(value: string | null, now = Date.now()): number | null {
   if (!value?.trim()) return null
   const text = value.trim()
-  const deadline = /^\d+$/.test(text) ? now + Number(text) * 1000 : Date.parse(text)
-  return Number.isFinite(deadline) && deadline >= now ? deadline : null
+  if (/^\d+$/.test(text)) {
+    const deadline = now + Number(text) * 1000
+    return Number.isSafeInteger(deadline) ? deadline : null
+  }
+  const imf = /^(Mon|Tue|Wed|Thu|Fri|Sat|Sun), \d{2} [A-Z][a-z]{2} \d{4} \d{2}:\d{2}:\d{2} GMT$/
+  const rfc850 = /^(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday), \d{2}-[A-Z][a-z]{2}-\d{2} \d{2}:\d{2}:\d{2} GMT$/
+  const asctime = /^(Mon|Tue|Wed|Thu|Fri|Sat|Sun) [A-Z][a-z]{2} [ \d]\d \d{2}:\d{2}:\d{2} \d{4}$/
+  if (!imf.test(text) && !rfc850.test(text) && !asctime.test(text)) return null
+  const deadline = Date.parse(asctime.test(text) ? text + ' GMT' : text)
+  return Number.isFinite(deadline) ? Math.max(now, deadline) : null
+}
+
+/** A missing/invalid header pauses requests for a finite 30 seconds. */
+export function getRetryDeadline(value: string | null, now = Date.now()): number {
+  return parseRetryAfter(value, now) ?? now + 30_000
 }

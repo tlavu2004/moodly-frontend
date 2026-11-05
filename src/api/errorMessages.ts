@@ -11,10 +11,7 @@ export function getUserFacingError(error: unknown, fallback: string): string {
   if (!(error instanceof ApiRequestError)) {
     return error instanceof Error && error.message ? error.message : fallback
   }
-  if (error.status === 429) {
-    const seconds = error.retryAt === null ? null : Math.max(0, Math.ceil((error.retryAt - Date.now()) / 1000))
-    return seconds ? `Too many requests. Please wait ${seconds} seconds before trying again.` : 'Too many requests. Please wait before trying again.'
-  }
+  if (error.status === 429) return 'Too many requests. Please wait before trying again.'
   if (error.status === 400 && error.message) return error.message
   if (error.status === 401) return 'Your session has expired. Please sign in again.'
   if (error.status === 403) return 'You do not have permission to perform this action.'
