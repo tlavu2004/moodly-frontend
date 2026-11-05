@@ -34,4 +34,5 @@ it('handles HTTP dates, absent and malformed Retry-After', () => {
 it('preserves an existing API error through generated transport normalization', () => {
   const error = normalizeApiError({}, new Response(null, { status: 429, headers: { 'Retry-After': '5' } }))
   expect(normalizeApiError(error)).toBe(error)
+  expect(error.retryAt).not.toBeNull()
 })

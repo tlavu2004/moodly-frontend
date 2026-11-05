@@ -79,6 +79,7 @@ export function normalizeApiError(error: unknown, response?: Response): ApiReque
 
   return new ApiRequestError({
     message: getErrorMessage(error, `API request failed (${status ?? 'network'}).`),
+    retryAt,
     status,
   })
 }

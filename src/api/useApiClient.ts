@@ -9,7 +9,7 @@ export function useApiClient() {
   const { getAccessTokenSilently, user } = useAuth0()
 
   return useMemo(
-     () => {
+    () => {
       let clients = sessionClients.get(getAccessTokenSilently)
       if (!clients) { clients = new Map(); sessionClients.set(getAccessTokenSilently, clients) }
       let client = clients.get(user?.sub)
