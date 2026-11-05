@@ -1,3 +1,4 @@
+import { ApiRequestError } from '../../../api/errors.ts'
 import { vi } from 'vitest'
 import { listHabitStreaks } from './habitsApi.ts'
 
@@ -25,4 +26,13 @@ describe('listHabitStreaks resilience', () => {
 
     await expect(listHabitStreaks({} as never, [habit('zero'), habit('missing')])).resolves.toEqual({ zero: 0 })
   })
+})
+
+it('keeps successful streaks and reports quota recovery without retrying failed requests', async () => {
+  const failure = new ApiRequestError({ status: 429, message: 'Limited', retryAt: Date.now() + 30000 })
+  const onRateLimit = vi.fn()
+  currentStreak.mockResolvedValueOnce({ data: { data: { currentStreak: 5 } } }).mockRejectedValueOnce(failure)
+  await expect(listHabitStreaks({} as never, [habit('one'), habit('two')], undefined, onRateLimit)).resolves.toEqual({ one: 5 })
+  expect(onRateLimit).toHaveBeenCalledWith(failure)
+  expect(currentStreak).toHaveBeenCalledTimes(2)
 })

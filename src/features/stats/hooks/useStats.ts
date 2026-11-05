@@ -1,11 +1,11 @@
-import { useEffect, useState } from 'react'
-import { getUserFacingError } from '../../../api/errorMessages.ts'
+import { useCallback } from 'react'
+import { useApiRead } from '../../../api/useApiRead.ts'
 import { useApiClient } from '../../../api/useApiClient.ts'
-import type { HabitResponse as Habit, MoodTrendResponse, MostMissedHabitResponse } from '../../../api/openapi/types.api.ts'
 import { getStats } from '../api/statsApi.ts'
 
 export function useStats() {
-  const client = useApiClient(); const [trends, setTrends] = useState<MoodTrendResponse[]>([]); const [missed, setMissed] = useState<MostMissedHabitResponse[]>([]); const [habits, setHabits] = useState<Habit[]>([]); const [isLoading, setIsLoading] = useState(true); const [error, setError] = useState<string | null>(null)
-  useEffect(() => { let active = true; getStats(client).then((data) => { if (active) { setTrends(data.trends); setMissed(data.missed); setHabits(data.habits) } }).catch((reason: unknown) => { if (active) setError(getUserFacingError(reason, 'Unable to load insights.')) }).finally(() => { if (active) setIsLoading(false) }); return () => { active = false } }, [client])
-  return { trends, missed, habits, isLoading, error }
+  const client = useApiClient()
+  const load = useCallback((signal: AbortSignal) => getStats(client, signal), [client])
+  const { data, isLoading, error, reload, retryAt } = useApiRead(load, 'Unable to load insights.')
+  return { isLoading, error, reload, retryAt, trends: data?.trends ?? [], missed: data?.missed ?? [], habits: data?.habits ?? [] }
 }

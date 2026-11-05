@@ -7,7 +7,7 @@ import { EntriesPage } from './EntriesPage.tsx'
 vi.mock('../hooks/useEntries.ts', () => ({ useEntries: vi.fn() }))
 
 describe('EntriesPage', () => {
-  beforeEach(() => vi.mocked(useEntries).mockReturnValue({ entries: [], totalElements: 1, totalPages: 1, isLoading: false, error: null }))
+  beforeEach(() => vi.mocked(useEntries).mockReturnValue({ reload: vi.fn(), retryAt: null, entries: [], totalElements: 1, totalPages: 1, isLoading: false, error: null }))
 
   it('uses from/to URL parameters and prevents future dates', () => {
     render(<MemoryRouter initialEntries={['/entries?from=2026-09-01&to=2026-09-20']}><EntriesPage /></MemoryRouter>)
@@ -18,7 +18,7 @@ describe('EntriesPage', () => {
   })
 
   it('renders an entry that contains habit logs without a mood', () => {
-    vi.mocked(useEntries).mockReturnValue({
+    vi.mocked(useEntries).mockReturnValue({ reload: vi.fn(), retryAt: null,
       entries: [{ id: 'entry-1', userId: 'user-1', date: '2026-09-20', habits: [{ habitId: 'habit-1', done: true }], createdAt: '', updatedAt: '' }],
       totalElements: 1, totalPages: 1, isLoading: false,
       error: null,

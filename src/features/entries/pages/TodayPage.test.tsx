@@ -18,11 +18,11 @@ describe('TodayPage', () => {
   beforeEach(() => {
     updateMood.mockReset()
     toggleHabit.mockReset()
-    vi.mocked(useTodayEntry).mockReturnValue({ entry: null, habits: [habit], isLoading: false, error: null, updateMood, toggleHabit })
+    vi.mocked(useTodayEntry).mockReturnValue({ reload: vi.fn(), retryAt: null, entry: null, habits: [habit], isLoading: false, error: null, updateMood, toggleHabit })
   })
 
   it('hydrates the current mood, tags, and note', async () => {
-    vi.mocked(useTodayEntry).mockReturnValue({ entry, habits: [habit], isLoading: false, error: null, updateMood, toggleHabit })
+    vi.mocked(useTodayEntry).mockReturnValue({ reload: vi.fn(), retryAt: null, entry, habits: [habit], isLoading: false, error: null, updateMood, toggleHabit })
     render(<TodayPage />)
     await waitFor(() => expect(screen.getByRole('button', { name: /Good/ })).toHaveAttribute('aria-pressed', 'true'))
     expect(screen.getByRole('button', { name: 'Calm' })).toHaveAttribute('aria-pressed', 'true')

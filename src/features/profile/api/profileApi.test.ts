@@ -41,4 +41,18 @@ describe('uploadAvatar', () => {
     await expect(uploadAvatar({} as never, new File(['image'], 'avatar.png', { type: 'image/png' }))).rejects.toThrow('upload response was incomplete')
     expect(sdk.confirm).not.toHaveBeenCalled()
   })
+  it('stops the upload chain when navigation cancels a pending signature', async () => {
+    let finish!: (value: ReturnType<typeof response<typeof signed>>) => void
+    sdk.signature.mockReturnValue(new Promise<ReturnType<typeof response<typeof signed>>>((done) => { finish = done }))
+    const fetchMock = vi.spyOn(globalThis, 'fetch')
+    const controller = new AbortController()
+    const pending = uploadAvatar({} as never, new File(['image'], 'avatar.png', { type: 'image/png' }), controller.signal)
+    const aborted = expect(pending).rejects.toMatchObject({ name: 'AbortError' })
+    controller.abort()
+    finish(response(signed))
+    await aborted
+    expect(fetchMock).not.toHaveBeenCalled()
+    expect(sdk.confirm).not.toHaveBeenCalled()
+  })
+
 })

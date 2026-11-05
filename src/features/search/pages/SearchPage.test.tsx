@@ -16,7 +16,7 @@ function renderPage(url = '/search') {
 }
 
 describe('SearchPage', () => {
-  beforeEach(() => vi.mocked(useEntrySearch).mockReturnValue({ results: [], totalElements: 1, totalPages: 1, isLoading: false, error: null }))
+  beforeEach(() => vi.mocked(useEntrySearch).mockReturnValue({ reload: vi.fn(), retryAt: null, results: [], totalElements: 1, totalPages: 1, isLoading: false, error: null }))
 
   it('submits a trimmed query into the URL', async () => {
     renderPage()
@@ -43,7 +43,7 @@ describe('SearchPage', () => {
   })
 
   it('renders highlight fragments as text and links to the result date', () => {
-    vi.mocked(useEntrySearch).mockReturnValue({
+    vi.mocked(useEntrySearch).mockReturnValue({ reload: vi.fn(), retryAt: null,
       results: [{
         entryId: 'entry-1',
         date: '2026-09-20',
@@ -60,7 +60,7 @@ describe('SearchPage', () => {
 })
 
 it('navigates pages and resets the page when submitting a new query', async () => {
-  vi.mocked(useEntrySearch).mockReturnValue({ results: [], totalElements: 21, totalPages: 2, isLoading: false, error: null })
+  vi.mocked(useEntrySearch).mockReturnValue({ reload: vi.fn(), retryAt: null, results: [], totalElements: 21, totalPages: 2, isLoading: false, error: null })
   renderPage('/search?q=walk')
   const user = userEvent.setup()
   expect(screen.getByRole('button', { name: 'Previous page' })).toBeDisabled()
