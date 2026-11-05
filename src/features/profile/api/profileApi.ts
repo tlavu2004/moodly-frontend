@@ -18,6 +18,7 @@ export async function uploadAvatar(client: ApiClient, file: File): Promise<Avata
   if (!response.ok) throw new Error('The image upload failed. Please try another photo.')
   const uploaded: unknown = await response.json()
   const version = typeof uploaded === 'object' && uploaded !== null && 'version' in uploaded && typeof uploaded.version === 'number' ? uploaded.version : undefined
+  if (version === undefined || !Number.isSafeInteger(version) || version <= 0) throw new Error('The upload response was incomplete. Please upload your photo again.')
   const confirmed = await confirm({ client, body: { publicId: payload.publicId, version }, throwOnError: true })
   if (!confirmed.data.data) throw new Error('The uploaded avatar could not be confirmed.')
   return confirmed.data.data
