@@ -24,7 +24,7 @@ Each implementation step passed ESLint, production build (including TypeScript a
 - Authenticated Playwright setup: FAIL; returned to dashboard URL but bootstrap displayed “Unable to prepare Moodly / Unable to reach Moodly. Check your connection and try again.” The 12 dependent tests did not run. A separate health probe could not reach localhost:8080. This does not establish the precise deployed network/CORS/backend cause.
 - npm audit --audit-level=high: FAIL on unchanged package manifest and lockfile; 16 findings (13 moderate, 3 high). The report identifies high findings in undici, Vite and Zod, plus moderate test/lint dependency findings. Dependency upgrades are outside this compatibility change; CI audit is expected to remain a blocker until addressed.
 
-Authenticated integration, real Cloudinary confirmation/concurrency, enabled backend rate limiting with browser CORS, representative pagination data and staging performance still require an available backend. Previous release-handoff PASS entries do not certify these checks against MDY-26. No production readiness claim is made.
+Authenticated integration, real Cloudinary confirmation/concurrency, enabled backend rate limiting with browser CORS, representative pagination data and test performance still require an available backend. Previous release-handoff PASS entries do not certify these checks against MDY-26. No production readiness claim is made.
 
 ## Git notes
 

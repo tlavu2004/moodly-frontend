@@ -16,7 +16,7 @@ Use an immutable, previously verified deployment as the rollback target. Do not 
 
 1. Stop or cancel any rollout still in progress.
 2. Record the failing deployment ID, Git SHA, first observed symptom, and UTC time in the incident log.
-3. Select the most recent deployment that passed the post-deploy smoke check and authenticated staging checks.
+3. Select the most recent deployment that passed the post-deploy smoke check and authenticated test checks.
 4. Promote or restore that deployment with the hosting provider's atomic rollback mechanism. Keep the production domain unchanged so Auth0 origins and API CORS remain valid.
 5. If the host does not switch atomically, restore the previous artifact, purge only the HTML document cache, and retain long-lived hashed asset caches.
 6. Run `npm run smoke:deploy -- <production-url>`, then verify login, logout, dashboard load, and one non-destructive API flow.

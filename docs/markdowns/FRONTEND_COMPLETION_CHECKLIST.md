@@ -34,7 +34,7 @@ Auth0 non-production, synthetic account và reset endpoint đã được cấu h
 Reset hai lần trả cùng baseline 2 habits/3 entries, không thay đổi dữ liệu user khác;
 authenticated E2E đã PASS 13/13 ngày 2026-10-15. Biến môi trường và contract nằm trong
 [`FRONTEND_INTEGRATION_TESTING.md`](./FRONTEND_INTEGRATION_TESTING.md).
-Staging cần được cấu hình và xác minh riêng ở checkpoint 3–4.
+Test cần được cấu hình và xác minh riêng ở checkpoint 3–4.
 
 ### 7.2. Thiết lập Playwright
 
@@ -64,8 +64,8 @@ Staging cần được cấu hình và xác minh riêng ở checkpoint 3–4.
 - [x] URL không tồn tại hiển thị trang 404 có đường quay lại hợp lệ.
 
 Các checkbox 7.3 xác nhận test case đã được triển khai. Authenticated suite đã PASS
-13/13 ở local ngày 2026-10-15; chạy lại trên staging ở checkpoint 4 trước khi tính
-staging E2E vào Definition of Done.
+13/13 ở local ngày 2026-10-15; chạy lại trên test ở checkpoint 4 trước khi tính
+test E2E vào Definition of Done.
 
 ### 7.4. E2E failure paths
 
@@ -227,7 +227,7 @@ const StatsPage = lazy(() =>
 - [ ] Kiểm tra layout shift khi avatar và dữ liệu tải xong.
 - [x] Xóa assets mẫu Vite/React không còn sử dụng.
 
-N+1 trên trang Habits được chấp nhận tạm thời ở checkpoint 2. Đo p95 ở staging với
+N+1 trên trang Habits được chấp nhận tạm thời ở checkpoint 2. Đo p95 ở test với
 lịch sử đại diện và 10 active habits; nếu p95 > 1 giây hoặc số habits thường gặp > 10,
 chuyển sang summary endpoint.
 
@@ -284,7 +284,7 @@ chuyển sang summary endpoint.
 ### 9.7. Environment và deployment
 
 - [x] Validate tất cả biến `VITE_*` khi ứng dụng khởi động hoặc build.
-- [x] Tách `.env` template cho development, integration, staging và production.
+- [x] Tách `.env` template cho local (development), test và production.
 - [x] Không đưa server-side secret vào biến `VITE_*`.
 - [ ] Cấu hình SPA fallback/rewrite cho mọi client route.
 - [ ] Cấu hình Auth0 callback/logout/web origins cho production domain.
@@ -311,7 +311,7 @@ chuyển sang summary endpoint.
 - [x] Chạy coverage threshold trên pull request.
 - [x] Chạy API generation check và fail nếu generated output bị lệch.
 - [x] Chạy dependency audit với policy fail ở mức `high` trở lên.
-- [ ] Chạy E2E smoke suite trên staging hoặc môi trường preview.
+- [ ] Chạy E2E smoke suite trên test hoặc môi trường preview.
 - [ ] Lưu Playwright artifacts khi thất bại.
 - [ ] Chặn merge khi quality gate bắt buộc thất bại.
 
@@ -321,7 +321,7 @@ chuyển sang summary endpoint.
 - [x] Ghi rõ cách regenerate OpenAPI client.
 - [x] Ghi rõ generated files không được sửa tay.
 - [x] Ghi rõ cách chạy unit, integration và E2E tests.
-- [x] Ghi rõ Auth0 local/staging setup.
+- [x] Ghi rõ Auth0 local/test setup.
 - [x] Xóa nội dung TODO đã hoàn thành khỏi README.
 - [x] Xóa `src/assets/react.svg`, `src/assets/vite.svg` và asset không dùng khác.
 - [x] Quyết định LF convention trong `.gitattributes` để generator không làm working tree hiện modified giả.
@@ -355,7 +355,7 @@ Chi tiết backend nằm tại [`BACKEND_IMPROVEMENT_CHECKLIST.md`](./BACKEND_IM
 
 ## Definition of Done cho frontend production-ready
 
-- [ ] Tất cả chức năng chính hoạt động với backend/Auth0 thật trên staging.
+- [ ] Tất cả chức năng chính hoạt động với backend/Auth0 thật trên test.
 - [ ] Không còn lỗi P0/P1 đã biết trong critical flows.
 - [ ] Lint, typecheck, build, unit/component tests và E2E smoke tests đều đạt.
 - [x] Generated API client khớp OpenAPI source of truth (đã regenerate và xác nhận working tree không đổi).
@@ -373,18 +373,18 @@ Phần này phân biệt rõ cấu hình/tài nguyên cần chủ dự án cung 
 ### 11.1. Những gì chủ dự án cần làm hoặc cấu hình
 
 Phần A và B đã hoàn tất cho local ở checkpoint 1–2. Các bước dưới đây còn dùng để
-đối chiếu cấu hình staging và production; không cần tạo lại tài khoản hoặc reset
+đối chiếu cấu hình test và production; không cần tạo lại tài khoản hoặc reset
 endpoint local.
 
 #### A. Auth0 và tài khoản E2E non-production
 
 1. Tạo một Auth0 Single Page Application dành cho non-production. Có thể dùng chung non-production tenant cho local và test khi tenant chưa có người dùng thật; production nên có application/tenant và user store tách biệt trước khi ra mắt.
-2. Khai báo Allowed Callback URLs, Allowed Logout URLs và Allowed Web Origins cho origin local cùng staging/preview thực tế.
+2. Khai báo Allowed Callback URLs, Allowed Logout URLs và Allowed Web Origins cho origin local cùng test/preview thực tế.
 3. Tạo một tài khoản automation chỉ chứa dữ liệu giả, email đã verify, không MFA/CAPTCHA/forced password change và chỉ có quyền người dùng Moodly thông thường.
-4. Điền `VITE_AUTH0_DOMAIN`, `VITE_AUTH0_CLIENT_ID`, `VITE_AUTH0_AUDIENCE`, `E2E_TEST_USER_EMAIL` và `E2E_TEST_USER_PASSWORD` vào local ignored env hoặc GitHub `staging` environment. Không cung cấp Auth0 client secret cho SPA.
+4. Điền `VITE_AUTH0_DOMAIN`, `VITE_AUTH0_CLIENT_ID`, `VITE_AUTH0_AUDIENCE`, `E2E_TEST_USER_EMAIL` và `E2E_TEST_USER_PASSWORD` vào local ignored env hoặc GitHub `test` environment. Không cung cấp Auth0 client secret cho SPA.
 
 Local auth và authenticated Playwright suite đã PASS. Cần xác minh lại URL Auth0
-và suite trên staging trước khi tick các Definition of Done liên quan đến staging.
+và suite trên test trước khi tick các Definition of Done liên quan đến test.
 
 #### B. Backend integration và reset dữ liệu
 
@@ -394,13 +394,13 @@ và suite trên staging trước khi tick các Definition of Done liên quan đ�
 4. Chốt hoặc triển khai idempotency contract cho mutation cần retry và batch/summary endpoint cho streak của trang Habits nếu muốn loại bỏ hoàn toàn N+1.
 
 Local reset chạy lặp lại, giữ nguyên dữ liệu user khác và failure/retry flows đã PASS.
-Staging cần cấu hình URL/token riêng và kiểm tra lại; quyết định chuyển Habits sang
-summary endpoint dựa trên phép đo p95 ở staging.
+Test cần cấu hình URL/token riêng và kiểm tra lại; quyết định chuyển Habits sang
+summary endpoint dựa trên phép đo p95 ở test.
 
-#### C. Staging, production domain và hosting provider
+#### C. Test, production domain và hosting provider
 
-1. Chọn hosting provider và cung cấp tên provider cùng staging/production domain; không cần cung cấp credential trong chat.
-2. Tạo staging deployment từ branch/commit cần kiểm thử và cấu hình bốn biến `VITE_*` bằng giá trị staging.
+1. Chọn hosting provider và cung cấp tên provider cùng test/production domain; không cần cung cấp credential trong chat.
+2. Tạo test deployment từ branch/commit cần kiểm thử và cấu hình bốn biến `VITE_*` bằng giá trị test.
 3. Cấu hình production Auth0 origins, API CORS và Cloudinary delivery domain cho đúng production origin.
 4. Bật HTTPS redirect/HSTS theo khả năng của provider và xác định cách rollback/promote một immutable deployment.
 
@@ -408,11 +408,11 @@ Sau khi hoàn tất, Codex có thể tạo cấu hình đúng provider cho SPA f
 
 #### D. GitHub environments và branch protection
 
-1. Tạo GitHub environment `staging` và cấu hình các `vars`/`secrets` được liệt kê trong workflow cùng `FRONTEND_INTEGRATION_TESTING.md`.
+1. Tạo GitHub environment `test` và cấu hình các `vars`/`secrets` được liệt kê trong workflow cùng `FRONTEND_INTEGRATION_TESTING.md`.
 2. Quyết định artifact policy cho authenticated Playwright: loại dữ liệu được phép lưu, masking/redaction, người được truy cập và retention. Mặc định hiện tại là không upload để tránh rò rỉ mood note, email, token hoặc session state.
 3. Sau khi CI checks đã chạy ổn định, bật branch protection/ruleset cho branch mặc định và chọn các required checks cần chặn merge.
 
-Sau khi hoàn tất, Codex có thể chạy hoặc rà soát staging workflow, bổ sung artifact upload theo policy đã duyệt, xác nhận không chứa `playwright/.auth`, kiểm tra required checks và tick ba mục CI còn lại khi GitHub báo thành công.
+Sau khi hoàn tất, Codex có thể chạy hoặc rà soát test workflow, bổ sung artifact upload theo policy đã duyệt, xác nhận không chứa `playwright/.auth`, kiểm tra required checks và tick ba mục CI còn lại khi GitHub báo thành công.
 
 #### E. Monitoring và privacy approval
 
@@ -426,7 +426,7 @@ Sau khi hoàn tất, Codex có thể tích hợp SDK đã chọn, thêm release/
 #### F. Manual accessibility, responsive và browser QA
 
 1. Chuẩn bị các browser/device mục tiêu, tối thiểu Chrome, Edge, Firefox, Safari, iOS Safari và Android Chrome; có thể dùng thiết bị thật hoặc dịch vụ device farm đã được phê duyệt.
-2. Chạy keyboard-only, screen reader, zoom 200%, 320 px reflow, focus order, virtual keyboard và contrast checks trên staging với dữ liệu giả.
+2. Chạy keyboard-only, screen reader, zoom 200%, 320 px reflow, focus order, virtual keyboard và contrast checks trên test với dữ liệu giả.
 3. Ghi browser/OS, viewport, route, trạng thái dữ liệu và bằng chứng cho mỗi lỗi; không chụp hoặc tải artifact chứa dữ liệu thật.
 
 Sau khi hoàn tất, Codex có thể phân tích kết quả, sửa các lỗi có thể tái hiện, bổ sung automated regression tests/axe checks, chạy lại các quality gates và tick từng mục 9.4–9.5 chỉ khi kiểm tra tương ứng thực sự đạt.
@@ -435,10 +435,10 @@ Sau khi hoàn tất, Codex có thể phân tích kết quả, sửa các lỗi c
 
 Chỉ cần cung cấp các thông tin không nhạy cảm sau:
 
-- Auth0 application và synthetic account cho staging đã cấu hình hay chưa; không gửi password.
+- Auth0 application và synthetic account cho test đã cấu hình hay chưa; không gửi password.
 - Tên các env vars/secrets đã được cấu hình và environment chứa chúng; không gửi giá trị secret.
-- Staging URL, API base URL công khai, hosting provider và default branch.
-- Backend staging có bật reset endpoint cho synthetic user và đo streak p95 chưa; không gửi reset token.
+- Test URL, API base URL công khai, hosting provider và default branch.
+- Backend test có bật reset endpoint cho synthetic user và đo streak p95 chưa; không gửi reset token.
 - Monitoring provider/artifact policy đã được phê duyệt hay chưa.
 - Kết quả hoặc đường dẫn nội bộ đến báo cáo manual QA không chứa dữ liệu nhạy cảm.
 

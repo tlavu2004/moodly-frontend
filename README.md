@@ -27,8 +27,7 @@ API values. Keep real local values scoped to the mode-specific ignored files ins
 | Environment | Real values live in | Committed contract |
 | --- | --- | --- |
 | Local development | `.env.development.local` | `.env.development.example` |
-| Local integration/E2E | `.env.integration.local` | `.env.integration.example` |
-| Staging | Hosting/GitHub `staging` variables and secrets | `.env.staging.example` |
+| Test (local E2E or deployed) | `.env.test.local` or hosting/GitHub `test` variables and secrets | `.env.test.example` |
 | Production | Hosting production variables and secret store | `.env.production.example` |
 
 The browser-visible variables required in every frontend mode are:
@@ -65,12 +64,12 @@ npm run dev -- --mode development
 The expected local frontend origin is `http://localhost:5173`. The backend CORS list and
 Auth0 callback, logout, and web-origin lists must contain that exact origin.
 
-### Local integration and E2E environment
+### Test and E2E environment
 
-Create the ignored integration file separately:
+Create the ignored test file separately:
 
 ```powershell
-Copy-Item .env.integration.example .env.integration.local
+Copy-Item .env.test.example .env.test.local
 ```
 
 It contains the same four `VITE_*` values plus runner-only settings:
@@ -85,23 +84,23 @@ E2E_DATA_RESET_TOKEN=
 The E2E variables are consumed by Playwright/Node and must never be prefixed with
 `VITE_`. Leave `E2E_BASE_URL` unset for a normal local run; Playwright then starts Vite
 at `http://127.0.0.1:4173`. Set `E2E_BASE_URL` only when the frontend is already running
-or when the suite should target a remote staging deployment.
+or when the suite should target a remote test deployment.
 
 Auth0 callback, logout, and web-origin lists and backend CORS must also contain
 `http://127.0.0.1:4173` for local authenticated E2E.
 
-### Staging and production
+### Test and production
 
-The staging and production example files document required browser-visible variables;
+The test template also includes runner-only E2E inputs. Both templates document browser-visible variables;
 they are not places to store real deployed values. Configure real values in the hosting
 provider and GitHub environment. Store E2E passwords/reset tokens only in the GitHub
-`staging` secret store, and never create or commit a production env file containing
+`test` secret store, and never create or commit a production env file containing
 credentials.
 
 Before committing, confirm that local files remain ignored:
 
 ```powershell
-git status --short --ignored -- .env.development.local .env.integration.local
+git status --short --ignored -- .env.development.local .env.test.local
 ```
 
 Both files should appear with the ignored marker `!!`, never as tracked or untracked
@@ -152,7 +151,7 @@ again; do not replay the old request automatically.
 The Habits page makes one list request and one parallel streak request per
 active habit. This N+1 pattern is accepted temporarily for small habit lists.
 If one streak request fails, its card shows “Streak unavailable” while the
-other streaks remain visible. Recheck this choice during staging performance
+other streaks remain visible. Recheck this choice during test performance
 testing with representative history and 10 active habits; move to a summary
 endpoint if the Habits page exceeds a 1-second p95 load time or typical habit
 counts grow beyond 10.
@@ -162,4 +161,4 @@ The handling rules for mood notes and other sensitive browser data are documente
 
 ## Request lifecycle and rate limiting
 
-Moodly honors Retry-After for HTTP 429 across the current user's API client. Missing or invalid headers pause requests for 30 seconds. Read recovery is manual; writes are never automatically replayed. See [request handling and verification](docs/markdowns/FRONTEND_REQUEST_HANDLING.md) for cancellation, concurrent reads, submit guards and staging checks.
+Moodly honors Retry-After for HTTP 429 across the current user's API client. Missing or invalid headers pause requests for 30 seconds. Read recovery is manual; writes are never automatically replayed. See [request handling and verification](docs/markdowns/FRONTEND_REQUEST_HANDLING.md) for cancellation, concurrent reads, submit guards and test checks.

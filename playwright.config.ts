@@ -1,8 +1,8 @@
 import { defineConfig, devices } from '@playwright/test'
 import { loadEnv } from 'vite'
 
-const integrationEnv = loadEnv('integration', process.cwd(), '')
-for (const [name, value] of Object.entries(integrationEnv)) {
+const testEnv = loadEnv('test', process.cwd(), '')
+for (const [name, value] of Object.entries(testEnv)) {
   if (process.env[name] === undefined) process.env[name] = value
 }
 
@@ -46,7 +46,7 @@ export default defineConfig({
     },
   ],
   webServer: targetsRemoteDeployment ? undefined : {
-    command: 'npm run dev -- --mode integration --host 127.0.0.1 --port 4173',
+    command: 'npm run dev -- --mode test --host 127.0.0.1 --port 4173',
     url: baseURL,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,

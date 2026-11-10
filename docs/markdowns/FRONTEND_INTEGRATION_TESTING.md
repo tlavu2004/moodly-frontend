@@ -1,7 +1,7 @@
 # Frontend integration test environment
 
 This environment is isolated from production and must contain synthetic data only. Copy
-`.env.integration.example` to the ignored `.env.integration.local` file for local runs.
+`.env.test.example` to the ignored `.env.test.local` file for local runs.
 `playwright.config.ts` loads that file automatically; explicit process/CI variables take
 precedence. Never commit test passwords, Auth0 client secrets, reset tokens, access
 tokens, or captured authenticated browser state.
@@ -17,7 +17,7 @@ the following values through ignored local env files or CI/hosting secret stores
 | `VITE_AUTH0_CLIENT_ID` | Public client ID of the Auth0 SPA; this is not a client secret. |
 | `VITE_AUTH0_AUDIENCE` | Audience of the integration backend API. |
 | `VITE_API_BASE_URL` | Reachable integration backend base URL, without a secret. |
-| `E2E_BASE_URL` | Optional frontend origin. Leave unset for auto-started local Vite; set it for an already-running frontend or staging. |
+| `E2E_BASE_URL` | Optional frontend origin. Leave unset for auto-started local Vite; set it for an already-running frontend or test. |
 | `E2E_TEST_USER_EMAIL` | Synthetic Auth0 database-connection user stored locally or in CI secrets. |
 | `E2E_TEST_USER_PASSWORD` | Password for that synthetic user, stored only as a secret. |
 | `E2E_DATA_RESET_URL` | Absolute URL of the non-production reset endpoint. |
@@ -26,7 +26,7 @@ the following values through ignored local env files or CI/hosting secret stores
 Local status (2026-10-15): the non-production Auth0 application, synthetic account,
 backend, and reset service are configured outside Git; the authenticated E2E suite
 passed 13/13. The repository intentionally contains no E2E credentials or reset token.
-Provision and verify staging separately before running its suite.
+Provision and verify test separately before running its suite.
 
 ## Auth0 application
 
@@ -83,8 +83,8 @@ create its own habit, mood entry, completion, avatar, and search result.
 1. Install the browser once with `npx playwright install chromium`.
 2. Start backend dependencies and the backend integration profile.
 3. Verify the backend health and reset endpoints from the test machine.
-4. Copy `.env.integration.example` to `.env.integration.local`, fill the required values, and leave `E2E_BASE_URL` unset for auto-started local Vite.
-5. Run `npm run test:e2e`; Playwright starts Vite in integration mode automatically.
+4. Copy `.env.test.example` to `.env.test.local`, fill the required values, and leave `E2E_BASE_URL` unset for auto-started local Vite.
+5. Run `npm run test:e2e`; Playwright starts Vite in test mode automatically.
 
 Useful commands:
 
@@ -112,4 +112,4 @@ Keep Playwright traces, screenshots, and videos only for failed or retried tests
 
 The public project is locally runnable without external credentials. The full local
 E2E suite passed against the provisioned Auth0 tenant and integration backend on
-2026-10-15 (13/13). Staging remains unverified.
+2026-10-15 (13/13). Test remains unverified.
