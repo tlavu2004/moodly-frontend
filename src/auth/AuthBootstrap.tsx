@@ -1,17 +1,26 @@
 import { useAuth0 } from '@auth0/auth0-react'
-import { useEffect, useState, type ReactNode } from 'react'
-import { createApiClient } from '../api/client.ts'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import type { ApiClient } from '../api/client.ts'
+import { ApiRequestError } from '../api/errors.ts'
+import { getSessionApiClient } from '../api/useApiClient.ts'
+import { RequestRetry } from '../components/ui/RequestRetry.tsx'
 import { getUserFacingError } from '../api/errorMessages.ts'
-import { synchronize } from '../api/openapi/sdk.api.ts'
+import { synchronizeProfile } from './synchronizeProfile.ts'
 
 type AuthBootstrapProps = {
   children: ReactNode
 }
 
 export function AuthBootstrap({ children }: AuthBootstrapProps) {
-  const { error, getAccessTokenSilently, isAuthenticated, isLoading, loginWithRedirect } = useAuth0()
-  const [isProfileReady, setIsProfileReady] = useState(false)
-  const [profileError, setProfileError] = useState<string | null>(null)
+  const { error, getAccessTokenSilently, isAuthenticated, isLoading, loginWithRedirect, user } = useAuth0()
+  const client = useMemo(() => getSessionApiClient(getAccessTokenSilently, user?.sub), [getAccessTokenSilently, user?.sub])
+  const [attempt, setAttempt] = useState(0)
+  const [profile, setProfile] = useState<{ client: ApiClient; failure?: unknown; ready: boolean } | null>(null)
+  const failure = isAuthenticated && profile?.client === client ? profile.failure : null
+  const isProfileReady = profile?.client === client && profile.ready
+  const profileError = failure ? getUserFacingError(failure, 'Unable to synchronize your profile.') : null
+  const profileUnauthorized = failure instanceof ApiRequestError && failure.status === 401
+  const retryAt = failure instanceof ApiRequestError ? failure.retryAt : null
 
   useEffect(() => {
     if (!error) return
@@ -25,12 +34,11 @@ export function AuthBootstrap({ children }: AuthBootstrapProps) {
   }, [error])
 
   useEffect(() => {
-    if (!isAuthenticated) return
     let active = true
-    const client = createApiClient(() => getAccessTokenSilently())
-    synchronize({ client, throwOnError: true }).then(() => { if (active) setIsProfileReady(true) }).catch((reason: unknown) => { if (active) setProfileError(getUserFacingError(reason, 'Unable to synchronize your profile.')) })
+    if (!isAuthenticated) { queueMicrotask(() => { if (active) setProfile(null) }); return () => { active = false } }
+    synchronizeProfile(client).then(() => { if (active) setProfile({ client, ready: true }) }).catch((failure: unknown) => { if (active) setProfile({ client, ready: false, failure }) })
     return () => { active = false }
-  }, [getAccessTokenSilently, isAuthenticated])
+  }, [client, isAuthenticated, attempt])
 
   if (isLoading || (isAuthenticated && !isProfileReady && !profileError)) {
     return (
@@ -55,8 +63,8 @@ export function AuthBootstrap({ children }: AuthBootstrapProps) {
           <p className="mt-2 text-sm text-foreground/75">{error?.message ?? profileError}</p>
           <div className="mt-4 flex flex-wrap gap-3">
             <a className="button-secondary" href="/">Back to home</a>
-            {error && <button className="button-primary" type="button" onClick={() => loginWithRedirect({ appState: { returnTo: '/dashboard' } })}>Sign in again</button>}
-            {profileError && <button className="button-primary" type="button" onClick={() => window.location.reload()}>Try again</button>}
+            {(error || profileUnauthorized) && <button className="button-primary" type="button" onClick={() => loginWithRedirect({ appState: { returnTo: '/dashboard' } })}>Sign in again</button>}
+            {profileError && !profileUnauthorized && <RequestRetry retryAt={retryAt} onRetry={() => { setProfile(null); setAttempt((value) => value + 1) }} />}
           </div>
         </section>
       </main>

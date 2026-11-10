@@ -6,7 +6,7 @@ import { StatsPage } from './StatsPage.tsx'
 vi.mock('../hooks/useStats.ts', () => ({ useStats: vi.fn() }))
 
 const habit = { id: 'habit-1', userId: 'user-1', name: 'Morning walk', targetFrequency: 'DAILY' as const, active: true, version: 0 }
-const state = (overrides: Record<string, unknown> = {}) => ({ trends: [], missed: [], habits: [], isLoading: false, error: null, ...overrides })
+const state = (overrides: Record<string, unknown> = {}) => ({ reload: vi.fn(), retryAt: null, trends: [], missed: [], habits: [], isLoading: false, error: null, ...overrides })
 
 describe('StatsPage', () => {
   it('renders the empty state without data', () => {

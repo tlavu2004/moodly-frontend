@@ -25,15 +25,15 @@ function renderPage() {
 
 describe('DashboardPage', () => {
   beforeEach(() => {
-    vi.mocked(useAuth0).mockReturnValue({ user: { given_name: 'Mai' } } as unknown as ReturnType<typeof useAuth0>)
-    vi.mocked(useDashboard).mockReturnValue({ data: null, isLoading: true, error: null, reload })
+    vi.mocked(useAuth0).mockReturnValue({ retryAt: null, user: { given_name: 'Mai' } } as unknown as ReturnType<typeof useAuth0>)
+    vi.mocked(useDashboard).mockReturnValue({ retryAt: null, data: null, isLoading: true, error: null, reload })
     reload.mockReset()
   })
 
   it('renders loading and supports retry after an error', async () => {
     const { rerender } = renderPage()
     expect(screen.getByLabelText('Loading dashboard')).toBeInTheDocument()
-    vi.mocked(useDashboard).mockReturnValue({ data: null, isLoading: false, error: 'Server unavailable', reload })
+    vi.mocked(useDashboard).mockReturnValue({ retryAt: null, data: null, isLoading: false, error: 'Server unavailable', reload })
     rerender(<MemoryRouter><DashboardPage /></MemoryRouter>)
     expect(screen.getByRole('alert')).toHaveTextContent('Server unavailable')
     await userEvent.setup().click(screen.getByRole('button', { name: 'Try again' }))
@@ -41,7 +41,7 @@ describe('DashboardPage', () => {
   })
 
   it('renders no-habit and no-mood states at zero completion', () => {
-    vi.mocked(useDashboard).mockReturnValue({ data: dashboard(0, 0), isLoading: false, error: null, reload })
+    vi.mocked(useDashboard).mockReturnValue({ retryAt: null, data: dashboard(0, 0), isLoading: false, error: null, reload })
     renderPage()
     expect(screen.getByText('Start with one small ritual')).toBeInTheDocument()
     expect(screen.getByText('0%')).toBeInTheDocument()
@@ -50,13 +50,13 @@ describe('DashboardPage', () => {
   })
 
   it.each([[0.5, '50%'], [1, '100%']])('renders completion ratio %s', (ratio, expected) => {
-    vi.mocked(useDashboard).mockReturnValue({ data: dashboard(ratio), isLoading: false, error: null, reload })
+    vi.mocked(useDashboard).mockReturnValue({ retryAt: null, data: dashboard(ratio), isLoading: false, error: null, reload })
     renderPage()
     expect(screen.getByText(expected)).toBeInTheDocument()
   })
 
   it('renders best streak and weekly mood summary', () => {
-    vi.mocked(useDashboard).mockReturnValue({ data: dashboard(0.5), isLoading: false, error: null, reload })
+    vi.mocked(useDashboard).mockReturnValue({ retryAt: null, data: dashboard(0.5), isLoading: false, error: null, reload })
     renderPage()
     expect(screen.getByText('7 days')).toBeInTheDocument()
     expect(screen.getByText('4.3 / 5')).toBeInTheDocument()

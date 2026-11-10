@@ -1,12 +1,27 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { getUserFacingError } from '../../../api/errorMessages.ts'
+import { ApiRequestError } from '../../../api/errors.ts'
+import { useApiRead } from '../../../api/useApiRead.ts'
+import { useMutationTask } from '../../../api/useMutationTask.ts'
 import { useApiClient } from '../../../api/useApiClient.ts'
-import type { Avatar } from '../../../api/openapi/types.api.ts'
 import { getAvatar, uploadAvatar } from '../api/profileApi.ts'
 
 export function useAvatar() {
-  const client = useApiClient(); const [avatar, setAvatar] = useState<Avatar | null>(null); const [isLoading, setIsLoading] = useState(true); const [isUploading, setIsUploading] = useState(false); const [error, setError] = useState<string | null>(null)
-  useEffect(() => { let active = true; getAvatar(client).then((data) => { if (active) setAvatar(data) }).catch((reason: unknown) => { if (active) setError(getUserFacingError(reason, 'Unable to load your avatar.')) }).finally(() => { if (active) setIsLoading(false) }); return () => { active = false } }, [client])
-  async function upload(file: File) { setIsUploading(true); setError(null); try { setAvatar(await uploadAvatar(client, file)) } catch (reason) { setError(getUserFacingError(reason, 'Unable to upload the photo.')) } finally { setIsUploading(false) } }
-  return { avatar, isLoading, isUploading, error, upload }
+  const client = useApiClient()
+  const uploadPending = useRef(false)
+  const mutate = useMutationTask()
+  const [isUploading, setIsUploading] = useState(false)
+  const [uploadFailure, setUploadFailure] = useState<unknown>(null)
+  const load = useCallback((signal: AbortSignal) => { setUploadFailure(null); return getAvatar(client, signal) }, [client])
+  const { data, setData, isLoading, error, reload, retryAt } = useApiRead(load, 'Unable to load your avatar.')
+  async function upload(file: File) {
+    if (uploadPending.current) return
+    uploadPending.current = true
+    setIsUploading(true); setUploadFailure(null)
+    try { setData(await mutate((signal) => uploadAvatar(client, file, signal))) }
+    catch (reason) { if (!(reason instanceof DOMException && reason.name === 'AbortError')) setUploadFailure(reason) }
+    finally { uploadPending.current = false; setIsUploading(false) }
+  }
+  return { avatar: data ?? null, isLoading, isUploading, error: uploadFailure ? getUserFacingError(uploadFailure, 'Unable to upload the photo.') : error,
+    retryAt: uploadFailure instanceof ApiRequestError ? uploadFailure.retryAt : retryAt, reload, upload }
 }

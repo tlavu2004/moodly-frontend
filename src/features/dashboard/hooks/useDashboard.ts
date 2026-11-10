@@ -1,11 +1,11 @@
-import { useCallback, useEffect, useState } from 'react'
-import { getUserFacingError } from '../../../api/errorMessages.ts'
+import { useCallback } from 'react'
+import { useApiRead } from '../../../api/useApiRead.ts'
 import { useApiClient } from '../../../api/useApiClient.ts'
-import { getDashboardData, type DashboardData } from '../api/dashboardApi.ts'
+import { getDashboardData } from '../api/dashboardApi.ts'
 
 export function useDashboard() {
-  const client = useApiClient(); const [data, setData] = useState<DashboardData | null>(null); const [isLoading, setIsLoading] = useState(true); const [error, setError] = useState<string | null>(null)
-  const load = useCallback(async () => { setIsLoading(true); setError(null); try { setData(await getDashboardData(client)) } catch (reason) { setError(getUserFacingError(reason, 'Unable to load your dashboard.')) } finally { setIsLoading(false) } }, [client])
-  useEffect(() => { let active = true; getDashboardData(client).then((result) => { if (active) setData(result) }).catch((reason: unknown) => { if (active) setError(getUserFacingError(reason, 'Unable to load your dashboard.')) }).finally(() => { if (active) setIsLoading(false) }); return () => { active = false } }, [client])
-  return { data, isLoading, error, reload: load }
+  const client = useApiClient()
+  const load = useCallback((signal: AbortSignal) => getDashboardData(client, signal), [client])
+  const { data, isLoading, error, reload, retryAt } = useApiRead(load, 'Unable to load your dashboard.')
+  return { data: data ?? null, isLoading, error, reload, retryAt }
 }

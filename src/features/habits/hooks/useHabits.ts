@@ -1,36 +1,24 @@
-import { useCallback, useEffect, useState } from 'react'
-import { getUserFacingError } from '../../../api/errorMessages.ts'
+import { useCallback } from 'react'
+import { useApiRead } from '../../../api/useApiRead.ts'
+import { useMutationTask } from '../../../api/useMutationTask.ts'
 import { useApiClient } from '../../../api/useApiClient.ts'
-import type { CreateHabitRequest, Habit } from '../../../api/openapi/types.api.ts'
+import type { CreateHabitRequest } from '../../../api/openapi/types.api.ts'
 import { createHabit, listHabits, listHabitStreaks } from '../api/habitsApi.ts'
 
 export function useHabits() {
   const client = useApiClient()
-  const [habits, setHabits] = useState<Habit[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [streaks, setStreaks] = useState<Record<string, number>>({})
-
-  const load = useCallback(async () => {
-    setIsLoading(true); setError(null)
-    try { const items = await listHabits(client); setHabits(items); setStreaks(await listHabitStreaks(client, items)) } catch (reason) { setError(getUserFacingError(reason, 'Unable to load habits.')) } finally { setIsLoading(false) }
+  const mutate = useMutationTask()
+  const load = useCallback(async (signal: AbortSignal) => {
+    const habits = await listHabits(client, signal)
+    signal.throwIfAborted()
+    let streakRetryAt: number | null = null
+    const streaks = await listHabitStreaks(client, habits, signal, (error) => { streakRetryAt = Math.max(streakRetryAt ?? 0, error.retryAt ?? 0) })
+    return { habits, streaks, streakRetryAt }
   }, [client])
-
-  useEffect(() => {
-    let active = true
-    void listHabits(client)
-      .then(async (items) => ({ items, nextStreaks: await listHabitStreaks(client, items) }))
-      .then(({ items, nextStreaks }) => { if (active) { setHabits(items); setStreaks(nextStreaks) } })
-      .catch((reason: unknown) => { if (active) setError(getUserFacingError(reason, 'Unable to load habits.')) })
-      .finally(() => { if (active) setIsLoading(false) })
-    return () => { active = false }
-  }, [client])
-
+  const { data, setData, isLoading, error, reload, retryAt } = useApiRead(load, 'Unable to load habits.')
   const add = async (input: CreateHabitRequest) => {
-    const habit = await createHabit(client, input)
-    setHabits((current) => [...current, habit])
-    if (habit.id) setStreaks((current) => ({ ...current, [habit.id!]: 0 }))
+    const habit = await mutate((signal) => createHabit(client, input, signal))
+    setData((current) => ({ habits: [...(current?.habits ?? []), habit], streaks: { ...current?.streaks, [habit.id]: 0 }, streakRetryAt: current?.streakRetryAt ?? null }))
   }
-
-  return { habits, streaks, isLoading, error, reload: load, add }
+  return { streakRetryAt: data?.streakRetryAt ?? null, habits: data?.habits ?? [], streaks: data?.streaks ?? {}, isLoading, error, reload, retryAt, add }
 }

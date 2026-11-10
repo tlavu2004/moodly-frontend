@@ -1,4 +1,7 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { ApiRequestError } from '../api/errors.ts'
+import userEvent from '@testing-library/user-event'
+import { StrictMode } from 'react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { useAuth0 } from '@auth0/auth0-react'
 import { vi } from 'vitest'
 import { AuthBootstrap } from './AuthBootstrap.tsx'
@@ -74,4 +77,52 @@ describe('AuthBootstrap', () => {
     rerender(<AuthBootstrap><p>Child</p></AuthBootstrap>)
     await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('Profile synchronization failed'))
   })
+})
+
+it('provides sign-in recovery when the backend rejects profile sync with 401', async () => {
+  const loginWithRedirect = vi.fn()
+  synchronizeMock.mockRejectedValue(new ApiRequestError({ status: 401, message: 'Unauthorized' }))
+  vi.mocked(useAuth0).mockReturnValue(authState({ isAuthenticated: true, loginWithRedirect }) as unknown as ReturnType<typeof useAuth0>)
+  render(<AuthBootstrap><p>Child</p></AuthBootstrap>)
+  await userEvent.setup().click(await screen.findByRole('button', { name: 'Sign in again' }))
+  expect(loginWithRedirect).toHaveBeenCalledWith({ appState: { returnTo: '/dashboard' } })
+  expect(screen.queryByRole('button', { name: 'Try again' })).not.toBeInTheDocument()
+})
+
+it('does not redirect or retry automatically after a profile 403', async () => {
+  const loginWithRedirect = vi.fn()
+  synchronizeMock.mockRejectedValue(new ApiRequestError({ status: 403, message: 'Forbidden' }))
+  vi.mocked(useAuth0).mockReturnValue(authState({ isAuthenticated: true, loginWithRedirect }) as unknown as ReturnType<typeof useAuth0>)
+  render(<AuthBootstrap><p>Child</p></AuthBootstrap>)
+  expect(await screen.findByRole('alert')).toHaveTextContent('permission')
+  expect(screen.queryByRole('button', { name: 'Sign in again' })).not.toBeInTheDocument()
+  expect(loginWithRedirect).not.toHaveBeenCalled()
+  expect(synchronizeMock).toHaveBeenCalledTimes(1)
+})
+
+it('shares overlapping StrictMode profile synchronization without replaying the PUT', async () => {
+  let finish!: () => void
+  synchronizeMock.mockReturnValue(new Promise<void>((done) => { finish = done }))
+  vi.mocked(useAuth0).mockReturnValue(authState({ isAuthenticated: true }) as unknown as ReturnType<typeof useAuth0>)
+  render(<StrictMode><AuthBootstrap><p>Ready child</p></AuthBootstrap></StrictMode>)
+  expect(synchronizeMock).toHaveBeenCalledTimes(1)
+  await act(async () => finish())
+  expect(screen.getByText('Ready child')).toBeInTheDocument()
+})
+
+it('waits for Retry-After and retries profile sync only after an explicit click', async () => {
+  vi.useFakeTimers()
+  try {
+    synchronizeMock.mockRejectedValueOnce(new ApiRequestError({ status: 429, message: 'Limited', retryAt: Date.now() + 5000 })).mockResolvedValueOnce(undefined)
+    vi.mocked(useAuth0).mockReturnValue(authState({ isAuthenticated: true }) as unknown as ReturnType<typeof useAuth0>)
+    render(<AuthBootstrap><p>Ready child</p></AuthBootstrap>)
+    await act(async () => {})
+    expect(screen.getByRole('button')).toBeDisabled()
+    await act(async () => { await vi.advanceTimersByTimeAsync(5000) })
+    expect(screen.getByRole('button')).toBeEnabled()
+    expect(synchronizeMock).toHaveBeenCalledTimes(1)
+    await act(async () => fireEvent.click(screen.getByRole('button')))
+    expect(synchronizeMock).toHaveBeenCalledTimes(2)
+    expect(screen.getByText('Ready child')).toBeInTheDocument()
+  } finally { vi.useRealTimers() }
 })

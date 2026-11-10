@@ -77,7 +77,7 @@ export const confirm = <ThrowOnError extends boolean = false>(options: Options<C
 /**
  * Reindex daily entries
  *
- * Rebuilds the daily-entry search index. Requires the X-Maintenance-Key header.
+ * Rebuilds the daily-entry search index. Requires X-Maintenance-Key; production also requires an operator JWT.
  */
 export const reindex = <ThrowOnError extends boolean = false>(options: Options<ReindexData, ThrowOnError>): RequestResult<ReindexResponses, ReindexErrors, ThrowOnError> => (options.client ?? client).post<ReindexResponses, ReindexErrors, ThrowOnError>({
     security: [{ name: 'X-Maintenance-Key', type: 'apiKey' }],
@@ -88,7 +88,7 @@ export const reindex = <ThrowOnError extends boolean = false>(options: Options<R
 /**
  * Replay a CDC dead letter
  *
- * Replays a failed CDC delivery by ID. Requires the X-Maintenance-Key header.
+ * Replays a failed CDC delivery by ID. Requires X-Maintenance-Key; production also requires an operator JWT.
  */
 export const replay = <ThrowOnError extends boolean = false>(options: Options<ReplayData, ThrowOnError>): RequestResult<ReplayResponses, ReplayErrors, ThrowOnError> => (options.client ?? client).post<ReplayResponses, ReplayErrors, ThrowOnError>({
     security: [{ name: 'X-Maintenance-Key', type: 'apiKey' }],
@@ -181,7 +181,7 @@ export const today = <ThrowOnError extends boolean = false>(options?: Options<To
 /**
  * Update today's habit log
  *
- * Marks or unmarks a habit in the authenticated user's entry for today.
+ * Marks or unmarks a habit in the authenticated user's entry for today. Existing logs can be corrected after archiving; new logs for archived habits are rejected.
  */
 export const updateTodayHabit = <ThrowOnError extends boolean = false>(options: Options<UpdateTodayHabitData, ThrowOnError>): RequestResult<UpdateTodayHabitResponses, UpdateTodayHabitErrors, ThrowOnError> => (options.client ?? client).patch<UpdateTodayHabitResponses, UpdateTodayHabitErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],

@@ -1,22 +1,25 @@
-import { useEffect, useState } from 'react'
+import { useCallback } from 'react'
+import { useApiRead } from '../../../api/useApiRead.ts'
+import { useMutationTask } from '../../../api/useMutationTask.ts'
 import { useApiClient } from '../../../api/useApiClient.ts'
-import type { DailyEntry, Habit, SetMoodRequest } from '../../../api/openapi/types.api.ts'
+import type { SetMoodRequest } from '../../../api/openapi/types.api.ts'
 import { getActiveHabits, getTodayEntry, saveHabitLog, saveMood } from '../api/entriesApi.ts'
 
 export function useTodayEntry() {
   const client = useApiClient()
-  const [entry, setEntry] = useState<DailyEntry | null>(null)
-  const [habits, setHabits] = useState<Habit[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    let active = true
-    Promise.all([getTodayEntry(client), getActiveHabits(client)]).then(([todayEntry, activeHabits]) => { if (active) { setEntry(todayEntry); setHabits(activeHabits) } }).catch((reason: unknown) => { if (active) setError(reason instanceof Error ? reason.message : 'Unable to load today.') }).finally(() => { if (active) setIsLoading(false) })
-    return () => { active = false }
+  const mutate = useMutationTask()
+  const load = useCallback(async (signal: AbortSignal) => {
+    const [entry, habits] = await Promise.all([getTodayEntry(client, signal), getActiveHabits(client, signal)])
+    return { entry, habits }
   }, [client])
-
-  async function updateMood(input: SetMoodRequest) { const updated = await saveMood(client, input); setEntry(updated) }
-  async function toggleHabit(habitId: string, done: boolean) { const updated = await saveHabitLog(client, habitId, done); setEntry(updated) }
-  return { entry, habits, isLoading, error, updateMood, toggleHabit }
+  const { data, setData, isLoading, error, reload, retryAt } = useApiRead(load, 'Unable to load today.')
+  async function updateMood(input: SetMoodRequest) {
+    const updated = await mutate((signal) => saveMood(client, input, signal))
+    setData((current) => current ? { ...current, entry: updated } : current)
+  }
+  async function toggleHabit(habitId: string, done: boolean) {
+    const updated = await mutate((signal) => saveHabitLog(client, habitId, done, signal))
+    setData((current) => current ? { ...current, entry: updated } : current)
+  }
+  return { entry: data?.entry ?? null, habits: data?.habits ?? [], isLoading, error, reload, retryAt, updateMood, toggleHabit }
 }

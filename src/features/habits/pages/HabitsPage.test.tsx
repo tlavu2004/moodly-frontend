@@ -10,7 +10,7 @@ const add = vi.fn()
 const reload = vi.fn()
 const habit = { id: 'habit-1', userId: 'user-1', name: 'Morning walk', icon: '🏃', targetFrequency: 'DAILY' as const, active: true, version: 0 }
 const state = (overrides: Record<string, unknown> = {}) => ({
-  habits: [], streaks: {}, isLoading: false, error: null, reload, add, ...overrides,
+  retryAt: null, streakRetryAt: null, habits: [], streaks: {}, isLoading: false, error: null, reload, add, ...overrides,
 })
 
 describe('HabitsPage', () => {

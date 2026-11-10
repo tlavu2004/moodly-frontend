@@ -38,11 +38,11 @@ describe('feature API adapters', () => {
   })
 
   it('unwraps entry lists, today data, and mutation responses safely', async () => {
-    const { getActiveHabits, getEntries, getTodayEntry, saveHabitLog, saveMood } = await import('../features/entries/api/entriesApi.ts')
+    const { getActiveHabits, getEntriesPage, getTodayEntry, saveHabitLog, saveMood } = await import('../features/entries/api/entriesApi.ts')
     sdk.findBetween.mockResolvedValue(envelope(undefined))
     sdk.findByStatus.mockResolvedValue(envelope(undefined))
     sdk.today.mockResolvedValue(envelope(undefined))
-    await expect(getEntries(client, '2026-09-01', '2026-09-22')).resolves.toEqual([])
+    await expect(getEntriesPage(client, '2026-09-01', '2026-09-22', 0)).rejects.toThrow('entries response was empty')
     await expect(getActiveHabits(client)).resolves.toEqual([])
     await expect(getTodayEntry(client)).resolves.toBeNull()
     sdk.setTodayMood.mockResolvedValue(envelope({ id: 'entry-1' }))
@@ -55,13 +55,13 @@ describe('feature API adapters', () => {
 
   it('unwraps stats and search collections with empty fallbacks', async () => {
     const { getStats } = await import('../features/stats/api/statsApi.ts')
-    const { searchEntries } = await import('../features/search/api/searchApi.ts')
+    const { searchEntriesPage } = await import('../features/search/api/searchApi.ts')
     sdk.moodTrend.mockResolvedValue(envelope(undefined))
     sdk.mostMissedHabits.mockResolvedValue(envelope(undefined))
     sdk.findByStatus.mockResolvedValue(envelope(undefined))
     sdk.search.mockResolvedValue(envelope(undefined))
     await expect(getStats(client)).resolves.toEqual({ trends: [], missed: [], habits: [] })
-    await expect(searchEntries(client, { q: 'walk' })).resolves.toEqual([])
+    await expect(searchEntriesPage(client, { q: 'walk' }, 0)).rejects.toThrow('search response was empty')
   })
 
   it('returns no avatar for missing data', async () => {
@@ -69,4 +69,16 @@ describe('feature API adapters', () => {
     sdk.current.mockResolvedValue(envelope(undefined))
     await expect(getAvatar(client)).resolves.toBeNull()
   })
+})
+
+it('preserves totals and requests later pages for entries and search', async () => {
+  const { getEntriesPage } = await import('../features/entries/api/entriesApi.ts')
+  const { searchEntriesPage } = await import('../features/search/api/searchApi.ts')
+  const page = { items: [{ id: 'entry-21' }], page: 1, size: 20, totalElements: 21, totalPages: 2, hasNext: false }
+  sdk.findBetween.mockResolvedValue(envelope(page))
+  sdk.search.mockResolvedValue(envelope(page))
+  await expect(getEntriesPage(client, '2026-09-01', '2026-09-30', 1)).resolves.toEqual(page)
+  await expect(searchEntriesPage(client, { q: 'walk' }, 1)).resolves.toEqual(page)
+  expect(sdk.findBetween).toHaveBeenLastCalledWith(expect.objectContaining({ query: { from: '2026-09-01', to: '2026-09-30', page: 1, size: 20 } }))
+  expect(sdk.search).toHaveBeenLastCalledWith(expect.objectContaining({ query: { q: 'walk', page: 1, size: 20 } }))
 })

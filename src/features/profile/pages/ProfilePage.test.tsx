@@ -14,7 +14,7 @@ describe('ProfilePage', () => {
   beforeEach(() => {
     upload.mockReset()
     vi.mocked(useAuth0).mockReturnValue({ user: { name: 'Mai Nguyen', email: 'mai@example.test' }, logout: vi.fn() } as unknown as ReturnType<typeof useAuth0>)
-    vi.mocked(useAvatar).mockReturnValue({ avatar: null, isLoading: false, isUploading: false, error: null, upload })
+    vi.mocked(useAvatar).mockReturnValue({ reload: vi.fn(), retryAt: null, avatar: null, isLoading: false, isUploading: false, error: null, upload })
   })
 
   it('falls back from backend avatar to Auth0 picture and then initials', () => {
@@ -48,7 +48,7 @@ describe('ProfilePage', () => {
   })
 
   it('renders backend avatar metadata', () => {
-    vi.mocked(useAvatar).mockReturnValue({ avatar: { deliveryUrl: 'https://cdn/avatar.png', contentType: 'image/png', sizeBytes: 1024 * 1024 }, isLoading: false, isUploading: false, error: null, upload })
+    vi.mocked(useAvatar).mockReturnValue({ reload: vi.fn(), retryAt: null, avatar: { deliveryUrl: 'https://cdn/avatar.png', contentType: 'image/png', sizeBytes: 1024 * 1024 }, isLoading: false, isUploading: false, error: null, upload })
     render(<ProfilePage />)
     expect(screen.getByText('PNG')).toBeInTheDocument()
     expect(screen.getByText('1.00 MB')).toBeInTheDocument()

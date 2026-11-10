@@ -129,7 +129,7 @@ for the required inputs and startup sequence.
 
 ## API client generation
 
-Run `npm run generate:api` after the backend OpenAPI contract changes. The command reads `../moodly-backend/docs/api/moodly-openapi.json` and refreshes the committed files under `src/api/openapi/`.
+Run `npm run generate:api` after the backend OpenAPI contract changes. The command reads `../moodly-backend/docs/api/json/moodly-openapi.json` and refreshes the committed files under `src/api/openapi/`.
 
 Files under `src/api/openapi/` are generated artifacts and must not be edited manually.
 Change the backend OpenAPI source, run the generator, then review and commit the generated
@@ -159,3 +159,7 @@ counts grow beyond 10.
 
 Release verification and rollback steps are documented in [the frontend release runbook](docs/markdowns/FRONTEND_RELEASE_RUNBOOK.md).
 The handling rules for mood notes and other sensitive browser data are documented in [the frontend privacy review](docs/markdowns/FRONTEND_PRIVACY_REVIEW.md).
+
+## Request lifecycle and rate limiting
+
+Moodly honors Retry-After for HTTP 429 across the current user's API client. Missing or invalid headers pause requests for 30 seconds. Read recovery is manual; writes are never automatically replayed. See [request handling and verification](docs/markdowns/FRONTEND_REQUEST_HANDLING.md) for cancellation, concurrent reads, submit guards and staging checks.

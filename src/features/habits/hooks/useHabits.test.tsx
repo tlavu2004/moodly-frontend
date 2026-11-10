@@ -31,3 +31,15 @@ describe('useHabits', () => {
     expect(result.current.streaks).toEqual({ 'habit-1': 0 })
   })
 })
+
+it('does not fan out streak reads after the habits page unmounts', async () => {
+  let finish!: (habits: never[]) => void
+  listHabitStreaksMock.mockClear()
+  listHabitsMock.mockReturnValue(new Promise<never[]>((done) => { finish = done }))
+  const hook = renderHook(() => useHabits())
+  const signal = listHabitsMock.mock.lastCall?.[1] as AbortSignal
+  hook.unmount()
+  expect(signal.aborted).toBe(true)
+  await act(async () => finish([]))
+  expect(listHabitStreaksMock).not.toHaveBeenCalled()
+})
