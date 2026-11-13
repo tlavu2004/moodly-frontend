@@ -6,10 +6,11 @@ export MOODLY_ENV SOURCE_REVISION IMAGE_TAG
 ENV_FILE ?= .env.$(MOODLY_ENV).local
 compose = docker compose -p moodly-frontend-$(MOODLY_ENV) --env-file "$(ENV_FILE)" -f compose.yaml
 
-.PHONY: help local-run test-run lint test verify build docker-build docker-up docker-down docker-logs docker-status docker-validate docker-record
+.PHONY: help local-run test-run lint test verify build docker-build docker-up docker-stop docker-down docker-logs docker-status docker-validate docker-record
 help:
 	@echo "npm: local-run test-run lint test verify build"
-	@echo "Docker: docker-build docker-up docker-down docker-logs docker-status docker-validate docker-record"
+	@echo "Docker: docker-build docker-up docker-stop docker-down docker-logs docker-status docker-validate docker-record"
+	@echo "Use docker-stop after work to retain the stack; docker-down explicitly removes it."
 	@echo "Docker defaults: MOODLY_ENV=test ENV_FILE=.env.test.local (override for production)"
 local-run:
 	npm run dev
@@ -32,12 +33,14 @@ docker-build:
 	$(compose) build
 docker-up:
 	$(compose) up -d --build --wait --wait-timeout 90
+docker-stop:
+	$(compose) stop
 docker-down:
 	$(compose) down
 docker-logs:
 	$(compose) logs -f frontend
 docker-status:
-	$(compose) ps
+	$(compose) ps --all
 
 docker-record:
 	node scripts/record-image.mjs moodly-frontend:$(IMAGE_TAG)

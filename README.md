@@ -180,7 +180,7 @@ make docker-validate
 make docker-up
 node scripts/container-smoke.mjs http://127.0.0.1:4173
 make docker-logs
-make docker-down
+make docker-stop
 
 # Equivalent without Make
 docker compose -p moodly-frontend-test --env-file .env.test.local -f compose.yaml up -d --build --wait
@@ -210,6 +210,18 @@ CI builds with synthetic public configuration after quality checks, then checks
 health, SPA routes, asset delivery, caching and missing asset 404s. It does not
 publish or deploy an image. Real authenticated E2E remains a separate environment
 check. Dependabot tracks Docker base image updates, including pinned digests.
+
+### Container lifecycle
+
+Keep both frontend and backend stacks after local work/testing. Use `make docker-stop`
+to stop the frontend without removing containers/network; `make docker-status` also
+shows stopped containers. Use `make docker-up` to rebuild as needed, start and wait
+for readiness. This does not manage backend infrastructure.
+
+`make docker-down` is an explicit cleanup command that removes frontend containers
+and network, while retaining images. Do not run it as routine post-test cleanup.
+Never use `down -v` on backend infrastructure without explicitly intending to delete
+its data. Disposable CI containers are still removed after the CI job.
 
 ### Packaging checks and deployment
 
