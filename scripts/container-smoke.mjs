@@ -1,3 +1,4 @@
+import { spawnSync } from 'node:child_process'
 import assert from 'node:assert/strict'
 
 const base = new URL(process.argv[2] ?? 'http://127.0.0.1:4173')
@@ -23,3 +24,14 @@ assert.match(response.headers.get('content-type') ?? '', /javascript/)
 assert.match(response.headers.get('cache-control') ?? '', /immutable/)
 assert.equal((await get('/assets/missing-file.js')).status, 404)
 console.log('PASS container health, SPA routes, asset delivery, cache policy and missing asset 404')
+
+// Optional container name enables a regression check for callback/search log leaks.
+if (process.argv[3]) {
+  const marker = 'moodly-private-query-7e8491'
+  await get('/dashboard?code=' + marker + '&state=' + marker)
+  await get('/assets/missing-file.js?note=' + marker)
+  const result = spawnSync('docker', ['logs', process.argv[3]], { encoding: 'utf8' })
+  assert.equal(result.status, 0, 'Unable to read container logs')
+  assert.ok(!(result.stdout + result.stderr).includes(marker), 'Query values must not appear in access logs')
+  console.log('PASS access logs exclude callback/search query values')
+}
