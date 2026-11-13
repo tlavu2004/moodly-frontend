@@ -6,7 +6,7 @@ RUN --mount=type=cache,target=/root/.npm npm ci
 COPY index.html vite.config.ts openapi-ts.config.ts tsconfig*.json ./
 COPY src ./src
 COPY public ./public
-COPY scripts/check-bundle-budget.mjs scripts/validate-build-env.mjs ./scripts/
+COPY scripts/check-bundle-budget.mjs scripts/validate-build-env.mjs scripts/load-environment.mjs scripts/load-environment.d.mts ./scripts/
 ARG VITE_AUTH0_DOMAIN
 ARG VITE_AUTH0_CLIENT_ID
 ARG VITE_AUTH0_AUDIENCE

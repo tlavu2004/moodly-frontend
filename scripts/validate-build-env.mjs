@@ -1,6 +1,6 @@
 import { isIP } from 'node:net'
 import { pathToFileURL } from 'node:url'
-import { loadEnv } from 'vite'
+import { loadEnvironment } from './load-environment.mjs'
 
 const required = ['VITE_AUTH0_DOMAIN', 'VITE_AUTH0_CLIENT_ID', 'VITE_AUTH0_AUDIENCE', 'VITE_API_BASE_URL']
 const nonPublic = (hostname) => {
@@ -36,7 +36,7 @@ export function validateBuildEnvironment(source, target) {
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   try {
     const target = process.env.VERCEL_ENV === 'production' ? 'production' : (process.env.MOODLY_ENV ?? 'test')
-    validateBuildEnvironment(loadEnv('production', process.cwd(), ''), target)
+    validateBuildEnvironment(loadEnvironment('production'), target)
     console.log(`PASS build configuration (${target}); values omitted`)
   } catch (error) {
     console.error(error.message)

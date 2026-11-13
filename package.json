@@ -17,7 +17,7 @@
     "test:e2e:ui": "playwright test --ui",
     "smoke:deploy": "node scripts/postdeploy-smoke.mjs",
     "build:deploy": "node scripts/validate-build-env.mjs && npm run build",
-    "test:build-config": "node --test scripts/validate-build-env.test.mjs"
+    "test:build-config": "node --test scripts/validate-build-env.test.mjs scripts/load-environment.test.mjs"
   },
   "dependencies": {
     "@auth0/auth0-react": "^2.25.0",

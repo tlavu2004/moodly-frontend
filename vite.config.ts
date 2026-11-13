@@ -2,9 +2,14 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { visualizer } from 'rollup-plugin-visualizer'
 import { defineConfig } from 'vitest/config'
+import { loadEnvironment } from './scripts/load-environment.mjs'
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => ({
+  envDir: false,
+  define: Object.fromEntries(Object.entries(loadEnvironment(mode))
+    .filter(([key]) => key.startsWith('VITE_'))
+    .map(([key, value]) => [`import.meta.env.${key}`, JSON.stringify(value)])),
   plugins: [
     react(),
     tailwindcss(),

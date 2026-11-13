@@ -1,7 +1,7 @@
 import { defineConfig, devices } from '@playwright/test'
-import { loadEnv } from 'vite'
+import { loadEnvironment } from './scripts/load-environment.mjs'
 
-const testEnv = loadEnv('test', process.cwd(), '')
+const testEnv = loadEnvironment('test')
 for (const [name, value] of Object.entries(testEnv)) {
   if (process.env[name] === undefined) process.env[name] = value
 }
