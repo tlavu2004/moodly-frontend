@@ -199,8 +199,8 @@ bundle. Use hosting/CI variables, or an ignored .env.production.local based on
 make docker-build MOODLY_ENV=production ENV_FILE=.env.production.local
 ```
 
-MOODLY_ENV selects the Compose project/image name and default env file, not Vite's
-build mode: every container uses an optimized production build. Override FRONTEND_PORT
+MOODLY_ENV selects build validation rules, the Compose project/image name and default
+env file, not Vite's build mode: every container uses an optimized production build. Override FRONTEND_PORT
 if 4173 is occupied. The API URL must be reachable from the user's browser, rather
 than a Compose service hostname. Auth0 origins and backend CORS must include the
 actual frontend origin and port. Terminate TLS at the hosting platform or reverse
@@ -210,3 +210,27 @@ CI builds with synthetic public configuration after quality checks, then checks
 health, SPA routes, asset delivery, caching and missing asset 404s. It does not
 publish or deploy an image. Real authenticated E2E remains a separate environment
 check. Dependabot tracks Docker base image updates, including pinned digests.
+
+### Packaging checks and deployment
+
+`npm run test:build-config` verifies the deploy configuration rules; `npm run build:deploy`
+validates configuration before building. Production requires HTTPS/public DNS, rejects
+credential-bearing API URLs and localhost/private IP endpoints. Auth0 audience remains
+an identifier. Preview/test builds allow localhost for development E2E.
+
+Docker access logs omit query strings and referrers. Routine Nginx error logging is
+suppressed (`crit`) because request error messages can include raw callback queries;
+critical startup diagnostics still go to stderr. Do not add raw request logging.
+
+Make builds tag images as `<environment>-<git-revision>` with OCI labels. For builds
+from modified source, override `IMAGE_TAG` with a distinct development tag; a revision
+label alone does not certify a clean working tree. `make docker-record` records image
+identity under ignored `reports/`. Direct Compose builds default to `test-local` and
+unknown revision; use Make or provide IMAGE_TAG/SOURCE_REVISION for traceable builds.
+
+FE hosting is Vercel (Vite/static), with the Dockerized BE on Render. Docker stays
+available for local/CI verification and other container hosts. `vercel.json` configures
+SPA routing, cache/security headers and the deploy build command; production Vercel
+builds always use production validation. See the [release runbook](docs/markdowns/FRONTEND_RELEASE_RUNBOOK.md)
+for Preview/test mapping, origins, deploy checks and deployment-ID rollback. Real
+hosting settings/domains and a live Vercel verification are still required.

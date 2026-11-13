@@ -1,26 +1,82 @@
 # Frontend release runbook
 
+## Hosting and artifact identity
+
+Frontend production hosting is Vercel's Vite/static deployment. Backend Docker is
+hosted on Render. Frontend Docker remains a portable package and local/CI test target;
+Vercel serves the static build and does not use this repository's Nginx configuration.
+Track a Vercel deployment by deployment ID/URL, Git SHA and target environment.
+Track Docker separately by OCI revision/environment labels and registry digest.
+Never claim a Docker smoke check verifies Vercel edge configuration.
+
+## Vercel project setup
+
+1. Connect this repository, choose Vite and Node 22.x. The checked-in `vercel.json`
+   runs `npm ci`, `npm run build:deploy`, and publishes `dist`.
+2. Map Vercel Preview to Moodly test and Production to Moodly production. Configure
+   the four `VITE_*` values separately for each scope using the provider dashboard.
+   Production validation requires a public HTTPS API URL; Auth0 domain is a bare
+   hostname. Audience is the exact Auth0 API identifier, not necessarily a URL.
+3. Point production API configuration at the intended Render backend. Keep test
+   data and production data separate. Never add E2E passwords/reset tokens to Vercel
+   frontend build configuration.
+4. Choose the production domain and a stable test frontend origin. Authorize those
+   exact HTTPS origins in Auth0 callback/logout/web origins and Render backend CORS.
+   Arbitrary branch-preview URLs are not automatically authorized for login.
+5. Vercel handles HTTPS/static delivery. There is no container PORT to configure on
+   Vercel. `/healthz` is static readiness only; verify backend health separately.
+6. Record deployment ID, Git SHA, environment and public endpoint configuration
+   references (not credentials). Changing `VITE_*` requires a new build/deployment.
+
+Domain names, Vercel project settings, deployment protection and account permissions
+must be supplied/configured by the owner. This repository does not provision them.
+
 ## Post-deploy verification
 
-Run the smoke check against the canonical deployment URL:
-
-```bash
-npm run smoke:deploy -- https://app.example.com
+```sh
+npm run smoke:deploy -- https://<canonical-frontend-domain>
+node scripts/container-smoke.mjs https://<canonical-frontend-domain>
 ```
 
-Then verify Auth0 login/logout and one authenticated read-only API request. Do not use real mood notes in release verification.
+The second command also checks health, cache headers, JS delivery and missing assets.
+If Preview deployment protection is enabled, use the provider's authorized access
+mechanism; do not disable protection just to run smoke checks. Verify Auth0 login,
+logout, dashboard and one authenticated read on the real domain with synthetic data.
+Do not reset production data. Nginx log redaction applies only to Docker; review Vercel
+log access/retention separately and avoid exporting callback query strings.
 
-## Rollback procedure
+## Vercel rollback
 
-Use an immutable, previously verified deployment as the rollback target. Do not rebuild an old Git revision during an incident because dependencies and build inputs may have changed.
+1. Stop promotion of a failing release. Record deployment ID/URL, Git SHA, symptom
+   and observation time.
+2. Select a previously verified production deployment with compatible API/Auth0
+   configuration. Use Vercel's rollback UI, or an authorized CLI session:
 
-1. Stop or cancel any rollout still in progress.
-2. Record the failing deployment ID, Git SHA, first observed symptom, and UTC time in the incident log.
-3. Select the most recent deployment that passed the post-deploy smoke check and authenticated test checks.
-4. Promote or restore that deployment with the hosting provider's atomic rollback mechanism. Keep the production domain unchanged so Auth0 origins and API CORS remain valid.
-5. If the host does not switch atomically, restore the previous artifact, purge only the HTML document cache, and retain long-lived hashed asset caches.
-6. Run `npm run smoke:deploy -- <production-url>`, then verify login, logout, dashboard load, and one non-destructive API flow.
-7. Confirm that the failing release is no longer receiving traffic before closing the rollback.
-8. Preserve logs and artifacts, open a follow-up issue, and fix forward in a new release; do not edit production assets in place.
+```sh
+vercel rollback <previous-deployment-url-or-id>
+vercel rollback status
+```
 
-If rollback cannot restore service, put the frontend into the provider's maintenance response and escalate to the frontend, backend, and identity owners with the captured deployment ID and timestamps.
+3. Roll back the existing deployment rather than rebuilding an old revision. The
+   available rollback targets depend on the Vercel plan and deployment retention.
+4. Keep the production domain unchanged. Run the post-deploy checks above and verify
+   login/logout and an authenticated read. Rolling back restores that build's embedded
+   public configuration; it does not roll back the Render backend or database.
+5. Preserve diagnostics without credentials, investigate and fix forward.
+
+## Docker identity and optional container-host rollback
+
+`make docker-build` creates an environment/revision tag and OCI labels. Run
+`make docker-record` to write `reports/container-image.json` (ignored by Git). CI
+uploads this identity record. Local `imageId` is a configuration digest, not a registry
+manifest digest. `repoDigests` may be empty until an image is pushed/pulled. Registry
+publishing is a separate pipeline step and is not enabled by this change.
+
+If later using a container host, deploy a tested `registry/image@sha256:<manifest-digest>`
+and retain the previous digest and environment record for rollback. Do not rebuild
+an old revision during an incident. This Docker mechanism is not Vercel rollback.
+
+References:
+- https://vercel.com/docs/frameworks/frontend/vite
+- https://vercel.com/docs/project-configuration/vercel-json
+- https://vercel.com/docs/deployments/rollback-production-deployment
