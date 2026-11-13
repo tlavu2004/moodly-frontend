@@ -15,6 +15,14 @@ ARG DEPLOY_ENV=test
 RUN MOODLY_ENV=$DEPLOY_ENV npm run build:deploy
 
 FROM nginx:1.30.6-alpine@sha256:583b7f2fce1cdb8da5ad5c39ebd3c33b98b87d493190e548bdee1fa8c619c311 AS runtime
+ARG DEPLOY_ENV=test
+ARG SOURCE_REVISION=unknown
+ARG IMAGE_VERSION=local
+LABEL org.opencontainers.image.title="Moodly frontend" \
+      org.opencontainers.image.source="https://github.com/tlavu2004/moodly-frontend" \
+      org.opencontainers.image.revision=$SOURCE_REVISION \
+      org.opencontainers.image.version=$IMAGE_VERSION \
+      io.moodly.environment=$DEPLOY_ENV
 COPY docker/nginx.conf /etc/nginx/nginx.conf
 COPY --from=builder /app/dist /usr/share/nginx/html
 USER nginx

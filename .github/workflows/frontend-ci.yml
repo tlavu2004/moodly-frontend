@@ -28,6 +28,7 @@ jobs:
         run: npm run generate:api && git diff --exit-code -- src/api/openapi
         env:
           OPENAPI_INPUT: moodly-backend/docs/api/json/moodly-openapi.json
+      - run: npm run test:build-config
       - run: npm run lint
       - run: npm run build
       - run: npm run test:run
@@ -46,10 +47,20 @@ jobs:
       - name: Build container with synthetic browser configuration
         run: >-
           docker build -t moodly-frontend:ci .
+          --build-arg DEPLOY_ENV=test
+          --build-arg SOURCE_REVISION=${{ github.sha }}
+          --build-arg IMAGE_VERSION=test-${{ github.sha }}
           --build-arg VITE_AUTH0_DOMAIN=example.auth0.com
           --build-arg VITE_AUTH0_CLIENT_ID=ci-public-client
           --build-arg VITE_AUTH0_AUDIENCE=https://api.example.com
           --build-arg VITE_API_BASE_URL=https://api.example.com
+      - name: Record container identity
+        run: node scripts/record-image.mjs moodly-frontend:ci
+      - uses: actions/upload-artifact@v4
+        with:
+          name: frontend-container-identity
+          path: reports/container-image.json
+          retention-days: 14
       - name: Start container
         run: >-
           docker run -d --name moodly-frontend-ci
@@ -62,7 +73,7 @@ jobs:
             if curl -fsS http://127.0.0.1:4173/healthz; then break; fi
             sleep 1
           done
-          node scripts/container-smoke.mjs http://127.0.0.1:4173
+          node scripts/container-smoke.mjs http://127.0.0.1:4173 moodly-frontend-ci
       - name: Container diagnostics
         if: failure()
         run: docker logs moodly-frontend-ci
