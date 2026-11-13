@@ -1,0 +1,13 @@
+.git
+.github
+**/.env*
+node_modules
+dist
+coverage
+playwright
+test-results
+playwright-report
+reports
+docs
+moodly-backend
+*.log

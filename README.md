@@ -162,3 +162,51 @@ The handling rules for mood notes and other sensitive browser data are documente
 ## Request lifecycle and rate limiting
 
 Moodly honors Retry-After for HTTP 429 across the current user's API client. Missing or invalid headers pause requests for 30 seconds. Read recovery is manual; writes are never automatically replayed. See [request handling and verification](docs/markdowns/FRONTEND_REQUEST_HANDLING.md) for cancellation, concurrent reads, submit guards and test checks.
+## Docker and Make
+
+Local development stays on Vite (`make local-run` or `npm run dev`). Backend
+infrastructure is owned by `moodly-backend`; frontend commands never start or stop it.
+GNU Make is optional; `make help` lists wrappers around npm and Docker Compose.
+The recipes do not require Bash, including on native Windows Make.
+
+The Dockerfile builds with Node and serves only `dist` using non-root Nginx on port
+8080. Compose exposes it on localhost:4173, with a read-only filesystem and temporary
+files in `/tmp`. SPA routes fall back to `index.html`; hashed assets are cached while
+HTML is not. `/healthz` checks static serving, not backend/Auth0 availability.
+
+```sh
+# Fill .env.test.local using .env.test.example first.
+make docker-validate
+make docker-up
+node scripts/container-smoke.mjs http://127.0.0.1:4173
+make docker-logs
+make docker-down
+
+# Equivalent without Make
+docker compose -p moodly-frontend-test --env-file .env.test.local -f compose.yaml up -d --build --wait
+```
+
+Compose passes only the four public VITE_* values as build arguments. Env files,
+including Playwright credentials, are excluded from the Docker build context.
+Never pass E2E passwords or reset tokens as build arguments.
+
+VITE_* configuration is embedded at build time. Build separately for test and
+production; runtime container environment variables cannot change an existing
+bundle. Use hosting/CI variables, or an ignored .env.production.local based on
+.env.production.example:
+
+```sh
+make docker-build MOODLY_ENV=production ENV_FILE=.env.production.local
+```
+
+MOODLY_ENV selects the Compose project/image name and default env file, not Vite's
+build mode: every container uses an optimized production build. Override FRONTEND_PORT
+if 4173 is occupied. The API URL must be reachable from the user's browser, rather
+than a Compose service hostname. Auth0 origins and backend CORS must include the
+actual frontend origin and port. Terminate TLS at the hosting platform or reverse
+proxy; this Compose configuration is for local verification.
+
+CI builds with synthetic public configuration after quality checks, then checks
+health, SPA routes, asset delivery, caching and missing asset 404s. It does not
+publish or deploy an image. Real authenticated E2E remains a separate environment
+check. Dependabot tracks Docker base image updates, including pinned digests.

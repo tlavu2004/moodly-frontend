@@ -1,0 +1,19 @@
+services:
+  frontend:
+    image: moodly-frontend:${MOODLY_ENV:-test}
+    build:
+      context: .
+      args:
+        VITE_AUTH0_DOMAIN: ${VITE_AUTH0_DOMAIN:?Set VITE_AUTH0_DOMAIN}
+        VITE_AUTH0_CLIENT_ID: ${VITE_AUTH0_CLIENT_ID:?Set VITE_AUTH0_CLIENT_ID}
+        VITE_AUTH0_AUDIENCE: ${VITE_AUTH0_AUDIENCE:?Set VITE_AUTH0_AUDIENCE}
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:?Set VITE_API_BASE_URL}
+    ports:
+      - "127.0.0.1:${FRONTEND_PORT:-4173}:8080"
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL

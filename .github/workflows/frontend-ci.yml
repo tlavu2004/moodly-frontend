@@ -34,6 +34,42 @@ jobs:
       - run: npm run test:coverage
       - run: npm audit --audit-level=high
 
+  container:
+    needs: quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Build container with synthetic browser configuration
+        run: >-
+          docker build -t moodly-frontend:ci .
+          --build-arg VITE_AUTH0_DOMAIN=example.auth0.com
+          --build-arg VITE_AUTH0_CLIENT_ID=ci-public-client
+          --build-arg VITE_AUTH0_AUDIENCE=https://api.example.com
+          --build-arg VITE_API_BASE_URL=https://api.example.com
+      - name: Start container
+        run: >-
+          docker run -d --name moodly-frontend-ci
+          --read-only --tmpfs /tmp --cap-drop ALL
+          --security-opt no-new-privileges:true
+          -p 127.0.0.1:4173:8080 moodly-frontend:ci
+      - name: Verify container readiness and static serving
+        run: |
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:4173/healthz; then break; fi
+            sleep 1
+          done
+          node scripts/container-smoke.mjs http://127.0.0.1:4173
+      - name: Container diagnostics
+        if: failure()
+        run: docker logs moodly-frontend-ci
+      - name: Remove container
+        if: always()
+        run: docker rm -f moodly-frontend-ci || true
+
   e2e-test:
     if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
