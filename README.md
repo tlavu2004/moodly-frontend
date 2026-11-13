@@ -14,19 +14,21 @@ client.
 ## Local setup
 
 1. Install dependencies with `npm ci`.
-2. Copy `.env.development.example` to `.env.development.local`.
+2. Copy `.env.local.example` to `.env.local`.
 3. Fill all four `VITE_*` values. They are validated when the application starts.
 4. Start the frontend with `npm run dev -- --mode development`.
 
-Do not use a catch-all `.env.local` for Moodly. Vite loads that file in every mode, so a
-production build made on a developer machine could accidentally inherit local Auth0 or
-API values. Keep real local values scoped to the mode-specific ignored files instead.
+Local values live in ignored `.env.local`; commit only `.env.local.example`.
+Automatic Vite env-file loading is disabled. A shared loader selects `.env.local`
+only for development; test and production read only their own mode-specific files.
+Explicit process/CI variables take precedence. Values use Node dotenv syntax and are
+literal: `${VAR}` expansion is not supported. Restart Vite after editing env files.
 
 ### Environment layout
 
 | Environment | Real values live in | Committed contract |
 | --- | --- | --- |
-| Local development | `.env.development.local` | `.env.development.example` |
+| Local development | `.env.local` | `.env.local.example` |
 | Test (local E2E or deployed) | `.env.test.local` or hosting/GitHub `test` variables and secrets | `.env.test.example` |
 | Production | Hosting production variables and secret store | `.env.production.example` |
 
@@ -52,7 +54,7 @@ the browser bundle.
 Create the ignored development file once:
 
 ```powershell
-Copy-Item .env.development.example .env.development.local
+Copy-Item .env.local.example .env.local
 ```
 
 Fill its four `VITE_*` values and run:
@@ -100,7 +102,7 @@ credentials.
 Before committing, confirm that local files remain ignored:
 
 ```powershell
-git status --short --ignored -- .env.development.local .env.test.local
+git status --short --ignored -- .env.local .env.test.local
 ```
 
 Both files should appear with the ignored marker `!!`, never as tracked or untracked
@@ -110,7 +112,7 @@ content.
 
 | Command | Purpose |
 | --- | --- |
-| `npm run dev -- --mode development` | Start Vite with `.env.development.local`. |
+| `npm run dev -- --mode development` | Start Vite with `.env.local`. |
 | `npm run build` | Type-check, build, and enforce bundle budgets. |
 | `npm run lint` | Run ESLint. |
 | `npm run test` | Run Vitest in watch mode. |

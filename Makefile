@@ -3,7 +3,7 @@ MOODLY_ENV ?= test
 SOURCE_REVISION ?= $(shell git rev-parse HEAD)
 IMAGE_TAG ?= $(MOODLY_ENV)-$(shell git rev-parse --short=12 HEAD)
 export MOODLY_ENV SOURCE_REVISION IMAGE_TAG
-ENV_FILE ?= .env.$(MOODLY_ENV).local
+ENV_FILE ?= $(if $(filter local,$(MOODLY_ENV)),.env.local,.env.$(MOODLY_ENV).local)
 compose = docker compose -p moodly-frontend-$(MOODLY_ENV) --env-file "$(ENV_FILE)" -f compose.yaml
 
 .PHONY: help local-run test-run lint test verify build docker-build docker-up docker-stop docker-down docker-logs docker-status docker-validate docker-record
