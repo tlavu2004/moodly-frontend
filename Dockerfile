@@ -6,12 +6,13 @@ RUN --mount=type=cache,target=/root/.npm npm ci
 COPY index.html vite.config.ts openapi-ts.config.ts tsconfig*.json ./
 COPY src ./src
 COPY public ./public
-COPY scripts/check-bundle-budget.mjs ./scripts/check-bundle-budget.mjs
+COPY scripts/check-bundle-budget.mjs scripts/validate-build-env.mjs ./scripts/
 ARG VITE_AUTH0_DOMAIN
 ARG VITE_AUTH0_CLIENT_ID
 ARG VITE_AUTH0_AUDIENCE
 ARG VITE_API_BASE_URL
-RUN node --input-type=module -e 'for (const key of ["VITE_AUTH0_DOMAIN", "VITE_AUTH0_CLIENT_ID", "VITE_AUTH0_AUDIENCE", "VITE_API_BASE_URL"]) { if (!process.env[key]?.trim()) throw new Error("Missing build argument: " + key) }' && npm run build
+ARG DEPLOY_ENV=test
+RUN MOODLY_ENV=$DEPLOY_ENV npm run build:deploy
 
 FROM nginx:1.30.6-alpine@sha256:583b7f2fce1cdb8da5ad5c39ebd3c33b98b87d493190e548bdee1fa8c619c311 AS runtime
 COPY docker/nginx.conf /etc/nginx/nginx.conf
