@@ -36,3 +36,64 @@ test('language selection survives reload and keeps calendar dates localized', as
   await page.getByRole('combobox', { name: 'Ngôn ngữ' }).selectOption('en')
   await expect(page.getByRole('heading', { name: /Small habits/ })).toBeVisible()
 })
+
+test('theme follows the OS, persists overrides and works on mobile', async ({ page }) => {
+  await page.emulateMedia({ colorScheme: 'dark' })
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto('/')
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
+  const darkBackground = await page.locator('body').evaluate((element) => getComputedStyle(element).backgroundColor)
+  await page.getByRole('combobox', { name: 'Theme' }).selectOption('light')
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light')
+  expect(await page.locator('body').evaluate((element) => getComputedStyle(element).backgroundColor)).not.toBe(darkBackground)
+  await page.reload()
+  await expect(page.getByRole('combobox', { name: 'Theme' })).toHaveValue('light')
+  await page.getByRole('combobox', { name: 'Theme' }).selectOption('system')
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
+  await page.emulateMedia({ colorScheme: 'light' })
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light')
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+})
+
+test('theme boot script applies saved preference before React loads', async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('moodly.theme', 'dark'))
+  await page.route('**/src/main.tsx', (route) => route.abort())
+  await page.goto('/')
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
+  expect(await page.locator('html').evaluate((element) => element.style.colorScheme)).toBe('dark')
+})
+
+test('semantic text and status colors remain readable in both themes', async ({ page }) => {
+  await page.goto('/')
+  for (const theme of ['light', 'dark']) {
+    await page.getByRole('combobox', { name: 'Theme' }).selectOption(theme)
+    const expectedBackground = await page.evaluate(() => { const sample = document.createElement('span'); sample.style.backgroundColor = 'var(--color-primary)'; document.body.append(sample); const value = getComputedStyle(sample).backgroundColor; sample.remove(); return value })
+    await expect.poll(() => page.locator('.button-primary').first().evaluate((element) => getComputedStyle(element).backgroundColor)).toBe(expectedBackground)
+    const ratios = await page.evaluate(() => {
+      const css = getComputedStyle(document.documentElement)
+      const canvas = document.createElement('canvas')
+      canvas.width = canvas.height = 1
+      const context = canvas.getContext('2d')!
+      const luminance = (token: string) => {
+        context.fillStyle = css.getPropertyValue(`--color-${token}`).trim()
+        context.fillRect(0, 0, 1, 1)
+        const rgb = [...context.getImageData(0, 0, 1, 1).data].slice(0, 3).map((channel) => {
+          const value = channel / 255
+          return value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4
+        })
+        return rgb[0] * 0.2126 + rgb[1] * 0.7152 + rgb[2] * 0.0722
+      }
+      return [['foreground', 'background'], ['foreground-muted', 'surface'], ['primary-foreground', 'primary'], ['primary-foreground', 'primary-dark'], ['success-foreground', 'success'], ['danger', 'danger-soft']].map(([text, background]) => {
+        const a = luminance(text); const b = luminance(background)
+        return { pair: `${text}/${background}`, ratio: (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05) }
+      })
+    })
+    for (const { pair, ratio } of ratios) expect(ratio, `${theme}: ${pair}`).toBeGreaterThanOrEqual(4.5)
+  }
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.screenshot({ path: 'reports/theme-dark-mobile.png', fullPage: true, animations: 'disabled' })
+  await page.getByRole('combobox', { name: 'Theme' }).selectOption('light')
+  await page.setViewportSize({ width: 1440, height: 1000 })
+  await page.screenshot({ path: 'reports/theme-light-desktop.png', fullPage: true, animations: 'disabled' })
+})
+

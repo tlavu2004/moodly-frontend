@@ -1,3 +1,4 @@
+import { ThemeSelect } from '../../theme/ThemeSelect.tsx'
 import { LanguageSelect } from '../../i18n/LanguageSelect.tsx'
 import { t, useLocale } from '../../i18n/index.ts'
 import { useAuth0 } from '@auth0/auth0-react'
@@ -38,7 +39,7 @@ export function AppShell() {
         <NavLink className="flex items-center gap-2 font-bold" to="/" aria-label={t("Moodly home")}><span className="grid size-8 place-items-center rounded-lg bg-primary text-primary-foreground"><Icon name="sparkles" className="size-4" /></span>{t("Moodly")}</NavLink>
         <NavLink to="/search" aria-label={t("Search")} className="rounded-lg p-2 text-foreground-muted"><Icon name="search" className="size-5" /></NavLink>
       </header>
-      <div className="min-w-0 lg:col-start-2"><div className="flex justify-end border-b border-border bg-surface px-4 py-2"><LanguageSelect /></div><Outlet /></div>
+      <div className="min-w-0 lg:col-start-2"><div className="flex flex-wrap justify-end gap-3 border-b border-border bg-surface px-4 py-2"><LanguageSelect /><ThemeSelect /></div><Outlet /></div>
       <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t border-border bg-surface px-2 pb-[env(safe-area-inset-bottom)] lg:hidden" aria-label={t("Mobile navigation")}>
         {navigation.filter((item) => item.to !== '/search').map((item) => <NavLink key={item.to} to={item.to} className={({ isActive }) => `flex min-h-16 flex-col items-center justify-center gap-1 text-[0.65rem] font-semibold ${isActive ? 'text-primary' : 'text-foreground-muted'}`}><Icon name={item.icon} className="size-5" />{t(item.label)}</NavLink>)}
       </nav>

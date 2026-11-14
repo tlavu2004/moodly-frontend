@@ -1,4 +1,8 @@
 export const vi: Record<string, string> = {
+  "Theme": "Giao diện",
+  "System": "Theo hệ thống",
+  "Light": "Sáng",
+  "Dark": "Tối",
   "(optional)": "（không bắt buộc）",
   "10 min outside": "Ra ngoài 10 phút",
   "2 of 3": "2 trên 3",
