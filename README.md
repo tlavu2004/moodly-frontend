@@ -4,6 +4,8 @@ React frontend for Moodly's mood journal, daily habits, insights, profile, and s
 experiences. The application uses Vite, TypeScript, Auth0, and the generated Moodly API
 client.
 
+Hướng dẫn từng cách chạy FE/BE, lifecycle Docker và chạy chỉ từ image: [Running FE and BE](docs/markdowns/RUNNING_FE_AND_BE.md).
+
 ## Prerequisites
 
 - Node.js 22 or newer.
@@ -63,7 +65,7 @@ Fill its four `VITE_*` values and run:
 npm run dev -- --mode development
 ```
 
-The expected local frontend origin is `http://localhost:5173`. The backend CORS list and
+The expected local frontend origin is `http://127.0.0.1:5173`. The backend CORS list and
 Auth0 callback, logout, and web-origin lists must contain that exact origin.
 
 ### Test and E2E environment
@@ -84,9 +86,9 @@ E2E_DATA_RESET_TOKEN=
 ```
 
 The E2E variables are consumed by Playwright/Node and must never be prefixed with
-`VITE_`. Leave `E2E_BASE_URL` unset for a normal local run; Playwright then starts Vite
-at `http://127.0.0.1:4173`. Set `E2E_BASE_URL` only when the frontend is already running
-or when the suite should target a remote test deployment.
+`VITE_`. Use `E2E_TARGET=dev` (default) for an owned Vite server; Playwright starts Vite
+at `http://127.0.0.1:4173` and never reuses an occupied port. Use `E2E_TARGET=container`
+for existing Nginx, or `E2E_TARGET=remote` with an explicit HTTPS `E2E_BASE_URL`.
 
 Auth0 callback, logout, and web-origin lists and backend CORS must also contain
 `http://127.0.0.1:4173` for local authenticated E2E.
@@ -124,7 +126,7 @@ content.
 | `npm run analyze` | Generate `reports/bundle.html`. |
 | `npm run generate:api` | Regenerate the OpenAPI client. |
 
-Authenticated E2E requires an isolated Auth0 test account and backend reset endpoint.
+Authenticated E2E requires an isolated Auth0 test account and an attested, protected BE test namespace. The prior token-only reset contract is blocked until BE coordination is complete.
 See [`docs/markdowns/FRONTEND_INTEGRATION_TESTING.md`](./docs/markdowns/FRONTEND_INTEGRATION_TESTING.md)
 for the required inputs and startup sequence.
 
@@ -185,7 +187,7 @@ make local-container-logs
 make local-container-stop
 
 # Equivalent without Make
-docker compose -p moodly-frontend-test --env-file .env.test.local -f compose.yaml up -d --build --wait
+docker compose -p moodly-frontend-local --env-file .env.test.local -f compose.yaml up -d --build --wait
 ```
 
 Compose passes only the four public VITE_* values as build arguments. Env files,
@@ -201,9 +203,9 @@ bundle. Use hosting/CI variables, or an ignored .env.production.local based on
 make docker-build MOODLY_ENV=production ENV_FILE=.env.production.local
 ```
 
-MOODLY_ENV selects build validation rules, the Compose project/image name and default
-env file, not Vite's build mode: every container uses an optimized production build. Override FRONTEND_PORT
-if 4173 is occupied. The API URL must be reachable from the user's browser, rather
+The Compose project is always moodly-frontend-local. MOODLY_ENV selects build validation, image tag and default
+env file, and the selected env values; every container uses an optimized static build. Make uses host port 5173 for local and 4173 for test; direct Compose defaults to 4173.
+Stop the alternate FE server you own before switching. The API URL must be reachable from the user's browser, rather
 than a Compose service hostname. Auth0 origins and backend CORS must include the
 actual frontend origin and port. Terminate TLS at the hosting platform or reverse
 proxy; this Compose configuration is for local verification.
