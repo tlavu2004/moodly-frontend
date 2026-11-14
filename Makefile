@@ -2,14 +2,14 @@
 MOODLY_ENV ?= test
 SOURCE_REVISION ?= $(shell git rev-parse HEAD)
 IMAGE_TAG ?= $(MOODLY_ENV)-$(shell git rev-parse --short=12 HEAD)
-FRONTEND_PORT ?= $(if $(filter local,$(MOODLY_ENV)),5173,4173)
+FRONTEND_PORT ?= 5173
 export MOODLY_ENV SOURCE_REVISION IMAGE_TAG FRONTEND_PORT
-ENV_FILE ?= $(if $(filter local,$(MOODLY_ENV)),.env.local,.env.$(MOODLY_ENV).local)
+ENV_FILE ?= $(if $(filter production,$(MOODLY_ENV)),.env.production.local,.env.local)
 COMPOSE_PROJECT := moodly-frontend-local
 compose = docker compose -p $(COMPOSE_PROJECT) --env-file "$(ENV_FILE)" -f compose.yaml
 
 # App commands run on the host. Container commands manage only FE/Nginx.
-.PHONY: help local-run test-run lint test verify build
+.PHONY: help local-run test-run lint test verify build e2e-dev e2e-container
 .PHONY: local-container-build test-container-build local-container-up test-container-up
 .PHONY: local-container-stop local-container-down local-container-logs local-container-status
 .PHONY: validate-local container-record local-container-migrate
@@ -20,6 +20,7 @@ Frontend
   make local-run / test-run                 Run Vite on the host with local/test configuration
 Checks and build
   make lint / test / verify                 Lint, run tests, or run all frontend quality checks
+  make e2e-dev / e2e-container              Run browser tests against owned Vite or existing Nginx
   make build                               Build the optimized static frontend
 Frontend container (Nginx; detached, stack retained)
   make local-container-build / test-container-build  Build with local/test configuration
@@ -91,3 +92,10 @@ docker-record: container-record
 
 local-container-migrate:
 	node scripts/migrate-frontend-stack.mjs --apply
+
+e2e-dev: export E2E_TARGET = dev
+e2e-dev:
+	npm run test:e2e
+e2e-container: export E2E_TARGET = container
+e2e-container:
+	npm run test:e2e

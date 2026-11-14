@@ -8,10 +8,10 @@ for (const [name, value] of Object.entries(testEnv)) {
 }
 const target = process.env.E2E_TARGET ?? 'dev'
 if (!['dev', 'container', 'remote'].includes(target)) throw new Error('E2E_TARGET must be dev, container or remote')
-const baseURL = process.env.E2E_BASE_URL || 'http://127.0.0.1:4173'
+const baseURL = process.env.E2E_BASE_URL || 'http://127.0.0.1:5173'
 const base = new URL(baseURL)
 if (base.username || base.password || base.search || base.hash || base.pathname !== '/') throw new Error('E2E_BASE_URL must be an origin')
-if (target !== 'remote' && base.origin !== 'http://127.0.0.1:4173') throw new Error('Workstation E2E requires http://127.0.0.1:4173')
+if (target !== 'remote' && base.origin !== 'http://127.0.0.1:5173') throw new Error('Workstation E2E requires http://127.0.0.1:5173')
 if (target === 'remote' && (!process.env.E2E_BASE_URL || base.protocol !== 'https:')) throw new Error('Remote E2E requires an explicit HTTPS origin')
 process.env.E2E_BASE_URL = base.origin
 process.env.E2E_AUTH_DIR ??= `playwright/.auth/${randomUUID()}`

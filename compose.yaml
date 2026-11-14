@@ -2,6 +2,7 @@ name: moodly-frontend-local
 
 services:
   frontend:
+    container_name: moodly-frontend-local
     image: moodly-frontend:${IMAGE_TAG:-test-local}
     build:
       context: .
@@ -14,7 +15,7 @@ services:
         VITE_AUTH0_AUDIENCE: ${VITE_AUTH0_AUDIENCE:?Set VITE_AUTH0_AUDIENCE}
         VITE_API_BASE_URL: ${VITE_API_BASE_URL:?Set VITE_API_BASE_URL}
     ports:
-      - "127.0.0.1:${FRONTEND_PORT:-4173}:8080"
+      - "127.0.0.1:${FRONTEND_PORT:-5173}:8080"
     read_only: true
     tmpfs:
       - /tmp

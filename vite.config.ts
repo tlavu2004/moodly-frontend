@@ -20,7 +20,7 @@ export default defineConfig(({ mode, command }) => {
     envPrefix: [],
     server: {
       host: '127.0.0.1',
-      port: environment === 'test' ? 4173 : 5173,
+      port: 5173,
       strictPort: true,
     },
     define: Object.fromEntries(Object.entries(values)

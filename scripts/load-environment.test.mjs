@@ -8,7 +8,7 @@ import { loadEnvironment } from './load-environment.mjs'
 function fixture(t) {
   const root = mkdtempSync(join(tmpdir(), 'moodly-env-'))
   const files = {
-    '.env.local': 'VITE_API_BASE_URL=http://local.invalid\nLOCAL_ONLY=private-local\n',
+    '.env.local': 'VITE_API_BASE_URL=http://local.invalid\nLOCAL_ONLY=private-local\nE2E_DATA_RESET_TOKEN=synthetic\n',
     '.env.test': 'VITE_API_BASE_URL=http://test-base.invalid\n',
     '.env.test.local': 'VITE_API_BASE_URL=http://test.invalid\nE2E_DATA_RESET_TOKEN=synthetic\n',
     '.env.production.local': 'VITE_API_BASE_URL=https://production.invalid\n',
@@ -20,11 +20,16 @@ function fixture(t) {
 test('development loads local configuration', t => {
   assert.equal(loadEnvironment('development', fixture(t), {}).VITE_API_BASE_URL, 'http://local.invalid')
 })
-for (const mode of ['test', 'production', 'analyze']) {
+test('test shares the workstation configuration, ignoring obsolete test overlays', t => {
+  const result = loadEnvironment('test', fixture(t), {})
+  assert.equal(result.VITE_API_BASE_URL, 'http://local.invalid')
+  assert.equal(result.E2E_DATA_RESET_TOKEN, 'synthetic')
+})
+for (const mode of ['production', 'analyze']) {
   test(`${mode} never inherits local file values`, t => {
     const result = loadEnvironment(mode, fixture(t), {})
     assert.equal(result.LOCAL_ONLY, undefined)
-    assert.equal(result.VITE_API_BASE_URL, mode === 'test' ? 'http://test.invalid' : 'https://production.invalid')
+    assert.equal(result.VITE_API_BASE_URL, 'https://production.invalid')
     if (mode !== 'test') assert.equal(result.E2E_DATA_RESET_TOKEN, undefined)
   })
 }

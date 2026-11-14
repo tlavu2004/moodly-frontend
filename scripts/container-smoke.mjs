@@ -1,7 +1,7 @@
 import { spawnSync } from 'node:child_process'
 import assert from 'node:assert/strict'
 
-const base = new URL(process.argv[2] ?? 'http://127.0.0.1:4173')
+const base = new URL(process.argv[2] ?? 'http://127.0.0.1:5173')
 const get = (path) => fetch(new URL(path, base), { signal: AbortSignal.timeout(10_000) })
 const health = await get('/healthz')
 assert.equal(health.status, 200)
