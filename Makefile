@@ -6,12 +6,36 @@ export MOODLY_ENV SOURCE_REVISION IMAGE_TAG
 ENV_FILE ?= $(if $(filter local,$(MOODLY_ENV)),.env.local,.env.$(MOODLY_ENV).local)
 compose = docker compose -p moodly-frontend-$(MOODLY_ENV) --env-file "$(ENV_FILE)" -f compose.yaml
 
-.PHONY: help local-run test-run lint test verify build docker-build docker-up docker-stop docker-down docker-logs docker-status docker-validate docker-record
+# App commands run on the host. Container commands manage only FE/Nginx.
+.PHONY: help local-run test-run lint test verify build
+.PHONY: local-container-build test-container-build local-container-up test-container-up
+.PHONY: local-container-stop local-container-down local-container-logs local-container-status
+.PHONY: validate-local container-record
+.PHONY: docker-build docker-up docker-stop docker-down docker-logs docker-status docker-validate docker-record
+
+define help_text
+Frontend
+  make local-run / test-run                 Run Vite on the host with local/test configuration
+Checks and build
+  make lint / test / verify                 Lint, run tests, or run all frontend quality checks
+  make build                               Build the optimized static frontend
+Frontend container (Nginx; detached, stack retained)
+  make local-container-build / test-container-build  Build with local/test configuration
+  make local-container-up / test-container-up        Build, start in background and wait for readiness
+  make local-container-stop                 Stop FE; keep containers/network
+  make local-container-down                 Explicitly remove FE containers/network; keep images
+  make local-container-status / local-container-logs  List all FE containers or follow logs
+  make validate-local                       Validate selected Compose configuration without printing values
+  make container-record                     Record selected image identity
+Compatibility
+  make docker-*                             Existing aliases; honor MOODLY_ENV (default: test)
+  make                                      Show help without starting containers
+Backend MongoDB/Elasticsearch are managed by moodly-backend, never these targets.
+endef
+
 help:
-	@echo "npm: local-run test-run lint test verify build"
-	@echo "Docker: docker-build docker-up docker-stop docker-down docker-logs docker-status docker-validate docker-record"
-	@echo "Use docker-stop after work to retain the stack; docker-down explicitly removes it."
-	@echo "Docker defaults: MOODLY_ENV=test ENV_FILE=.env.test.local (override for production)"
+	$(info $(help_text))
+
 local-run:
 	npm run dev
 test-run:
@@ -27,20 +51,35 @@ verify:
 	npm run lint
 	npm run test:coverage
 	npm run build
-docker-validate:
+# Select application configuration; the Compose project remains independently owned.
+local-container-build local-container-up: MOODLY_ENV = local
+test-container-build test-container-up: MOODLY_ENV = test
+
+validate-local:
 	$(compose) config --quiet
+local-container-build test-container-build:
+	$(compose) build
+local-container-up test-container-up:
+	$(compose) up -d --build --wait --wait-timeout 90
+local-container-stop:
+	$(compose) stop
+local-container-down:
+	$(compose) down
+local-container-logs:
+	$(compose) logs -f frontend
+local-container-status:
+	$(compose) ps --all
+container-record:
+	node scripts/record-image.mjs moodly-frontend:$(IMAGE_TAG)
+
+# Keep the environment-selectable behavior of existing Docker entry points.
 docker-build:
 	$(compose) build
 docker-up:
 	$(compose) up -d --build --wait --wait-timeout 90
-docker-stop:
-	$(compose) stop
-docker-down:
-	$(compose) down
-docker-logs:
-	$(compose) logs -f frontend
-docker-status:
-	$(compose) ps --all
-
-docker-record:
-	node scripts/record-image.mjs moodly-frontend:$(IMAGE_TAG)
+docker-stop: local-container-stop
+docker-down: local-container-down
+docker-logs: local-container-logs
+docker-status: local-container-status
+docker-validate: validate-local
+docker-record: container-record

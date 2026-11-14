@@ -66,8 +66,8 @@ vercel rollback status
 
 ## Docker identity and optional container-host rollback
 
-`make docker-build` creates an environment/revision tag and OCI labels. Run
-`make docker-record` to write `reports/container-image.json` (ignored by Git). CI
+`make test-container-build` creates an environment/revision tag and OCI labels. Run
+`make container-record` to write `reports/container-image.json` (ignored by Git). CI
 uploads this identity record. Local `imageId` is a configuration digest, not a registry
 manifest digest. `repoDigests` may be empty until an image is pushed/pulled. Registry
 publishing is a separate pipeline step and is not enabled by this change.
@@ -80,3 +80,17 @@ References:
 - https://vercel.com/docs/frameworks/frontend/vite
 - https://vercel.com/docs/project-configuration/vercel-json
 - https://vercel.com/docs/deployments/rollback-production-deployment
+
+### Make command conventions
+
+Host application entry points (`local-run`, `test-run`) match backend naming.
+`local-container-up` / `test-container-up` explicitly select local/test configuration
+and start Nginx in the background; unlike BE's foreground `*-container-run`, they
+return after readiness. Use `local-container-stop` after work to retain the stack.
+The `local-container-*` lifecycle targets address the selected FE stack, not a
+MongoDB/Elasticsearch infrastructure stack. Defaults remain test configuration;
+set `MOODLY_ENV=local` when inspecting local configuration or recording its image.
+
+The legacy `docker-*` commands remain available and honor `MOODLY_ENV` for
+compatibility, including production builds. `validate-local` validates the selected
+configuration without printing values. Frontend targets never manage BE services.

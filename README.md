@@ -178,11 +178,11 @@ HTML is not. `/healthz` checks static serving, not backend/Auth0 availability.
 
 ```sh
 # Fill .env.test.local using .env.test.example first.
-make docker-validate
-make docker-up
+make validate-local
+make test-container-up
 node scripts/container-smoke.mjs http://127.0.0.1:4173
-make docker-logs
-make docker-stop
+make local-container-logs
+make local-container-stop
 
 # Equivalent without Make
 docker compose -p moodly-frontend-test --env-file .env.test.local -f compose.yaml up -d --build --wait
@@ -215,12 +215,12 @@ check. Dependabot tracks Docker base image updates, including pinned digests.
 
 ### Container lifecycle
 
-Keep both frontend and backend stacks after local work/testing. Use `make docker-stop`
-to stop the frontend without removing containers/network; `make docker-status` also
-shows stopped containers. Use `make docker-up` to rebuild as needed, start and wait
+Keep both frontend and backend stacks after local work/testing. Use `make local-container-stop`
+to stop the frontend without removing containers/network; `make local-container-status` also
+shows stopped containers. Use `make test-container-up` to rebuild as needed, start and wait
 for readiness. This does not manage backend infrastructure.
 
-`make docker-down` is an explicit cleanup command that removes frontend containers
+`make local-container-down` is an explicit cleanup command that removes frontend containers
 and network, while retaining images. Do not run it as routine post-test cleanup.
 Never use `down -v` on backend infrastructure without explicitly intending to delete
 its data. Disposable CI containers are still removed after the CI job.
@@ -238,7 +238,7 @@ critical startup diagnostics still go to stderr. Do not add raw request logging.
 
 Make builds tag images as `<environment>-<git-revision>` with OCI labels. For builds
 from modified source, override `IMAGE_TAG` with a distinct development tag; a revision
-label alone does not certify a clean working tree. `make docker-record` records image
+label alone does not certify a clean working tree. `make container-record` records image
 identity under ignored `reports/`. Direct Compose builds default to `test-local` and
 unknown revision; use Make or provide IMAGE_TAG/SOURCE_REVISION for traceable builds.
 
@@ -248,3 +248,17 @@ SPA routing, cache/security headers and the deploy build command; production Ver
 builds always use production validation. See the [release runbook](docs/markdowns/FRONTEND_RELEASE_RUNBOOK.md)
 for Preview/test mapping, origins, deploy checks and deployment-ID rollback. Real
 hosting settings/domains and a live Vercel verification are still required.
+
+### Make command conventions
+
+Host application entry points (`local-run`, `test-run`) match backend naming.
+`local-container-up` / `test-container-up` explicitly select local/test configuration
+and start Nginx in the background; unlike BE's foreground `*-container-run`, they
+return after readiness. Use `local-container-stop` after work to retain the stack.
+The `local-container-*` lifecycle targets address the selected FE stack, not a
+MongoDB/Elasticsearch infrastructure stack. Defaults remain test configuration;
+set `MOODLY_ENV=local` when inspecting local configuration or recording its image.
+
+The legacy `docker-*` commands remain available and honor `MOODLY_ENV` for
+compatibility, including production builds. `validate-local` validates the selected
+configuration without printing values. Frontend targets never manage BE services.
