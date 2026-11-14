@@ -1,3 +1,4 @@
+import { t, useLocale } from './i18n/index.ts'
 import { withAuthenticationRequired } from '@auth0/auth0-react'
 import { lazy, Suspense } from 'react'
 import { Route, Routes } from 'react-router'
@@ -32,17 +33,19 @@ const NotFoundPage = lazy(() =>
 )
 
 function RedirectingToLogin() {
+  useLocale()
   return (
     <main className="grid min-h-svh place-items-center p-6" aria-busy="true" aria-live="polite">
-      <p>Redirecting to sign in…</p>
+      <p>{t("Redirecting to sign in…")}</p>
     </main>
   )
 }
 
 function LoadingRoute() {
+  useLocale()
   return (
     <main className="grid min-h-svh place-items-center p-6" aria-busy="true" aria-live="polite">
-      <p>Loading page…</p>
+      <p>{t("Loading page…")}</p>
     </main>
   )
 }
@@ -52,6 +55,7 @@ const ProtectedAppShell = withAuthenticationRequired(AppShell, {
 })
 
 function App() {
+  useLocale()
   return (
     <Suspense fallback={<LoadingRoute />}>
       <Routes>

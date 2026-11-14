@@ -24,3 +24,15 @@ test('an unknown URL renders the intentional 404', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Page not found' })).toBeVisible()
   await expect(page.getByRole('link', { name: 'Go to dashboard' })).toBeVisible()
 })
+
+test('language selection survives reload and keeps calendar dates localized', async ({ page }) => {
+  await page.goto('/')
+  await page.getByRole('combobox', { name: 'Language' }).selectOption('vi')
+  await expect(page.getByRole('heading', { name: /Thói quen nhỏ/ })).toBeVisible()
+  await expect(page.locator('html')).toHaveAttribute('lang', 'vi')
+  await expect(page.getByRole('button', { name: 'Đăng nhập', exact: true })).toBeVisible()
+  await page.reload()
+  await expect(page.getByRole('combobox', { name: 'Ngôn ngữ' })).toHaveValue('vi')
+  await page.getByRole('combobox', { name: 'Ngôn ngữ' }).selectOption('en')
+  await expect(page.getByRole('heading', { name: /Small habits/ })).toBeVisible()
+})

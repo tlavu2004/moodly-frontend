@@ -1,3 +1,4 @@
+import { t, useLocale } from '../i18n/index.ts'
 import { useAuth0 } from '@auth0/auth0-react'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import type { ApiClient } from '../api/client.ts'
@@ -12,6 +13,7 @@ type AuthBootstrapProps = {
 }
 
 export function AuthBootstrap({ children }: AuthBootstrapProps) {
+  useLocale()
   const { error, getAccessTokenSilently, isAuthenticated, isLoading, loginWithRedirect, user } = useAuth0()
   const client = useMemo(() => getSessionApiClient(getAccessTokenSilently, user?.sub), [getAccessTokenSilently, user?.sub])
   const [attempt, setAttempt] = useState(0)
@@ -47,7 +49,7 @@ export function AuthBootstrap({ children }: AuthBootstrapProps) {
         aria-busy="true"
         aria-live="polite"
       >
-        <p>{isAuthenticated ? 'Preparing your Moodly space…' : 'Starting authentication…'}</p>
+        <p>{isAuthenticated ? t("Preparing your Moodly space…") : t("Starting authentication…")}</p>
       </main>
     )
   }
@@ -59,11 +61,11 @@ export function AuthBootstrap({ children }: AuthBootstrapProps) {
           className="max-w-md rounded-card border border-border bg-surface p-6"
           role="alert"
         >
-          <h1 className="text-lg font-semibold">Unable to prepare Moodly</h1>
-          <p className="mt-2 text-sm text-foreground/75">{error?.message ?? profileError}</p>
+          <h1 className="text-lg font-semibold">{t("Unable to prepare Moodly")}</h1>
+          <p className="mt-2 text-sm text-foreground/75">{t(error?.message ?? profileError ?? '')}</p>
           <div className="mt-4 flex flex-wrap gap-3">
-            <a className="button-secondary" href="/">Back to home</a>
-            {(error || profileUnauthorized) && <button className="button-primary" type="button" onClick={() => loginWithRedirect({ appState: { returnTo: '/dashboard' } })}>Sign in again</button>}
+            <a className="button-secondary" href="/">{t("Back to home")}</a>
+            {(error || profileUnauthorized) && <button className="button-primary" type="button" onClick={() => loginWithRedirect({ appState: { returnTo: '/dashboard' } })}>{t("Sign in again")}</button>}
             {profileError && !profileUnauthorized && <RequestRetry retryAt={retryAt} onRetry={() => { setProfile(null); setAttempt((value) => value + 1) }} />}
           </div>
         </section>
