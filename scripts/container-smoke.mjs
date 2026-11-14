@@ -22,6 +22,15 @@ const response = await get(asset)
 assert.equal(response.status, 200)
 assert.match(response.headers.get('content-type') ?? '', /javascript/)
 assert.match(response.headers.get('cache-control') ?? '', /immutable/)
+if (process.env.EXPECTED_BROWSER_API_URL) {
+  assert.ok((await response.text()).includes(process.env.EXPECTED_BROWSER_API_URL), 'Static JavaScript must embed the expected browser API URL')
+  const identityResponse = await get('/moodly-config.json')
+  assert.match(identityResponse.headers.get('cache-control') ?? '', /no-store/)
+  const identity = await identityResponse.json()
+  assert.equal(identity.serving, 'static')
+  assert.equal(identity.values.VITE_API_BASE_URL, process.env.EXPECTED_BROWSER_API_URL)
+  console.log('PASS browser API URL embedded in static JavaScript and build identity')
+}
 assert.equal((await get('/assets/missing-file.js')).status, 404)
 console.log('PASS container health, SPA routes, asset delivery, cache policy and missing asset 404')
 

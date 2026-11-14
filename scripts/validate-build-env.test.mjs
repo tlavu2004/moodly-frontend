@@ -20,3 +20,7 @@ for (const domain of ['https://tenant.auth0.com', 'tenant.auth0.com/path', 'tena
 }
 test('reject missing input without echoing configuration values', () => assert.throws(() => validate({ ...valid, VITE_AUTH0_CLIENT_ID: '' }, 'test'), /^Error: VITE_AUTH0_CLIENT_ID: required$/))
 test('reject unknown target', () => assert.throws(() => validate(valid, 'prod'), /MOODLY_ENV/))
+
+for (const host of ['backend', 'moodly-backend', 'backend.internal', 'host.docker.internal']) {
+  test(`reject Docker-only browser API host ${host}`, () => assert.throws(() => validate({ ...valid, VITE_API_BASE_URL: `http://${host}:8080` }, 'test'), /browser-resolvable/))
+}

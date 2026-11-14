@@ -27,6 +27,11 @@ export function validateBuildEnvironment(source, target) {
   if (!['http:', 'https:'].includes(api.protocol) || api.username || api.password || api.search || api.hash) {
     fail('VITE_API_BASE_URL', 'use HTTP(S) without credentials, query or fragment')
   }
+  const browserHost = api.hostname.replace(/^\[|\]$/g, '')
+  if ((!isIP(browserHost) && !browserHost.includes('.') && browserHost !== 'localhost')
+    || /(^|\.)(internal|docker|local)$/.test(browserHost) || browserHost === 'host.docker.internal') {
+    fail('VITE_API_BASE_URL', 'requires a browser-resolvable address, not a Docker service hostname')
+  }
   if (target === 'production') {
     if (api.protocol !== 'https:' || nonPublic(api.hostname)) fail('VITE_API_BASE_URL', 'production requires HTTPS with a public DNS hostname')
     if (nonPublic(domain)) fail('VITE_AUTH0_DOMAIN', 'production requires a public DNS hostname')
@@ -36,7 +41,7 @@ export function validateBuildEnvironment(source, target) {
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   try {
     const target = process.env.VERCEL_ENV === 'production' ? 'production' : (process.env.MOODLY_ENV ?? 'test')
-    validateBuildEnvironment(loadEnvironment('production'), target)
+    validateBuildEnvironment(loadEnvironment(target), target)
     console.log(`PASS build configuration (${target}); values omitted`)
   } catch (error) {
     console.error(error.message)

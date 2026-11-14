@@ -1,3 +1,5 @@
+name: moodly-frontend-local
+
 services:
   frontend:
     image: moodly-frontend:${IMAGE_TAG:-test-local}

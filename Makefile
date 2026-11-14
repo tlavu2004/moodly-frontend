@@ -2,9 +2,10 @@
 MOODLY_ENV ?= test
 SOURCE_REVISION ?= $(shell git rev-parse HEAD)
 IMAGE_TAG ?= $(MOODLY_ENV)-$(shell git rev-parse --short=12 HEAD)
-export MOODLY_ENV SOURCE_REVISION IMAGE_TAG
+FRONTEND_PORT ?= $(if $(filter local,$(MOODLY_ENV)),5173,4173)
+export MOODLY_ENV SOURCE_REVISION IMAGE_TAG FRONTEND_PORT
 ENV_FILE ?= $(if $(filter local,$(MOODLY_ENV)),.env.local,.env.$(MOODLY_ENV).local)
-compose = docker compose -p moodly-frontend-$(MOODLY_ENV) --env-file "$(ENV_FILE)" -f compose.yaml
+compose = docker compose -p moodly-frontend-local --env-file "$(ENV_FILE)" -f compose.yaml
 
 # App commands run on the host. Container commands manage only FE/Nginx.
 .PHONY: help local-run test-run lint test verify build
@@ -36,10 +37,12 @@ endef
 help:
 	$(info $(help_text))
 
+local-run: export MOODLY_ENV = local
 local-run:
 	npm run dev
+test-run: export MOODLY_ENV = test
 test-run:
-	npm run dev -- --mode test --host 127.0.0.1 --port 4173
+	npm run dev -- --mode test
 lint:
 	npm run lint
 test:

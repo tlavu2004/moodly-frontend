@@ -31,3 +31,13 @@ for (const mode of ['test', 'production', 'analyze']) {
 test('CI variables override file values', t => {
   assert.equal(loadEnvironment('test', fixture(t), { VITE_API_BASE_URL: 'https://ci.invalid' }).VITE_API_BASE_URL, 'https://ci.invalid')
 })
+
+test('process-only verification never reads environment files', t => {
+  const result = loadEnvironment('test', fixture(t), { MOODLY_ENV_SOURCE: 'process' })
+  assert.equal(result.VITE_API_BASE_URL, undefined)
+  assert.equal(result.E2E_DATA_RESET_TOKEN, undefined)
+})
+
+test('reject an unknown environment rather than falling back to production', () => {
+  assert.throws(() => loadEnvironment('staging', '/unused', {}), /Environment must be/)
+})

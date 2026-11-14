@@ -5,6 +5,11 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      authenticated_remote:
+        description: Authorize authenticated writes to the configured remote test namespace
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -33,6 +38,15 @@ jobs:
       - run: npm run build
       - run: npm run test:run
       - run: npm run test:coverage
+      - run: npx playwright install --with-deps chromium
+      - name: Public E2E on owned Vite test server
+        run: npx playwright test --project=public
+        env:
+          MOODLY_ENV_SOURCE: process
+          VITE_AUTH0_DOMAIN: example.auth0.com
+          VITE_AUTH0_CLIENT_ID: ci-public-client
+          VITE_AUTH0_AUDIENCE: https://api.example.com
+          VITE_API_BASE_URL: https://api.example.com
       - run: npm audit --audit-level=high
 
   container:
@@ -44,6 +58,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
       - name: Build container with synthetic browser configuration
         run: >-
           docker build -t moodly-frontend:ci .
@@ -74,6 +90,17 @@ jobs:
             sleep 1
           done
           node scripts/container-smoke.mjs http://127.0.0.1:4173 moodly-frontend-ci
+        env:
+          EXPECTED_BROWSER_API_URL: https://api.example.com
+      - name: Public E2E on actual Nginx image
+        run: npx playwright test --project=public
+        env:
+          MOODLY_ENV_SOURCE: process
+          E2E_TARGET: container
+          VITE_AUTH0_DOMAIN: example.auth0.com
+          VITE_AUTH0_CLIENT_ID: ci-public-client
+          VITE_AUTH0_AUDIENCE: https://api.example.com
+          VITE_API_BASE_URL: https://api.example.com
       - name: Container diagnostics
         if: failure()
         run: docker logs moodly-frontend-ci
@@ -82,7 +109,7 @@ jobs:
         run: docker rm -f moodly-frontend-ci || true
 
   e2e-test:
-    if: github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'workflow_dispatch' && inputs.authenticated_remote
     runs-on: ubuntu-latest
     environment: test
     steps:
@@ -95,6 +122,10 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
         env:
+          E2E_TARGET: remote
+          E2E_ALLOW_REMOTE_WRITES: '1'
+          E2E_NAMESPACE: ${{ vars.E2E_NAMESPACE }}
+          E2E_TEST_CONTRACT_URL: ${{ vars.E2E_TEST_CONTRACT_URL }}
           E2E_BASE_URL: ${{ vars.E2E_BASE_URL }}
           E2E_DATA_RESET_URL: ${{ vars.E2E_DATA_RESET_URL }}
           E2E_DATA_RESET_TOKEN: ${{ secrets.E2E_DATA_RESET_TOKEN }}
