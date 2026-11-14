@@ -13,102 +13,33 @@ Hướng dẫn từng cách chạy FE/BE, lifecycle Docker và chạy chỉ từ
 - A reachable Moodly backend.
 - Auth0 SPA configuration for the target environment.
 
-## Local setup
+## Workstation setup: one file, one port
 
-1. Install dependencies with `npm ci`.
-2. Copy `.env.local.example` to `.env.local`.
-3. Fill all four `VITE_*` values. They are validated when the application starts.
-4. Start the frontend with `npm run dev -- --mode development`.
+1. Run `npm ci`.
+2. Create `.env.local` from `.env.local.example` only if it does not exist.
+3. Fill the four public `VITE_*` values; add the four optional `E2E_*` values only
+   when using authenticated Playwright. Never prefix secrets with `VITE_`.
+4. Run `make local-run` and open **http://127.0.0.1:5173**.
 
-Local values live in ignored `.env.local`; commit only `.env.local.example`.
-Automatic Vite env-file loading is disabled. A shared loader selects `.env.local`
-only for development; test and production read only their own mode-specific files.
-Explicit process/CI variables take precedence. Values use Node dotenv syntax and are
-literal: `${VAR}` expansion is not supported. Restart Vite after editing env files.
+Local and test share `.env.local` and port 5173; run one FE server at a time.
+Production reads only production-scoped files/process variables and never the
+workstation file. Explicit process/CI variables win. Dotenv values are literal
+(`${VAR}` expansion is not supported). Restart/rebuild after changing configuration.
 
-### Environment layout
+| Input | Purpose |
+| --- | --- |
+| VITE_AUTH0_DOMAIN | Bare Auth0 SPA tenant/custom hostname |
+| VITE_AUTH0_CLIENT_ID | Public SPA client ID |
+| VITE_AUTH0_AUDIENCE | Exact backend API identifier |
+| VITE_API_BASE_URL | Browser-reachable API URL, never a Docker-only service name |
+| E2E_TEST_USER_EMAIL / E2E_TEST_USER_PASSWORD | Dedicated synthetic user; Node/Playwright only |
+| E2E_DATA_RESET_URL / E2E_DATA_RESET_TOKEN | Opt-in non-production fixed-account BE reset; Node only |
 
-| Environment | Real values live in | Committed contract |
-| --- | --- | --- |
-| Local development | `.env.local` | `.env.local.example` |
-| Test (local E2E or deployed) | `.env.test.local` or hosting/GitHub `test` variables and secrets | `.env.test.example` |
-| Production | Hosting production variables and secret store | `.env.production.example` |
-
-The browser-visible variables required in every frontend mode are:
-
-```dotenv
-VITE_AUTH0_DOMAIN=
-VITE_AUTH0_CLIENT_ID=
-VITE_AUTH0_AUDIENCE=
-VITE_API_BASE_URL=
-```
-
-`VITE_AUTH0_DOMAIN` and `VITE_AUTH0_CLIENT_ID` come from the Auth0 SPA settings.
-`VITE_AUTH0_AUDIENCE` is the Identifier of the Auth0 API used by the backend.
-`VITE_API_BASE_URL` is the reachable backend origin without a trailing slash.
-
-Never put client secrets, passwords, reset tokens, access tokens, database credentials,
-or Cloudinary API secrets in a `VITE_*` variable because Vite exposes those values to
-the browser bundle.
-
-### Local development environment
-
-Create the ignored development file once:
-
-```powershell
-Copy-Item .env.local.example .env.local
-```
-
-Fill its four `VITE_*` values and run:
-
-```powershell
-npm run dev -- --mode development
-```
-
-The expected local frontend origin is `http://127.0.0.1:5173`. The backend CORS list and
-Auth0 callback, logout, and web-origin lists must contain that exact origin.
-
-### Test and E2E environment
-
-Create the ignored test file separately:
-
-```powershell
-Copy-Item .env.test.example .env.test.local
-```
-
-It contains the same four `VITE_*` values plus runner-only settings:
-
-```dotenv
-E2E_TEST_USER_EMAIL=
-E2E_TEST_USER_PASSWORD=
-E2E_DATA_RESET_URL=
-E2E_DATA_RESET_TOKEN=
-```
-
-The E2E variables are consumed by Playwright/Node and must never be prefixed with
-`VITE_`. Use `E2E_TARGET=dev` (default) for an owned Vite server; Playwright starts Vite
-at `http://127.0.0.1:4173` and never reuses an occupied port. Use `E2E_TARGET=container`
-for existing Nginx, or `E2E_TARGET=remote` with an explicit HTTPS `E2E_BASE_URL`.
-
-Auth0 callback, logout, and web-origin lists and backend CORS must also contain
-`http://127.0.0.1:4173` for local authenticated E2E.
-
-### Test and production
-
-The test template also includes runner-only E2E inputs. Both templates document browser-visible variables;
-they are not places to store real deployed values. Configure real values in the hosting
-provider and GitHub environment. Store E2E passwords/reset tokens only in the GitHub
-`test` secret store, and never create or commit a production env file containing
-credentials.
-
-Before committing, confirm that local files remain ignored:
-
-```powershell
-git status --short --ignored -- .env.local .env.test.local
-```
-
-Both files should appear with the ignored marker `!!`, never as tracked or untracked
-content.
+Only the four explicit public values are embedded in browser assets. Real values live
+in ignored `.env.local`; commit only `.env.local.example`. Hosted test uses GitHub
+`test` variables/secrets. Production uses Vercel variables based on
+`.env.production.example`, without E2E credentials. Retired `.env.test*` files are
+not loaded. See [E2E setup](docs/markdowns/FRONTEND_INTEGRATION_TESTING.md).
 
 ## Common commands
 
@@ -126,7 +57,7 @@ content.
 | `npm run analyze` | Generate `reports/bundle.html`. |
 | `npm run generate:api` | Regenerate the OpenAPI client. |
 
-Authenticated E2E requires an isolated Auth0 test account and an attested, protected BE test namespace. The prior token-only reset contract is blocked until BE coordination is complete.
+Authenticated E2E requires an isolated Auth0 test account and a dedicated synthetic Auth0 account and the opt-in, non-production BE fixed-account reset endpoint.
 See [`docs/markdowns/FRONTEND_INTEGRATION_TESTING.md`](./docs/markdowns/FRONTEND_INTEGRATION_TESTING.md)
 for the required inputs and startup sequence.
 
@@ -174,20 +105,20 @@ GNU Make is optional; `make help` lists wrappers around npm and Docker Compose.
 The recipes do not require Bash, including on native Windows Make.
 
 The Dockerfile builds with Node and serves only `dist` using non-root Nginx on port
-8080. Compose exposes it on localhost:4173, with a read-only filesystem and temporary
+8080. Compose exposes it on localhost:5173, with a read-only filesystem and temporary
 files in `/tmp`. SPA routes fall back to `index.html`; hashed assets are cached while
 HTML is not. `/healthz` checks static serving, not backend/Auth0 availability.
 
 ```sh
-# Fill .env.test.local using .env.test.example first.
+# Fill .env.local using .env.local.example first.
 make validate-local
 make test-container-up
-node scripts/container-smoke.mjs http://127.0.0.1:4173
+node scripts/container-smoke.mjs http://127.0.0.1:5173
 make local-container-logs
 make local-container-stop
 
 # Equivalent without Make
-docker compose -p moodly-frontend-local --env-file .env.test.local -f compose.yaml up -d --build --wait
+docker compose -p moodly-frontend-local --env-file .env.local -f compose.yaml up -d --build --wait
 ```
 
 Compose passes only the four public VITE_* values as build arguments. Env files,
@@ -204,7 +135,7 @@ make docker-build MOODLY_ENV=production ENV_FILE=.env.production.local
 ```
 
 The Compose project is always moodly-frontend-local. MOODLY_ENV selects build validation, image tag and default
-env file, and the selected env values; every container uses an optimized static build. Make uses host port 5173 for local and 4173 for test; direct Compose defaults to 4173.
+env file, and the selected env values; every container uses an optimized static build. Make uses host port 5173 for local and 5173 for test; direct Compose defaults to 5173.
 Stop the alternate FE server you own before switching. The API URL must be reachable from the user's browser, rather
 than a Compose service hostname. Auth0 origins and backend CORS must include the
 actual frontend origin and port. Terminate TLS at the hosting platform or reverse
@@ -264,3 +195,24 @@ set `MOODLY_ENV=local` when inspecting local configuration or recording its imag
 The legacy `docker-*` commands remain available and honor `MOODLY_ENV` for
 compatibility, including production builds. `validate-local` validates the selected
 configuration without printing values. Frontend targets never manage BE services.
+
+Auth0 callback/logout/origin and BE CORS setup for ports 5173/5173: [Auth0 local setup](docs/markdowns/AUTH0_LOCAL_SETUP.md).
+
+### One workstation configuration and one FE port
+
+Use only `.env.local` (ignored), based on `.env.local.example`. Local/test share the
+four public browser values and the four optional E2E runner values. They still select
+their own execution mode; the filename or port does not isolate BE data. Production
+never reads `.env.local`. Auth0 account/password and reset token are not browser inputs.
+
+All workstation FE modes use **http://127.0.0.1:5173**. Run one Vite or Nginx instance
+at a time. Use `make e2e-dev` for an owned test Vite server, or start Nginx with
+`make test-container-up` then use `make e2e-container`. Do not store E2E_TARGET or
+E2E_BASE_URL in the shared file. Remote E2E needs explicit per-run configuration and
+write authorization; those values remain in CI/process inputs, not the local template.
+
+Docker Desktop's Containers page should show only two Moodly groups:
+`moodly-backend-local` (mongodb/elasticsearch and optional Java backend) and
+`moodly-frontend-local` (container `moodly-frontend-local`, Nginx + FE). Keep stacks
+stopped between sessions. Different image tags in the Images page are build versions,
+not extra running stacks; no image/volume pruning is performed automatically.

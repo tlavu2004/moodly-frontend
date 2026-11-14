@@ -23,10 +23,9 @@ chứa MongoDB/ES và image FE không chứa BE.
   (Dockerfile BE hiện dùng Java 25). Maven Wrapper có trong repo BE.
 - GNU Make là tùy chọn cho FE; BE dùng Bash recipes, nên chạy Make của BE trong
   Git Bash/WSL trên Windows. Các ví dụ gán `$env:` phía dưới dành cho PowerShell.
-- FE: `npm ci`; tạo `.env.local` từ `.env.local.example`, `.env.test.local` từ
-  `.env.test.example` nếu chưa có. Không ghi đè file đã chứa giá trị thật.
+- FE: `npm ci`; tạo `.env.local` từ `.env.local.example`, dùng chung local/test. Không ghi đè file đã chứa giá trị thật.
 - BE: làm theo README BE để chuẩn bị `.env.local`, Auth0, Cloudinary và infrastructure.
-- FE local dùng `http://127.0.0.1:5173`; FE test dùng `http://127.0.0.1:4173`.
+- FE local dùng `http://127.0.0.1:5173`; FE test dùng `http://127.0.0.1:5173`.
   Auth0 callback/logout/web origins và BE CORS phải cho phép đúng origin và port.
   `localhost` và `127.0.0.1` là hai origin khác nhau.
 - API URL trong FE phải truy cập được từ trình duyệt. Không dùng tên Compose service
@@ -79,10 +78,10 @@ Bật BE theo cách ở mục 3 hoặc mục 5 trước nếu cần đăng nhậ
 Tại repo FE, chọn đúng một chế độ:
 
 ```sh
-# Cấu hình .env.local, port host 5173 theo Makefile hiện tại
+# Cấu hình local từ .env.local, port host 5173
 make local-container-up
 
-# Hoặc cấu hình .env.test.local, port host 4173
+# Hoặc chế độ test, cùng .env.local và port 5173
 make test-container-up
 ```
 
@@ -136,23 +135,22 @@ không chạy cùng một manual test session đang giữ độc quyền namespa
 Với cấu hình E2E hiện đang được chuẩn hóa trong working tree:
 
 ```powershell
-# FE: public routes, để Playwright tự khởi động Vite test trên port trống 4173
+# FE: public routes, để Playwright tự khởi động Vite test trên port trống 5173
 $env:E2E_TARGET = 'dev'
 npx playwright test --project=public
 Remove-Item Env:E2E_TARGET
 
 # FE: kiểm thử trên Nginx đã chạy bằng make test-container-up
 $env:E2E_TARGET = 'container'
-$env:E2E_BASE_URL = 'http://127.0.0.1:4173'
+$env:E2E_BASE_URL = 'http://127.0.0.1:5173'
 npm run test:e2e
 Remove-Item Env:E2E_TARGET
 Remove-Item Env:E2E_BASE_URL
 ```
 
-Suite authenticated cần BE health UP, tài khoản synthetic riêng và contract attestation/
-reset namespace test được BE thực thi. Đợt chuẩn hóa đang có trong working tree sẽ
-chặn contract reset token-only cũ; không tắt guard để ép chạy. Xem
-[FRONTEND_INTEGRATION_TESTING.md](./FRONTEND_INTEGRATION_TESTING.md) và review local/test.
+Suite authenticated cần BE health UP và tài khoản synthetic đúng với userId reset
+được cấu hình ở BE. FE dùng contract reset hiện có: POST endpoint cố định, token,
+không redirect và cùng origin API. Xem [hướng dẫn E2E](./FRONTEND_INTEGRATION_TESTING.md).
 Public-only không chứng minh login hay API hoạt động. Không chạy reset trên production.
 
 ## 7. Tại sao Docker Desktop còn hai stack FE?
@@ -160,7 +158,7 @@ Public-only không chứng minh login hay API hoạt động. Không chạy rese
 `moodly-frontend-test` là project được tạo bởi cấu hình cũ. Cấu hình workstation hiện
 đang hướng đến một project `moodly-frontend-local`, dùng local/test luân phiên.
 Đổi tên Compose project không tự di chuyển/xóa container cũ. Hai container cùng ánh
-xạ port 4173 không thể đồng thời chiếm port đó.
+xạ port 5173 không thể đồng thời chiếm port đó.
 
 - Giữ project hiện tại và dùng Make để chuyển local/test.
 - Đừng bấm Start cả project cũ và mới.
@@ -206,10 +204,10 @@ Registry private cần `docker login`. Các lệnh dưới đây không build so
 ```powershell
 $feImage = 'registry.example.com/moodly/frontend:release'
 docker pull $feImage
-docker run -d --name moodly-fe-image --read-only --tmpfs /tmp --cap-drop ALL --security-opt no-new-privileges:true -p 127.0.0.1:4173:8080 $feImage
+docker run -d --name moodly-fe-image --read-only --tmpfs /tmp --cap-drop ALL --security-opt no-new-privileges:true -p 127.0.0.1:5173:8080 $feImage
 ```
 
-Mở port 4173 để xem FE. Image phải được build sẵn với API/Auth0 đúng môi trường.
+Mở port 5173 để xem FE. Image phải được build sẵn với API/Auth0 đúng môi trường.
 `docker run -e VITE_API_BASE_URL=...` không sửa được JS đã build. Nếu image trỏ đến API
 local của tác giả thì máy tải image sẽ không tự có API đó; cần image build đúng đích.
 FE không cần BE để trả HTML public, nhưng login/dữ liệu nghiệp vụ cần các dịch vụ thật.
@@ -237,3 +235,22 @@ Image build trên máy chỉ nằm trong Docker Engine local. `docker push` mớ
 lên registry; `git push` chỉ đẩy source/commit. Repo FE hiện không mặc định publish image
 lên Docker Hub. FE Vercel phục vụ static deployment; image Docker FE không được Vercel
 chạy chỉ vì source repo có Dockerfile.
+
+## 9. Docker Desktop: danh sách chuẩn
+
+Chỉ giữ hai Compose groups, không tạo thêm project riêng cho test:
+
+```text
+moodly-backend-local
+  moodly-mongodb-local
+  moodly-elasticsearch-local
+  [ứng dụng BE: chỉ khi chạy BE container]
+moodly-frontend-local
+  moodly-frontend-local       # Nginx + FE, host 5173 -> container 8080
+```
+
+Tên BE service do repo BE quản lý. Nếu BE chạy IDE/JVM thì Docker chỉ có MongoDB/ES,
+đó là bình thường. Image tags thể hiện các phiên bản build; chúng không phải các
+stack đang chạy và không cần xóa sau mỗi lần test. Giữ volume và stop stack khi không
+làm việc. FE local/test dùng chung cấu hình public, file và port; vẫn chọn execution
+mode để Playwright kiểm tra đúng bản test. Không chạy Vite và Nginx cùng port 5173.

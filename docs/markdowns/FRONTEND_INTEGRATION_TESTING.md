@@ -1,141 +1,88 @@
-# Local/test frontend contract
+# Frontend integration and E2E
 
-Only local, test and production are application environments. `dev`, `container`
-and `remote` below select how E2E reaches the frontend, not new environments.
-This document supersedes the historical 2026-10-15 E2E results in older checklists;
-those results do not validate the protected namespace contract introduced here.
+## Configuration
 
-## Ownership and configuration
+Workstation local/test share `.env.local` (template `.env.local.example`).
+No `.env.test` or `.env.test.local` is needed. Four public VITE variables configure
+Auth0/API. Four optional runner-only variables configure authenticated E2E:
 
-- FE Compose project: `moodly-frontend-local` for both local and test, used alternately.
-- BE Compose project: `moodly-backend-local`, owned and operated in the BE repository.
-- FE never starts/stops BE infrastructure, creates MongoDB/Elasticsearch, removes
-  volumes or resets developer/production data. Shared infrastructure must have
-  separate databases, search indexes, test subject and scoped cleanup credentials.
-- Keep `.env.local` and `.env.test.local` separate. Never commit their contents.
-- Vite dev server and Nginx container are alternate serving methods. Stop the one
-  you own before starting the other on its port. Do not kill a process just because
-  it occupies the expected port.
+```dotenv
+E2E_TEST_USER_EMAIL=
+E2E_TEST_USER_PASSWORD=
+E2E_DATA_RESET_URL=
+E2E_DATA_RESET_TOKEN=
+```
 
-| Mode | Frontend origin | Listener | Browser API URL |
-| --- | --- | --- | --- |
-| Local Vite | `http://127.0.0.1:5173` | host 5173, strict | `.env.local` public `VITE_API_BASE_URL` |
-| Local Nginx (`make ... MOODLY_ENV=local`) | `http://127.0.0.1:5173` | host 5173 -> container 8080 | same local value, embedded during build |
-| Test Vite/E2E dev | `http://127.0.0.1:4173` | host 4173, strict | `.env.test.local` public `VITE_API_BASE_URL` |
-| Test Nginx/E2E container | `http://127.0.0.1:4173` | host 4173 -> container 8080 | same test value, embedded during build |
-| Remote test | explicit HTTPS `E2E_BASE_URL` | hosting-owned | public test API embedded in deployed bundle |
-| Production | hosting production origin | hosting-owned | public HTTPS production API embedded during build |
+The test user must be a synthetic account whose Auth0 subject matches BE's configured
+`MOODLY_E2E_USER_ID`; never use your real journal account. The account's credentials
+are not exposed to Vite or Docker build arguments. Production never reads `.env.local`.
+CI receives values explicitly through its test environment, not committed env files.
 
-BE API host ports are not invented by FE. BE must publish separate local/test
-browser-reachable endpoints (for example different host ports) and confirm them.
-Never use Docker-only names such as `backend`, `moodly-backend` or
-`host.docker.internal` as the browser API URL. Nginx serves static assets and does
-not proxy API calls. BE's internal Docker service addresses belong in BE config.
+## One frontend origin
 
-Auth0 callback, logout and web-origin allowlists must contain the exact applicable
-FE origin above. BE CORS must allow those exact origins for the appropriate API;
-`localhost` and `127.0.0.1` are different origins. Coordinate the local-origin change
-from the former `localhost:5173` with the dashboard owner. Do not add wildcards.
-The app uses `window.location.origin` for callback and logout. No hosted settings
-are changed by this repository update.
+Every workstation mode uses `http://127.0.0.1:5173`: local/test, Vite/Nginx.
+Stop the server you own before switching; Playwright never adopts an unknown server.
+FE execution mode and server type are checked using `/moodly-config.json` before tests.
+API host/port comes from VITE_API_BASE_URL; sharing FE port does not isolate BE data.
+Auth0 callback/logout/web origins and backend CORS must permit the exact origin.
+See [Auth0 setup](./AUTH0_LOCAL_SETUP.md).
 
-## Commands
+## Commands (FE repository)
 
 ```sh
-npm run dev                         # local env; 127.0.0.1:5173
-make test-run                       # test env; 127.0.0.1:4173
-npm run test:run                     # no Docker
-npm run test:coverage                # no Docker
-npm run test:build-config
-npm run lint
-npm run build
-
-make docker-up MOODLY_ENV=local      # rebuild local image; host 5173
-make docker-up                      # rebuild test image; host 4173
-make docker-status
-make docker-stop                    # FE only; leaves stack in place
-
-# Direct Compose defaults to test at 4173. Explicit local equivalent:
-# MOODLY_ENV=local FRONTEND_PORT=5173 must also be set in the process.
-docker compose --env-file .env.local up -d --build --wait
-
-docker compose --env-file .env.test.local up -d --build --wait
-node scripts/container-smoke.mjs http://127.0.0.1:4173
-
-# Owned Vite, no reuse even outside CI:
+make verify
+# Public only, owns Vite and cleans it up afterwards; port 5173 must be free
 npx playwright test --project=public
-npm run test:e2e                     # requires valid BE/auth contract below
+
+# Full suite on owned Vite, requires BE and synthetic credentials
+make e2e-dev
+
+# Full suite on existing Nginx; stop Vite first
+make test-container-up
+make e2e-container
+make local-container-stop
 ```
 
-For an existing Nginx test container, set `E2E_TARGET=container` in the runner
-process, then run either Playwright command. For remote public checks set
-`E2E_TARGET=remote` and an explicit HTTPS `E2E_BASE_URL`. An explicit URL no longer
-silently disables the owned Vite server. Workstation E2E uses only 127.0.0.1:4173.
-Never run authenticated remote checks without authorization for that run;
-`E2E_ALLOW_REMOTE_WRITES=1` is additionally required by the runner.
+Make supplies E2E_TARGET for each invocation. Do not add E2E_TARGET/E2E_BASE_URL to
+.env.local. They are runner switches, not additional required environment inputs.
+Auth state gets a new per-run ignored directory; teardown removes only that run's
+known files. Do not upload authenticated storage state, video/trace or sensitive notes.
 
-The four public variables `VITE_AUTH0_DOMAIN`, `VITE_AUTH0_CLIENT_ID`,
-`VITE_AUTH0_AUDIENCE`, `VITE_API_BASE_URL` are the only custom Vite values embedded.
-All are public. Passwords/reset credentials never use `VITE_`.
-`MOODLY_ENV` selects local/test/production env files for deploy builds and validation;
-Vite still generates an optimized static bundle. Changing container runtime env
-cannot change that bundle. Switch local/test with a rebuild (`make docker-up`),
-not `docker compose start`. Restart dev Vite after env changes.
-`/moodly-config.json` records build-time public identity, not runtime configuration.
-E2E preflight rejects the wrong environment, serving type or any mismatched public
-value. `MOODLY_ENV_SOURCE=process` skips reading env files for synthetic verification.
+## Actual backend reset contract
 
-## Authentication and lifecycle
+The checked-in sibling BE implements `POST /internal/e2e/reset` with
+`X-E2E-Reset-Token`. The controller/service are disabled for prod/production and opt-in
+elsewhere. The target userId is server-configured and cannot be supplied by the FE.
+The service deletes/seeds only that fixed synthetic subject. It seeds 2 habits/3
+entries and verifies search indexing. Do not enable/configure it for a real user.
 
-Use a dedicated Auth0 test SPA/account, never the developer account. Playwright
-uses fresh contexts; every invocation generates a unique ignored auth directory.
-Auth setup checks the BE contract before visiting the protected page (profile sync
-can write data), then saves storageState and the app's sessionStorage cache.
-Teardown deletes only that run's two auth files on completion/failure/normal Ctrl+C.
-A force-killed process can leave ignored credential files; a new invocation never
-loads them. Protect these files and do not upload auth directories or token-bearing
-traces to CI artifacts. Ordinary local browser sessions are never imported.
+FE checks the four runner inputs, exact reset path, same API origin, no URL
+credentials/query/fragment and no redirects before sending a reset token. Local runs
+are restricted to loopback unless explicitly authorized as remote. A failure/403
+stops the suite; there is no retry against another endpoint or reset target.
 
-Playwright owns only the Vite process it starts. Occupied port fails rather than
-reusing or killing another server. Existing container/remote targets remain running
-on success, failure and cancellation. No BE stop or data cleanup runs on exit.
-Public tests do not call reset or authenticate against Auth0 (authorize is intercepted).
+There is no BE capabilities/namespace-attestation endpoint in this implementation.
+The former proposed E2E_NAMESPACE/E2E_TEST_CONTRACT_URL requirements have been removed;
+FE does not invent endpoint variables for contracts BE has not implemented. These
+client checks cannot prove database isolation: the BE owner must configure the fixed
+synthetic subject and choose the correct local/test data namespace. Use the BE test
+launcher where appropriate, never a production deployment.
 
-## BE coordination blocker: protected test reset contract
+## Remote (optional, separately authorized)
 
-The prior token-only reset endpoint is insufficient evidence of namespace safety.
-Authenticated E2E now fails closed until BE implements and validates this contract:
+Remote mode remains available in CI or explicit process inputs; it is not in the
+workstation template. Configure a test frontend URL and test backend/synthetic account.
+The backend must enforce its non-production/fixed-account restrictions. No production
+writes are permitted. HTTPS and E2E_ALLOW_REMOTE_WRITES=1 are required; keep the flag
+out of .env.local and supply it only for the authorized run. CI workflow_dispatch asks
+for authenticated_remote explicitly, default false.
 
-1. Supply distinct test API, `E2E_TEST_CONTRACT_URL`, `E2E_DATA_RESET_URL`,
-   `E2E_NAMESPACE`, scoped `E2E_DATA_RESET_TOKEN`, dedicated test account email/password.
-2. Contract GET and reset POST must share the configured browser API origin. Neither
-   follows redirects. Both carry `X-E2E-Reset-Token` and `X-E2E-Namespace`.
-3. Authenticated GET returns 200 JSON exactly attesting the configured endpoints:
+## Troubleshooting
 
-```json
-{
-  "environment": "test",
-  "namespace": "the-configured-namespace",
-  "protected": true,
-  "cleanupScope": "namespace",
-  "testUserEmail": "dedicated-synthetic-user@example.com",
-  "apiBaseUrl": "http://127.0.0.1:TEST_PORT/",
-  "resetUrl": "http://127.0.0.1:TEST_PORT/internal/e2e/reset"
-}
-```
-
-URLs use canonical absolute URL formatting (origin-only API has a trailing slash).
-This is a proposed required contract, not a claim that BE already implements it.
-BE must enforce test mode, token-to-namespace binding, fixed dedicated Auth0 subject,
-and attest the exact configured test account email before FE attempts login,
-separate database/index namespaces and refusal of local/production/global cleanup
-on the POST itself. A client-supplied namespace alone grants no permission.
-POST includes `{ "namespace": "the-configured-namespace" }`; successful 2xx must
-mean scoped reset completed. Existing deterministic baseline remains 2 habits and
-3 entries with verified search indexing, leaving other users/data untouched.
-BE must test wrong token/namespace, local/production rejection and two idempotent
-resets. FE does not probe reset merely to discover whether it is safe.
-
-Validate Vite and Nginx independently. Public browser tests do not prove backend
-integration; static health checks do not prove Auth0/API readiness. Record missing
-credentials/BE contract as blockers rather than claiming authenticated coverage.
+- Port occupied: stop the Vite/Nginx instance you started; do not enable server reuse.
+- Build identity mismatch: rebuild the container with the current shared public config.
+- Auth0 callback mismatch: verify the SPA/client ID and allowlist 127.0.0.1:5173.
+- API CORS: restart BE after updating its allowlist; Auth0 settings do not set API CORS.
+- Reset 403/unavailable: check BE opt-in reset configuration and token on the dedicated
+  synthetic account. Do not disable FE validation or redirect tokens to another URL.
+- Scope the tests you actually ran; public-only does not establish authenticated coverage.
