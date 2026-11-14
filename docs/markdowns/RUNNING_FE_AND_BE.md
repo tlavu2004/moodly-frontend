@@ -164,8 +164,20 @@ xạ port 4173 không thể đồng thời chiếm port đó.
 
 - Giữ project hiện tại và dùng Make để chuyển local/test.
 - Đừng bấm Start cả project cũ và mới.
-- Stack cũ chỉ cần cleanup một lần sau khi xác nhận không còn dùng; thao tác này tách
-  biệt với stop hằng ngày. Hướng dẫn này không tự xóa stack nào.
+- Stack cũ chỉ cần cleanup một lần, tách biệt với stop hằng ngày. Tại FE:
+
+```sh
+# Xem kế hoạch, chưa thay đổi Docker
+node scripts/migrate-frontend-stack.mjs
+# Áp dụng: chỉ container FE cũ đã dừng và network thuộc project cũ
+make local-container-migrate
+```
+
+Migration từ chối container đang chạy, khác checkout/service, có mount dữ liệu hoặc
+network có container ngoài phạm vi. Không xóa image/volume, không đụng BE hay project
+FE mới. Chạy lại sau migration là no-op. Sau đó `make local-container-up` và
+`make test-container-up` cùng dùng project `moodly-frontend-local`; thay đổi env sẽ
+rebuild/recreate service FE trong project đó, không tạo project test riêng.
 
 | Thao tác | Container/network | Image | Dữ liệu volume |
 | --- | --- | --- | --- |

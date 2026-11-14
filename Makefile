@@ -5,13 +5,14 @@ IMAGE_TAG ?= $(MOODLY_ENV)-$(shell git rev-parse --short=12 HEAD)
 FRONTEND_PORT ?= $(if $(filter local,$(MOODLY_ENV)),5173,4173)
 export MOODLY_ENV SOURCE_REVISION IMAGE_TAG FRONTEND_PORT
 ENV_FILE ?= $(if $(filter local,$(MOODLY_ENV)),.env.local,.env.$(MOODLY_ENV).local)
-compose = docker compose -p moodly-frontend-local --env-file "$(ENV_FILE)" -f compose.yaml
+COMPOSE_PROJECT := moodly-frontend-local
+compose = docker compose -p $(COMPOSE_PROJECT) --env-file "$(ENV_FILE)" -f compose.yaml
 
 # App commands run on the host. Container commands manage only FE/Nginx.
 .PHONY: help local-run test-run lint test verify build
 .PHONY: local-container-build test-container-build local-container-up test-container-up
 .PHONY: local-container-stop local-container-down local-container-logs local-container-status
-.PHONY: validate-local container-record
+.PHONY: validate-local container-record local-container-migrate
 .PHONY: docker-build docker-up docker-stop docker-down docker-logs docker-status docker-validate docker-record
 
 define help_text
@@ -26,6 +27,7 @@ Frontend container (Nginx; detached, stack retained)
   make local-container-stop                 Stop FE; keep containers/network
   make local-container-down                 Explicitly remove FE containers/network; keep images
   make local-container-status / local-container-logs  List all FE containers or follow logs
+  make local-container-migrate              One-time guarded cleanup of stopped legacy FE project
   make validate-local                       Validate selected Compose configuration without printing values
   make container-record                     Record selected image identity
 Compatibility
@@ -86,3 +88,6 @@ docker-logs: local-container-logs
 docker-status: local-container-status
 docker-validate: validate-local
 docker-record: container-record
+
+local-container-migrate:
+	node scripts/migrate-frontend-stack.mjs --apply
