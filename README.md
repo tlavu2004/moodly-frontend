@@ -163,3 +163,13 @@ The handling rules for mood notes and other sensitive browser data are documente
 ## Request lifecycle and rate limiting
 
 Moodly honors Retry-After for HTTP 429 across the current user's API client. Missing or invalid headers pause requests for 30 seconds. Read recovery is manual; writes are never automatically replayed. See [request handling and verification](docs/markdowns/FRONTEND_REQUEST_HANDLING.md) for cancellation, concurrent reads, submit guards and staging checks.
+
+## Language, appearance and sign-in
+
+The interface supports English/Vietnamese and System/Light/Dark themes. Preferences
+are available on the landing page, sign-in introduction and application toolbar.
+See [localization and API date rules](docs/markdowns/LOCALIZATION.md),
+[semantic theme tokens](docs/markdowns/THEMES.md), and
+[the sign-in experience and Auth0 branding setup](docs/markdowns/AUTH_EXPERIENCE.md).
+The existing landing page is retained. Hosted Auth0 branding must be applied in the
+target tenant separately from deploying this frontend.

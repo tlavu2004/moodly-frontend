@@ -12,6 +12,7 @@ setup('authenticate synthetic test user', async ({ page }) => {
   }
 
   await page.goto('/dashboard')
+  await page.getByRole('button', { name: 'Continue to sign in' }).click()
   await page.locator('input[name="username"], input[type="email"]').first().fill(email)
   await page.locator('input[name="password"], input[type="password"]').first().fill(password)
   await page.locator('button[type="submit"], input[type="submit"]').first().click()

@@ -1,3 +1,4 @@
+import { safeReturnTo } from './loginOptions.ts'
 import { Auth0Provider, type AppState } from '@auth0/auth0-react'
 import { useCallback, type ReactNode } from 'react'
 import { useNavigate } from 'react-router'
@@ -9,11 +10,7 @@ const localCache = createLocalSessionCache(window.location.hostname)
 export function RouterAuthProvider({ environment, children }: { environment: ClientEnvironment; children: ReactNode }) {
   const navigate = useNavigate()
   const onRedirectCallback = useCallback((appState?: AppState) => {
-    const returnTo = appState?.returnTo
-    const path = typeof returnTo === 'string' && returnTo.startsWith('/') && !returnTo.startsWith('//')
-      ? returnTo
-      : window.location.pathname
-    navigate(path, { replace: true })
+    navigate(safeReturnTo(appState?.returnTo), { replace: true })
   }, [navigate])
 
   return <Auth0Provider

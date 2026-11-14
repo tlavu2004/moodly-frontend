@@ -3,20 +3,25 @@ import { expect, test } from '@playwright/test'
 test('public landing is available without authentication', async ({ page }) => {
   await page.goto('/')
   await expect(page.getByRole('heading', { name: /Small habits/ })).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Sign in' })).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Sign in' })).toBeVisible()
   await expect(page).toHaveURL(/\/$/)
 })
 
-test('a protected URL starts the Auth0 flow', async ({ page }) => {
+test('a protected URL preserves its destination through the introduction and starts Auth0', async ({ page }) => {
   const appOrigin = new URL(process.env.E2E_BASE_URL ?? 'http://127.0.0.1:4173').origin
   let authorizationUrl = ''
   await page.route('**/authorize**', async (route) => {
     authorizationUrl = route.request().url()
     await route.fulfill({ status: 200, contentType: 'text/html', body: '<title>Auth0 sign in</title>' })
   })
-  await page.goto('/dashboard')
+  await page.goto('/entries?from=2026-11-01&to=2026-11-14#saved')
+  await expect(page).toHaveURL(/\/login\?returnTo=/)
+  await expect(page.getByRole('heading', { name: 'Welcome back to Moodly' })).toBeVisible()
+  await page.getByRole('button', { name: 'Continue to sign in' }).click()
   await expect.poll(() => authorizationUrl).toContain('/authorize?')
   expect(new URL(authorizationUrl).searchParams.get('redirect_uri')).toBe(appOrigin)
+  expect(new URL(authorizationUrl).searchParams.get('ui_locales')).toBe('en')
+  expect(new URL(authorizationUrl).searchParams.has('screen_hint')).toBe(false)
 })
 
 test('an unknown URL renders the intentional 404', async ({ page }) => {
@@ -30,7 +35,7 @@ test('language selection survives reload and keeps calendar dates localized', as
   await page.getByRole('combobox', { name: 'Language' }).selectOption('vi')
   await expect(page.getByRole('heading', { name: /Thói quen nhỏ/ })).toBeVisible()
   await expect(page.locator('html')).toHaveAttribute('lang', 'vi')
-  await expect(page.getByRole('button', { name: 'Đăng nhập', exact: true })).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Đăng nhập', exact: true })).toBeVisible()
   await page.reload()
   await expect(page.getByRole('combobox', { name: 'Ngôn ngữ' })).toHaveValue('vi')
   await page.getByRole('combobox', { name: 'Ngôn ngữ' }).selectOption('en')
@@ -97,3 +102,33 @@ test('semantic text and status colors remain readable in both themes', async ({ 
   await page.screenshot({ path: 'reports/theme-light-desktop.png', fullPage: true, animations: 'disabled' })
 })
 
+
+test('signup uses the selected language on Universal Login', async ({ page }) => {
+  let authorizationUrl = ''
+  await page.route('**/authorize**', async (route) => {
+    authorizationUrl = route.request().url()
+    await route.fulfill({ status: 200, contentType: 'text/html', body: '<title>Auth0 signup</title>' })
+  })
+  await page.goto('/')
+  await page.getByRole('link', { name: 'Start your journey' }).click()
+  await expect(page).toHaveURL(/\/signup$/)
+  await page.getByRole('combobox', { name: 'Language' }).selectOption('vi')
+  await expect(page.getByRole('heading', { name: 'Tạo không gian Moodly của bạn' })).toBeVisible()
+  await page.setViewportSize({ width: 390, height: 844 })
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+  await page.screenshot({ path: 'reports/auth-signup-vi-mobile.png', fullPage: true, animations: 'disabled' })
+  await page.getByRole('button', { name: 'Tiếp tục tạo tài khoản' }).click()
+  await expect.poll(() => authorizationUrl).toContain('/authorize?')
+  const params = new URL(authorizationUrl).searchParams
+  expect(params.get('screen_hint')).toBe('signup')
+  expect(params.get('ui_locales')).toBe('vi')
+})
+
+test('sign-in introduction keeps its destination when switching to signup', async ({ page }) => {
+  await page.goto('/login?returnTo=%2Ftoday')
+  await expect(page.getByRole('link', { name: 'Create account' })).toHaveAttribute('href', '/signup?returnTo=%2Ftoday')
+  await page.getByRole('link', { name: 'Create account' }).click()
+  await expect(page.getByRole('link', { name: 'Sign in', exact: true })).toHaveAttribute('href', '/login?returnTo=%2Ftoday')
+  await page.getByRole('combobox', { name: 'Theme' }).selectOption('dark')
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
+})

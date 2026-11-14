@@ -7,7 +7,7 @@ import { Icon } from '../../../components/ui/Icon.tsx'
 
 export function LandingPage() {
   useLocale()
-  const { isAuthenticated, loginWithRedirect, logout } = useAuth0()
+  const { isAuthenticated, logout } = useAuth0()
   return (
     <main className="min-h-svh overflow-hidden bg-background">
       <header className="mx-auto flex min-h-20 max-w-7xl flex-wrap items-center justify-between gap-3 px-5 py-3 sm:px-8">
@@ -16,7 +16,7 @@ export function LandingPage() {
         {isAuthenticated ? <div className="flex flex-wrap items-center gap-2">
           <Link className="button-secondary" to="/dashboard">{t("Open dashboard")}</Link>
           <button className="button-secondary" type="button" onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}>{t("Log out")}</button>
-        </div> : <button className="button-secondary" type="button" onClick={() => loginWithRedirect()}>{t("Sign in")}</button>}
+        </div> : <Link className="button-secondary" to="/login">{t("Sign in")}</Link>}
       </header>
       <section className="relative mx-auto grid max-w-7xl items-center gap-12 px-5 py-16 sm:px-8 lg:grid-cols-2 lg:py-24">
         <div className="relative z-10">
@@ -24,7 +24,7 @@ export function LandingPage() {
           <h1 className="mt-6 max-w-xl text-5xl font-bold leading-[1.04] tracking-[-0.045em] sm:text-6xl lg:text-7xl">{t("Small habits.")}<br /><span className="text-primary">{t("Brighter days.")}</span></h1>
           <p className="mt-6 max-w-lg text-lg leading-8 text-foreground-muted">{t("Moodly brings your moods, daily rituals, and reflections into one gentle space—so progress feels natural, not pressured.")}</p>
           <div className="mt-9 flex flex-wrap gap-3">
-            {isAuthenticated ? <Link className="button-primary" to="/dashboard">{t("Go to your dashboard")} <Icon name="arrow-right" className="size-4" /></Link> : <button className="button-primary" type="button" onClick={() => loginWithRedirect({ authorizationParams: { screen_hint: 'signup' } })}>{t("Start your journey")} <Icon name="arrow-right" className="size-4" /></button>}
+            {isAuthenticated ? <Link className="button-primary" to="/dashboard">{t("Go to your dashboard")} <Icon name="arrow-right" className="size-4" /></Link> : <Link className="button-primary" to="/signup">{t("Start your journey")} <Icon name="arrow-right" className="size-4" /></Link>}
             <a className="button-secondary" href="#how-it-works">{t("See how it works")}</a>
           </div>
           <p className="mt-4 text-xs text-foreground-muted">{t("Free to begin · Private by design · Takes less than 2 minutes a day")}</p>

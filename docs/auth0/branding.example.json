@@ -1,0 +1,7 @@
+{
+  "logo_url": "https://YOUR_PUBLIC_FE_HOST/brand/moodly-mark.svg",
+  "colors": {
+    "primary": "#8f54dc",
+    "page_background": "#fcf9ff"
+  }
+}
