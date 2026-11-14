@@ -2,18 +2,18 @@ import { mkdir, writeFile } from 'node:fs/promises'
 import { dirname } from 'node:path'
 import { expect, test as setup } from '@playwright/test'
 
-import { verifyTestContract } from './support/reset.ts'
+import { verifyTestConfiguration } from './support/reset.ts'
 
 const authFile = `${process.env.E2E_AUTH_DIR}/user.json`
 
-setup('authenticate synthetic test user', async ({ page, request }) => {
+setup('authenticate synthetic test user', async ({ page }) => {
   const email = process.env.E2E_TEST_USER_EMAIL
   const password = process.env.E2E_TEST_USER_PASSWORD
   if (!email || !password) {
     throw new Error('E2E_TEST_USER_EMAIL and E2E_TEST_USER_PASSWORD are required for authenticated E2E tests.')
   }
 
-  await verifyTestContract(request)
+  verifyTestConfiguration()
   await page.goto('/dashboard')
   await page.locator('input[name="username"], input[type="email"]').first().fill(email)
   await page.locator('input[name="password"], input[type="password"]').first().fill(password)

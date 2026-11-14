@@ -1,61 +1,57 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { verifyTestContract, resetTestData } from '../e2e/support/reset.ts'
+import { verifyTestConfiguration, resetTestData } from '../e2e/support/reset.ts'
 
 const fixture = {
-  E2E_TARGET: 'container', E2E_NAMESPACE: 'synthetic-run',
-  VITE_API_BASE_URL: 'http://127.0.0.1:8082/',
-  E2E_DATA_RESET_URL: 'http://127.0.0.1:8082/internal/e2e/reset',
-  E2E_TEST_CONTRACT_URL: 'http://127.0.0.1:8082/internal/e2e/capabilities',
+  E2E_TARGET: 'container', VITE_API_BASE_URL: 'http://127.0.0.1:8080/',
+  E2E_DATA_RESET_URL: 'http://127.0.0.1:8080/internal/e2e/reset',
   E2E_DATA_RESET_TOKEN: 'synthetic-token',
-  E2E_TEST_USER_EMAIL: 'synthetic@example.com',
+  E2E_TEST_USER_EMAIL: 'synthetic@example.com', E2E_TEST_USER_PASSWORD: 'synthetic-password',
 }
 function setup(t) {
   const before = { ...process.env }
   Object.assign(process.env, fixture)
   delete process.env.E2E_ALLOW_REMOTE_WRITES
   t.after(() => { for (const key of Object.keys(process.env)) if (!(key in before)) delete process.env[key]; Object.assign(process.env, before) })
-  const capability = { environment: 'test', namespace: 'synthetic-run', protected: true, cleanupScope: 'namespace', resetUrl: fixture.E2E_DATA_RESET_URL, apiBaseUrl: fixture.VITE_API_BASE_URL, testUserEmail: fixture.E2E_TEST_USER_EMAIL }
   const calls = []
-  const request = {
-    get: async (...args) => { calls.push(['get', ...args]); return { status: () => 200, json: async () => capability } },
-    post: async (...args) => { calls.push(['post', ...args]); return { ok: () => true } },
-  }
-  return { request, capability, calls }
+  const request = { post: async (...args) => { calls.push(args); return { ok: () => true } } }
+  return { request, calls }
 }
-test('only attested namespace reaches POST; redirects disabled and namespace supplied', async t => {
+test('fixed-account BE reset uses token, disables redirects and never selects a user', async t => {
   const { request, calls } = setup(t)
   await resetTestData(request)
-  assert.equal(calls.length, 2)
-  assert.equal(calls[1][0], 'post')
-  assert.equal(calls[1][2].maxRedirects, 0)
-  assert.deepEqual(calls[1][2].data, { namespace: 'synthetic-run' })
+  assert.equal(calls.length, 1)
+  assert.equal(calls[0][0], fixture.E2E_DATA_RESET_URL)
+  assert.equal(calls[0][1].maxRedirects, 0)
+  assert.deepEqual(calls[0][1].headers, { 'X-E2E-Reset-Token': 'synthetic-token' })
+  assert.equal(calls[0][1].data, undefined)
 })
-for (const patch of [{ environment: 'local' }, { environment: 'production' }, { protected: false }, { namespace: 'another-user' }, { cleanupScope: 'all' }, { resetUrl: 'http://localhost:8080/reset' }, { testUserEmail: 'developer@example.com' }]) {
-  test('reject unprotected or mismatched BE contract before reset', async t => {
-    const { request, capability, calls } = setup(t)
-    Object.assign(capability, patch)
-    await assert.rejects(resetTestData(request), /reset is blocked/)
-    assert.equal(calls.filter(([method]) => method === 'post').length, 0)
+for (const patch of [
+  { E2E_DATA_RESET_URL: 'http://other.invalid/internal/e2e/reset' },
+  { E2E_DATA_RESET_URL: 'http://127.0.0.1:8080/wrong-reset' },
+  { E2E_DATA_RESET_URL: 'http://127.0.0.1:8080/internal/e2e/reset?token=secret' },
+  { E2E_DATA_RESET_TOKEN: '' }, { E2E_TEST_USER_PASSWORD: '' },
+  { E2E_TARGET: 'remote' },
+  { VITE_API_BASE_URL: 'https://test.example.com', E2E_DATA_RESET_URL: 'https://test.example.com/internal/e2e/reset' },
+]) {
+  test('invalid/remote configuration fails before any write', async t => {
+    const { request, calls } = setup(t); Object.assign(process.env, patch)
+    await assert.rejects(resetTestData(request))
+    assert.equal(calls.length, 0)
   })
 }
-test('URL containing test grants no cleanup permission', async t => {
-  const { request, calls } = setup(t)
-  delete process.env.E2E_NAMESPACE
-  await assert.rejects(verifyTestContract(request), /protected namespace/)
-  assert.equal(calls.length, 0)
+test('explicitly authorized remote synthetic workflow requires HTTPS', t => {
+  setup(t)
+  Object.assign(process.env, { E2E_TARGET: 'remote', E2E_ALLOW_REMOTE_WRITES: '1',
+    VITE_API_BASE_URL: 'https://test.example.com', E2E_DATA_RESET_URL: 'https://test.example.com/internal/e2e/reset' })
+  assert.equal(verifyTestConfiguration().url, process.env.E2E_DATA_RESET_URL)
+  process.env.VITE_API_BASE_URL = 'http://test.example.com'
+  process.env.E2E_DATA_RESET_URL = 'http://test.example.com/internal/e2e/reset'
+  assert.throws(verifyTestConfiguration, /HTTPS/)
 })
-test('remote writes require explicit authorization before any request', async t => {
-  const { request, calls } = setup(t)
-  process.env.E2E_TARGET = 'remote'
-  await assert.rejects(verifyTestContract(request), /authorization/)
-  assert.equal(calls.length, 0)
-})
-test('never send reset token to another origin', async t => {
-  const { request, calls } = setup(t)
-  process.env.E2E_TEST_CONTRACT_URL = 'http://other-test.invalid/contract'
-  await assert.rejects(verifyTestContract(request), /configured browser API origin/)
-  assert.equal(calls.length, 0)
+test('BE refusal is never treated as a successful reset', async t => {
+  setup(t)
+  await assert.rejects(resetTestData({ post: async () => ({ ok: () => false, status: () => 403 }) }), /403/)
 })
 
 test('auth teardown removes only the current run and never consumes a previous run', async t => {

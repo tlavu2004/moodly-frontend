@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       authenticated_remote:
-        description: Authorize authenticated writes to the configured remote test namespace
+        description: Authorize authenticated writes to the configured synthetic remote test account
         type: boolean
         default: false
 
@@ -82,14 +82,14 @@ jobs:
           docker run -d --name moodly-frontend-ci
           --read-only --tmpfs /tmp --cap-drop ALL
           --security-opt no-new-privileges:true
-          -p 127.0.0.1:4173:8080 moodly-frontend:ci
+          -p 127.0.0.1:5173:8080 moodly-frontend:ci
       - name: Verify container readiness and static serving
         run: |
           for attempt in $(seq 1 30); do
-            if curl -fsS http://127.0.0.1:4173/healthz; then break; fi
+            if curl -fsS http://127.0.0.1:5173/healthz; then break; fi
             sleep 1
           done
-          node scripts/container-smoke.mjs http://127.0.0.1:4173 moodly-frontend-ci
+          node scripts/container-smoke.mjs http://127.0.0.1:5173 moodly-frontend-ci
         env:
           EXPECTED_BROWSER_API_URL: https://api.example.com
       - name: Public E2E on actual Nginx image
@@ -124,8 +124,6 @@ jobs:
         env:
           E2E_TARGET: remote
           E2E_ALLOW_REMOTE_WRITES: '1'
-          E2E_NAMESPACE: ${{ vars.E2E_NAMESPACE }}
-          E2E_TEST_CONTRACT_URL: ${{ vars.E2E_TEST_CONTRACT_URL }}
           E2E_BASE_URL: ${{ vars.E2E_BASE_URL }}
           E2E_DATA_RESET_URL: ${{ vars.E2E_DATA_RESET_URL }}
           E2E_DATA_RESET_TOKEN: ${{ secrets.E2E_DATA_RESET_TOKEN }}
