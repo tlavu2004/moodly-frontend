@@ -27,3 +27,5 @@ reports/
 *.njsproj
 *.sln
 *.sw?
+
+dist-acul/

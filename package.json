@@ -13,11 +13,15 @@
     "test": "vitest",
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui",
-    "smoke:deploy": "node scripts/postdeploy-smoke.mjs"
+    "test:e2e": "npm run build:auth && playwright test",
+    "test:e2e:ui": "npm run build:auth && playwright test --ui",
+    "smoke:deploy": "node scripts/postdeploy-smoke.mjs",
+    "build:auth": "tsc -b && vite build --config vite.acul.config.ts && node scripts/package-acul.mjs",
+    "test:auth-package": "node --test scripts/package-acul.test.mjs",
+    "test:e2e:public": "npm run build:auth && playwright test --project=public"
   },
   "dependencies": {
+    "@auth0/auth0-acul-js": "1.11.0",
     "@auth0/auth0-react": "^2.25.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",

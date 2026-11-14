@@ -19,7 +19,7 @@ it('explains the secure transition without requesting credentials and preserves 
   expect(screen.getByText(/Moodly never receives your password/)).toBeInTheDocument()
   expect(screen.getByRole('link', { name: 'Create account' })).toHaveAttribute('href', '/signup?returnTo=%2Fentries%3Fpage%3D2%23entry')
   await userEvent.setup().click(screen.getByRole('button', { name: 'Continue to sign in' }))
-  expect(loginWithRedirect).toHaveBeenCalledWith({ appState: { returnTo: '/entries?page=2#entry' }, authorizationParams: { ui_locales: 'en' } })
+  expect(loginWithRedirect).toHaveBeenCalledWith({ appState: { returnTo: '/entries?page=2#entry' }, authorizationParams: { ui_locales: 'en', 'ext-moodly-theme': 'light' } })
 })
 it('uses the current Vietnamese locale and signup hint, and locks duplicate clicks', async () => {
   loginWithRedirect.mockReturnValue(new Promise(() => {}))
@@ -29,7 +29,7 @@ it('uses the current Vietnamese locale and signup hint, and locks duplicate clic
   const button = screen.getByRole('button', { name: 'Tiếp tục tạo tài khoản' })
   await user.dblClick(button)
   expect(loginWithRedirect).toHaveBeenCalledTimes(1)
-  expect(loginWithRedirect).toHaveBeenCalledWith({ appState: { returnTo: '/entries?page=2#entry' }, authorizationParams: { ui_locales: 'vi', screen_hint: 'signup' } })
+  expect(loginWithRedirect).toHaveBeenCalledWith({ appState: { returnTo: '/entries?page=2#entry' }, authorizationParams: { ui_locales: 'vi', 'ext-moodly-theme': 'light', screen_hint: 'signup' } })
   expect(button).toBeDisabled()
 })
 it('shows a localizable generic failure and allows retry without exposing provider details', async () => {

@@ -15,6 +15,6 @@ export function safeReturnTo(value: unknown): string {
 export function loginOptions(mode: 'signin' | 'signup', returnTo: unknown = '/dashboard'): RedirectLoginOptions {
   return {
     appState: { returnTo: safeReturnTo(returnTo) },
-    authorizationParams: { ui_locales: getLocale(), ...(mode === 'signup' ? { screen_hint: 'signup' } : {}) },
+    authorizationParams: { ui_locales: getLocale(), 'ext-moodly-theme': document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light', ...(mode === 'signup' ? { screen_hint: 'signup' } : {}) },
   }
 }

@@ -85,7 +85,7 @@ it('provides sign-in recovery when the backend rejects profile sync with 401', a
   vi.mocked(useAuth0).mockReturnValue(authState({ isAuthenticated: true, loginWithRedirect }) as unknown as ReturnType<typeof useAuth0>)
   render(<AuthBootstrap><p>Child</p></AuthBootstrap>)
   await userEvent.setup().click(await screen.findByRole('button', { name: 'Sign in again' }))
-  expect(loginWithRedirect).toHaveBeenCalledWith({ appState: { returnTo: '/dashboard' }, authorizationParams: { ui_locales: 'en' } })
+  expect(loginWithRedirect).toHaveBeenCalledWith({ appState: { returnTo: '/dashboard' }, authorizationParams: { ui_locales: 'en', 'ext-moodly-theme': 'light' } })
   expect(screen.queryByRole('button', { name: 'Try again' })).not.toBeInTheDocument()
 })
 

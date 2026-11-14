@@ -1,0 +1,36 @@
+const vi: Record<string, string> = {
+  'A calmer way to grow': 'Phát triển theo cách nhẹ nhàng hơn',
+  'Small habits. Brighter days.': 'Thói quen nhỏ. Ngày thêm tươi sáng.',
+  'A small moment for your moods, habits, and reflections.': 'Một chút thời gian cho tâm trạng, thói quen và suy ngẫm của bạn.',
+  'Welcome back to Moodly': 'Chào mừng bạn trở lại Moodly',
+  'Create your Moodly space': 'Tạo không gian Moodly của bạn',
+  'Enter your password': 'Nhập mật khẩu của bạn',
+  'Choose your password': 'Chọn mật khẩu của bạn',
+  'Reset your password': 'Đặt lại mật khẩu',
+  'Check your email': 'Kiểm tra email của bạn',
+  'If an account matches, you will receive an email with the next steps.': 'Nếu có tài khoản phù hợp, bạn sẽ nhận được email hướng dẫn bước tiếp theo.',
+  'Sign in': 'Đăng nhập', 'Create account': 'Tạo tài khoản', 'Continue': 'Tiếp tục',
+  'Send reset email': 'Gửi email đặt lại', 'Save new password': 'Lưu mật khẩu mới',
+  'Request another email': 'Yêu cầu email khác', 'Working…': 'Đang xử lý…',
+  'Email': 'Email', 'Email or username': 'Email hoặc tên đăng nhập',
+  'Password': 'Mật khẩu', 'New password': 'Mật khẩu mới', 'Confirm password': 'Xác nhận mật khẩu',
+  'Show password': 'Hiện mật khẩu', 'Hide password': 'Ẩn mật khẩu',
+  'Forgot password?': 'Quên mật khẩu?', 'New to Moodly?': 'Bạn mới dùng Moodly?',
+  'Already have an account?': 'Bạn đã có tài khoản?', 'Change email': 'Đổi email',
+  'Secure sign-in powered by Auth0': 'Đăng nhập bảo mật do Auth0 cung cấp',
+  'Continue with {provider}': 'Tiếp tục với {provider}', 'or': 'hoặc',
+  'Use a passkey': 'Dùng khóa truy cập',
+  'Language': 'Ngôn ngữ', 'Theme': 'Giao diện', 'Light': 'Sáng', 'Dark': 'Tối',
+  'Please try again. Your request could not be completed.': 'Chưa thể hoàn tất yêu cầu. Vui lòng thử lại.',
+  'Passwords do not match.': 'Mật khẩu xác nhận không khớp.',
+  'Your password must meet the requirements below.': 'Mật khẩu cần đáp ứng các yêu cầu bên dưới.',
+  'Complete the security check to continue.': 'Hoàn tất bước kiểm tra bảo mật để tiếp tục.',
+  'Security check is unavailable. Reload this page or contact support.': 'Không thể tải kiểm tra bảo mật. Hãy tải lại trang hoặc liên hệ hỗ trợ.',
+  'Security check': 'Kiểm tra bảo mật', 'Enter the code in the image': 'Nhập mã trong ảnh',
+  'Authentication is unavailable. Please restart sign-in from Moodly.': 'Không thể tải đăng nhập. Vui lòng bắt đầu lại từ Moodly.',
+  'Reload page': 'Tải lại trang',
+}
+export function hostedText(locale: string, message: string, values: Record<string, string> = {}) {
+  const template = locale.startsWith('vi') && Object.hasOwn(vi, message) ? vi[message] : message
+  return template.replace(/\{(\w+)\}/g, (match, key: string) => values[key] ?? match)
+}

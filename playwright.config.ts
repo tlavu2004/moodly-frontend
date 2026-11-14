@@ -27,7 +27,7 @@ export default defineConfig({
   projects: [
     {
       name: 'public',
-      testMatch: /public\.spec\.ts/,
+      testMatch: /(?:public|hosted)\.spec\.ts/,
       use: { ...devices['Desktop Chrome'] },
     },
     {

@@ -113,6 +113,7 @@ test('signup uses the selected language on Universal Login', async ({ page }) =>
   await page.getByRole('link', { name: 'Start your journey' }).click()
   await expect(page).toHaveURL(/\/signup$/)
   await page.getByRole('combobox', { name: 'Language' }).selectOption('vi')
+  await page.getByRole('combobox', { name: 'Giao diện' }).selectOption('dark')
   await expect(page.getByRole('heading', { name: 'Tạo không gian Moodly của bạn' })).toBeVisible()
   await page.setViewportSize({ width: 390, height: 844 })
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
@@ -122,6 +123,7 @@ test('signup uses the selected language on Universal Login', async ({ page }) =>
   const params = new URL(authorizationUrl).searchParams
   expect(params.get('screen_hint')).toBe('signup')
   expect(params.get('ui_locales')).toBe('vi')
+  expect(params.get('ext-moodly-theme')).toBe('dark')
 })
 
 test('sign-in introduction keeps its destination when switching to signup', async ({ page }) => {
