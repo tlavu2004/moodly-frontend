@@ -24,8 +24,8 @@ export interface Config<T extends ClientOptions = ClientOptions>
    */
   fetch?: typeof fetch;
   /**
-   * Please don't use the Fetch client for Next.js applications. The `next`
-   * options won't have any effect.
+   * Please do not use the Fetch client for Next.js applications. The `next`
+   * options will not have any effect.
    *
    * Install {@link https://www.npmjs.com/package/@hey-api/client-next `@hey-api/client-next`} instead.
    */
@@ -34,7 +34,7 @@ export interface Config<T extends ClientOptions = ClientOptions>
    * Return the response data parsed in a specified format. By default, `auto`
    * will infer the appropriate method from the `Content-Type` response header.
    * You can override this behavior with any of the {@link Body} methods.
-   * Select `stream` if you don't want to parse response data at all.
+   * Select `stream` if you do not want to parse response data at all.
    *
    * @default 'auto'
    */
@@ -189,7 +189,7 @@ export type Client = CoreClient<RequestFn, Config, MethodFn, BuildUrlFn, SseFn> 
  * and the returned object will become the client's initial configuration.
  *
  * You may want to initialize your client this way instead of calling
- * `setConfig()`. This is useful for example if you're using Next.js
+ * `setConfig()`. This is useful for example if you are using Next.js
  * to ensure your client always has the correct values.
  */
 export type CreateClientConfig<T extends ClientOptions = ClientOptions> = (
