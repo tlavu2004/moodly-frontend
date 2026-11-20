@@ -7,6 +7,9 @@ export default {
       suffix: '',
     },
     path: 'src/api/openapi',
+    postProcess: [
+      { command: 'node', args: ['scripts/normalize-openapi-copy.mjs', '{{path}}'] },
+    ],
   },
   plugins: [
     '@hey-api/client-fetch',
