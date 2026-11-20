@@ -75,7 +75,7 @@ workstation template. Configure a test frontend URL and test backend/synthetic a
 The backend must enforce its non-production/fixed-account restrictions. No production
 writes are permitted. HTTPS and E2E_ALLOW_REMOTE_WRITES=1 are required; keep the flag
 out of .env.local and supply it only for the authorized run. The separate **Authenticated E2E** workflow
-(`.github/workflows/authenticated-e2e.yml`) runs only through `workflow_dispatch`
+(`.github/workflows/e2e.yml`) runs only through `workflow_dispatch`
 and uses the GitHub `test` environment. Its `authenticated_remote` input defaults
 to false; a run without explicit authorization fails before checkout or test writes.
 Runs are serialized across refs because they share one synthetic account.
