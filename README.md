@@ -4,7 +4,8 @@ React frontend for Moodly's mood journal, daily habits, insights, profile, and s
 experiences. The application uses Vite, TypeScript, Auth0, and the generated Moodly API
 client.
 
-Hướng dẫn từng cách chạy FE/BE, lifecycle Docker và chạy chỉ từ image: [Running FE and BE](docs/markdowns/RUNNING_FE_AND_BE.md).
+Hướng dẫn từng cách chạy FE/BE, lifecycle Docker và chạy chỉ từ image:
+[Running FE and BE](docs/markdowns/RUNNING_FE_AND_BE.md).
 
 ## Prerequisites
 
@@ -51,19 +52,25 @@ not loaded. See [E2E setup](docs/markdowns/FRONTEND_INTEGRATION_TESTING.md).
 | `npm run test` | Run Vitest in watch mode. |
 | `npm run test:run` | Run unit/component tests once. |
 | `npm run test:coverage` | Run tests with coverage thresholds. |
+| `npm run test:e2e:public` | Run public Playwright scenarios on an owned test server. |
+| `npm run test:build-config` | Verify environment, reset and migration guards. |
+| `npm run build:deploy` | Validate target configuration and build deployment assets. |
 | `npm run test:e2e` | Run the complete Playwright suite. |
 | `npm run test:e2e:ui` | Debug Playwright interactively. |
 | `npm run smoke:deploy -- https://your-deployment.example` | Verify the deployed app shell and SPA fallback. |
 | `npm run analyze` | Generate `reports/bundle.html`. |
 | `npm run generate:api` | Regenerate the OpenAPI client. |
 
-Authenticated E2E requires an isolated Auth0 test account and a dedicated synthetic Auth0 account and the opt-in, non-production BE fixed-account reset endpoint.
-See [`docs/markdowns/FRONTEND_INTEGRATION_TESTING.md`](./docs/markdowns/FRONTEND_INTEGRATION_TESTING.md)
-for the required inputs and startup sequence.
+Authenticated E2E requires a dedicated synthetic Auth0 account and the opt-in,
+non-production BE fixed-account reset endpoint.
+See [E2E setup](docs/markdowns/FRONTEND_INTEGRATION_TESTING.md) for the required inputs
+and startup sequence.
 
 ## API client generation
 
-Run `npm run generate:api` after the backend OpenAPI contract changes. The command reads `../moodly-backend/docs/api/json/moodly-openapi.json` and refreshes the committed files under `src/api/openapi/`.
+Run `npm run generate:api` after the backend OpenAPI contract changes. The command reads
+`../moodly-backend/docs/api/json/moodly-openapi.json` and refreshes the committed files under
+`src/api/openapi/`.
 
 Files under `src/api/openapi/` are generated artifacts and must not be edited manually.
 Change the backend OpenAPI source, run the generator, then review and commit the generated
@@ -91,12 +98,30 @@ testing with representative history and 10 active habits; move to a summary
 endpoint if the Habits page exceeds a 1-second p95 load time or typical habit
 counts grow beyond 10.
 
-Release verification and rollback steps are documented in [the frontend release runbook](docs/markdowns/FRONTEND_RELEASE_RUNBOOK.md).
-The handling rules for mood notes and other sensitive browser data are documented in [the frontend privacy review](docs/markdowns/FRONTEND_PRIVACY_REVIEW.md).
+Release verification and rollback steps are documented in
+[the frontend release runbook](docs/markdowns/FRONTEND_RELEASE_RUNBOOK.md).
+The handling rules for mood notes and other sensitive browser data are documented in
+[the frontend privacy review](docs/markdowns/FRONTEND_PRIVACY_REVIEW.md).
 
 ## Request lifecycle and rate limiting
 
-Moodly honors Retry-After for HTTP 429 across the current user's API client. Missing or invalid headers pause requests for 30 seconds. Read recovery is manual; writes are never automatically replayed. See [request handling and verification](docs/markdowns/FRONTEND_REQUEST_HANDLING.md) for cancellation, concurrent reads, submit guards and test checks.
+Moodly honors Retry-After for HTTP 429 across the current user's API client. Missing or invalid
+headers pause requests for 30 seconds. Read recovery is manual; writes are never automatically
+replayed. See [request handling and verification](docs/markdowns/FRONTEND_REQUEST_HANDLING.md) for
+cancellation, concurrent reads, submit guards and test checks.
+
+## Language, appearance and sign-in
+
+The interface supports English/Vietnamese and System/Light/Dark themes. Preferences
+are available on the landing page, sign-in introduction and application toolbar.
+See [localization and API date rules](docs/markdowns/LOCALIZATION.md),
+[semantic theme tokens](docs/markdowns/THEMES.md), and
+[the active Auth0 sign-in and branding setup](docs/markdowns/AUTH_EXPERIENCE.md).
+The current release uses standard Universal Login with tenant branding.
+FE theme and hosted Auth0 branding are configured independently.
+The FE sign-in introduction redirects to Auth0 for credential entry; no separate
+custom login bundle is maintained.
+
 ## Docker and Make
 
 Local development stays on Vite (`make local-run` or `npm run dev`). Backend
@@ -134,9 +159,12 @@ bundle. Use hosting/CI variables, or an ignored .env.production.local based on
 make docker-build MOODLY_ENV=production ENV_FILE=.env.production.local
 ```
 
-The Compose project is always moodly-frontend-local. MOODLY_ENV selects build validation, image tag and default
-env file, and the selected env values; every container uses an optimized static build. Make uses host port 5173 for local and 5173 for test; direct Compose defaults to 5173.
-Stop the alternate FE server you own before switching. The API URL must be reachable from the user's browser, rather
+The Compose project is always moodly-frontend-local. MOODLY_ENV selects build validation, image tag
+and default
+env file, and the selected env values; every container uses an optimized static build. Local/test
+use host port 5173 in both Make and direct Compose.
+Stop the alternate FE server you own before switching. The API URL must be reachable from the user's
+browser, rather
 than a Compose service hostname. Auth0 origins and backend CORS must include the
 actual frontend origin and port. Terminate TLS at the hosting platform or reverse
 proxy; this Compose configuration is for local verification.
@@ -178,7 +206,8 @@ unknown revision; use Make or provide IMAGE_TAG/SOURCE_REVISION for traceable bu
 FE hosting is Vercel (Vite/static), with the Dockerized BE on Render. Docker stays
 available for local/CI verification and other container hosts. `vercel.json` configures
 SPA routing, cache/security headers and the deploy build command; production Vercel
-builds always use production validation. See the [release runbook](docs/markdowns/FRONTEND_RELEASE_RUNBOOK.md)
+builds always use production validation. See the
+[release runbook](docs/markdowns/FRONTEND_RELEASE_RUNBOOK.md)
 for Preview/test mapping, origins, deploy checks and deployment-ID rollback. Real
 hosting settings/domains and a live Vercel verification are still required.
 
@@ -196,7 +225,8 @@ The legacy `docker-*` commands remain available and honor `MOODLY_ENV` for
 compatibility, including production builds. `validate-local` validates the selected
 configuration without printing values. Frontend targets never manage BE services.
 
-Auth0 callback/logout/origin and BE CORS setup for ports 5173/5173: [Auth0 local setup](docs/markdowns/AUTH0_LOCAL_SETUP.md).
+Auth0 callback/logout/origin and BE CORS setup for port 5173:
+[Auth0 local setup](docs/markdowns/AUTH0_LOCAL_SETUP.md).
 
 ### One workstation configuration and one FE port
 
@@ -216,15 +246,3 @@ Docker Desktop's Containers page should show only two Moodly groups:
 `moodly-frontend-local` (container `moodly-frontend-local`, Nginx + FE). Keep stacks
 stopped between sessions. Different image tags in the Images page are build versions,
 not extra running stacks; no image/volume pruning is performed automatically.
-
-## Language, appearance and sign-in
-
-The interface supports English/Vietnamese and System/Light/Dark themes. Preferences
-are available on the landing page, sign-in introduction and application toolbar.
-See [localization and API date rules](docs/markdowns/LOCALIZATION.md),
-[semantic theme tokens](docs/markdowns/THEMES.md), and
-[the active Auth0 sign-in and branding setup](docs/markdowns/AUTH_EXPERIENCE.md).
-The current release uses standard Universal Login with tenant branding.
-FE theme and hosted Auth0 branding are configured independently.
-The FE sign-in introduction redirects to Auth0 for credential entry; no separate
-custom login bundle is maintained.

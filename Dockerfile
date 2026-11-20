@@ -3,7 +3,8 @@ FROM node:22-alpine@sha256:1314fb30ec37592d5845e5a160d522c0e680972aa534549940b8d
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN --mount=type=cache,target=/root/.npm npm ci
-COPY index.html vite.config.ts openapi-ts.config.ts tsconfig*.json ./
+COPY index.html vite.config.ts openapi-ts.config.ts playwright.config.ts tsconfig*.json ./
+COPY e2e ./e2e
 COPY src ./src
 COPY public ./public
 COPY scripts/build-deploy.mjs scripts/check-bundle-budget.mjs scripts/validate-build-env.mjs scripts/validate-build-env.d.mts scripts/load-environment.mjs scripts/load-environment.d.mts ./scripts/

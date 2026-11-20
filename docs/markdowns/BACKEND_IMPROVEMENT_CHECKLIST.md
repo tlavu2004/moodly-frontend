@@ -5,7 +5,8 @@
 
 ## Mục đích
 
-Tài liệu này tổng hợp những điểm backend cần hoàn thiện sau khi đối chiếu giao diện frontend với `moodly-openapi.json` phiên bản `v1`.
+Tài liệu này tổng hợp những điểm backend cần hoàn thiện sau khi đối chiếu giao diện frontend với
+`moodly-openapi.json` phiên bản `v1`.
 
 Phạm vi frontend route số 6 hiện được xem là hoàn thành:
 
@@ -17,19 +18,22 @@ Phạm vi frontend route số 6 hiện được xem là hoàn thành:
 - Profile/avatar có upload signature, upload Cloudinary và confirm.
 - Search sử dụng query parameter `q`, `from`, `to`.
 
-Các mục dưới đây là cải tiến backend hoặc contract, không chặn việc đánh dấu frontend route số 6 là `DONE`.
+Các mục dưới đây là cải tiến backend hoặc contract, không chặn việc đánh dấu frontend route số 6 là
+`DONE`.
 
 ## P0 — Cần thống nhất trước khi mở rộng nghiệp vụ
 
 ### 1. Chuẩn hóa `targetFrequency`
 
-Hiện tại `CreateHabitRequest.targetFrequency` chỉ là một chuỗi không rỗng. Frontend đang cung cấp các giá trị:
+Hiện tại `CreateHabitRequest.targetFrequency` chỉ là một chuỗi không rỗng. Frontend đang cung cấp
+các giá trị:
 
 - `DAILY`
 - `WEEKDAYS`
 - `WEEKLY`
 
-Backend hiện lưu nguyên chuỗi và chưa thể hiện logic tính streak hoặc missed count theo từng tần suất.
+Backend hiện lưu nguyên chuỗi và chưa thể hiện logic tính streak hoặc missed count theo từng tần
+suất.
 
 - [x] Quyết định tập giá trị frequency chính thức: chỉ hỗ trợ `DAILY`.
 - [x] Chuyển frequency thành enum ở backend.
@@ -41,7 +45,8 @@ Backend hiện lưu nguyên chuỗi và chưa thể hiện logic tính streak ho
 - [x] Giữ thống kê missed habits theo các daily habit log có `done: false`.
 - [x] Bổ sung integration test cho contract `DAILY` và trường hợp frequency không được hỗ trợ.
 
-Nếu sản phẩm hiện chỉ hỗ trợ habit hằng ngày, backend và OpenAPI nên chỉ chấp nhận `DAILY`; frontend sẽ bỏ hai lựa chọn còn lại.
+Nếu sản phẩm hiện chỉ hỗ trợ habit hằng ngày, backend và OpenAPI nên chỉ chấp nhận `DAILY`;
+frontend sẽ bỏ hai lựa chọn còn lại.
 
 ### 2. Làm rõ phạm vi thống kê mood
 
@@ -51,7 +56,8 @@ Endpoint hiện tại chỉ chấp nhận:
 GET /stats/mood-trend?period=week
 ```
 
-Frontend vì vậy chỉ hiển thị thống kê “This week”. Nếu sản phẩm muốn có bộ chọn 4 tuần, 12 tuần hoặc 6 tháng, backend phải hỗ trợ trước.
+Frontend vì vậy chỉ hiển thị thống kê “This week”. Nếu sản phẩm muốn có bộ chọn 4 tuần, 12 tuần hoặc
+6 tháng, backend phải hỗ trợ trước.
 
 - [x] Chỉ hỗ trợ period `week` trong phạm vi hiện tại.
 - [x] Khai báo `period` bằng enum chỉ gồm `week` trong OpenAPI.
@@ -75,14 +81,18 @@ Dashboard hiện phải gọi nhiều endpoint:
 Việc gọi streak theo từng habit tạo mô hình N+1 request và sẽ chậm khi số habit tăng.
 
 - [x] Thêm `GET /dashboard` cho authenticated user.
-- [x] Trả về today entry, active habits, completion ratio, weekly mood summary và streak lớn nhất trong một response.
-- [x] Chọn summary endpoint thay cho batch streak; backend đọc lịch sử entry một lần để tính streak lớn nhất.
-- [x] Dashboard là dữ liệu user-specific thay đổi sau check-in nên response dùng `Cache-Control: no-store`.
+- [x] Trả về today entry, active habits, completion ratio, weekly mood summary và streak lớn nhất
+  trong một response.
+- [x] Chọn summary endpoint thay cho batch streak; backend đọc lịch sử entry một lần để tính streak
+  lớn nhất.
+- [x] Dashboard là dữ liệu user-specific thay đổi sau check-in nên response dùng
+  `Cache-Control: no-store`.
 - [x] Thêm integration test xác nhận dữ liệu summary thuộc đúng authenticated user.
 
 ### 4. Hoàn thiện vòng đời habit
 
-OpenAPI hiện chỉ có list active habits và create habit. Giao diện tương lai chưa thể đổi tên, thay icon, archive hoặc khôi phục habit.
+OpenAPI hiện chỉ có list active habits và create habit. Giao diện tương lai chưa thể đổi tên, thay
+icon, archive hoặc khôi phục habit.
 
 - [x] Thêm endpoint cập nhật habit.
 - [x] Thêm endpoint archive/deactivate thay vì hard delete.
@@ -103,7 +113,8 @@ Các endpoint entries và search hiện trả về toàn bộ kết quả trong 
 
 ### 6. Siết validation và mô tả avatar upload
 
-Frontend hiện kiểm tra JPG, PNG, WebP và tối đa 5 MB, nhưng các giới hạn này chưa được biểu diễn đầy đủ trong schema OpenAPI.
+Frontend hiện kiểm tra JPG, PNG, WebP và tối đa 5 MB, nhưng các giới hạn này chưa được biểu diễn đầy
+đủ trong schema OpenAPI.
 
 - [x] Khai báo danh sách MIME type được hỗ trợ trong OpenAPI.
 - [x] Khai báo kích thước file tối đa 5 MiB trong schema.
@@ -115,7 +126,8 @@ Frontend hiện kiểm tra JPG, PNG, WebP và tối đa 5 MB, nhưng các giới
 
 ### 7. Chuẩn hóa search highlights
 
-`EntrySearchResult.highlights` hiện là map từ tên field tới mảng string. Contract chưa nói chuỗi là plain text hay có HTML highlight.
+`EntrySearchResult.highlights` hiện là map từ tên field tới mảng string. Contract chưa nói chuỗi là
+plain text hay có HTML highlight.
 
 - [x] Highlight được trả dưới dạng plain text, không phải markup.
 - [x] Trả plain text kèm ranges 0-based, end-exclusive để tránh rủi ro XSS.
@@ -136,9 +148,11 @@ Frontend hiện lấy entry hôm nay bằng cách gọi `GET /entries` với `fr
 
 ### 9. Hoàn thiện required fields trong response schemas
 
-Phần lớn thuộc tính response hiện đều optional trong OpenAPI, khiến TypeScript SDK sinh ra nhiều trường có dấu `?` dù backend thực tế luôn trả chúng.
+Phần lớn thuộc tính response hiện đều optional trong OpenAPI, khiến TypeScript SDK sinh ra nhiều
+trường có dấu `?` dù backend thực tế luôn trả chúng.
 
-- [x] Đánh dấu required cho các field backend luôn đảm bảo, ví dụ ID, date và các trường chính của response.
+- [x] Đánh dấu required cho các field backend luôn đảm bảo, ví dụ ID, date và các trường chính của
+  response.
 - [x] Khai báo nullable riêng biệt nếu một field có thể là `null`.
 - [x] Thêm example cho success, empty và error response.
 - [x] Đảm bảo mọi endpoint dùng thống nhất envelope `success/data/error/timestamp`.
@@ -164,9 +178,12 @@ Daily entry, streak và statistics phụ thuộc mạnh vào khái niệm “hô
 ### 12. Performance và observability
 
 - [x] Dùng unique compound index `userId + date` cho daily entries.
-- [x] Elasticsearch mapping có keyword filter cho `userId`, date và text fields phục vụ full-text search.
-- [x] Bổ sung compound index cho `userId + habits.done + habits.habitId`; mood trend dùng prefix `userId + date`.
-- [x] Cloudinary có connect timeout 2 giây và request timeout 5 giây, cấu hình được bằng environment.
+- [x] Elasticsearch mapping có keyword filter cho `userId`, date và text fields phục vụ full-text
+  search.
+- [x] Bổ sung compound index cho `userId + habits.done + habits.habitId`; mood trend dùng prefix
+  `userId + date`.
+- [x] Cloudinary có connect timeout 2 giây và request timeout 5 giây, cấu hình được bằng
+  environment.
 - [x] Gắn `X-Request-ID` vào MDC, response header và error response.
 - [x] Theo dõi latency/error rate qua `http.server.requests` và bật percentile histogram.
 - [x] Không log access token, Authorization header, nội dung mood note hoặc raw exception message.

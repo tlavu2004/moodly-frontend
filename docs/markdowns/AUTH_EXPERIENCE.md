@@ -24,10 +24,15 @@ Keep the current tenant domain and API audience in FE `.env.local`, and keep the
 matching `AUTH0_ISSUER_URI` / `AUTH0_AUDIENCE` in the sibling BE. There is no custom
 Auth0 domain migration or BE issuer/timezone change in this release.
 
-The FE currently runs at `http://localhost:5173`. The SPA application's allowed
-callback/logout URLs and web origins and BE CORS must include the exact origin.
-Automated E2E uses `http://127.0.0.1:4173` by default and needs its own allowlist
-entries; changing hostname or port is not interchangeable for OAuth/CORS.
+All workstation FE modes use `http://127.0.0.1:5173`. Local/test share
+`.env.local`; Playwright owns a test-mode Vite server unless container/remote mode
+is explicitly selected. Stop the server you own before changing modes.
+
+The SPA allowed callback/logout URLs and web origins and BE CORS must include the
+exact origin. If you also use `http://localhost:5173`, allowlist it separately;
+hostnames are not interchangeable for OAuth/CORS. See
+[Auth0 local setup](AUTH0_LOCAL_SETUP.md) and
+[the integration guide](FRONTEND_INTEGRATION_TESTING.md).
 
 ## Hosted appearance
 

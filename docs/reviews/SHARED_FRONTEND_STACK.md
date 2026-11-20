@@ -1,5 +1,10 @@
 # Shared FE workstation stack verification — 2026-11-14
 
+> Historical review: port/configuration and reset requirements below record an earlier design.
+> Current workstation setup is documented in
+> [Running FE and BE](../markdowns/RUNNING_FE_AND_BE.md) and
+> [E2E configuration](../markdowns/FRONTEND_INTEGRATION_TESTING.md).
+
 ## Delivery order
 
 Existing code was committed as `e79875c`; existing documentation as `0830136`.
