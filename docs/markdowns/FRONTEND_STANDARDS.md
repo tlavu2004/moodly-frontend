@@ -19,6 +19,7 @@ Run these quality gates before merging a meaningful change:
 ```bash
 npm run lint
 npm run build
+npm run test:coverage
 ```
 
 For OpenAPI changes, also run:
@@ -27,6 +28,22 @@ For OpenAPI changes, also run:
 npm run generate:api
 npm audit
 ```
+
+## Coverage
+
+Frontend CI enforces the following minimums across the code included in its Vitest coverage
+report. The same percentages are proposed for the backend when it adopts the four JaCoCo
+limits in Maven `verify`.
+
+| Criterion | Minimum | Frontend (Vitest) | Backend proposal (JaCoCo) |
+| --- | ---: | --- | --- |
+| Lines | 85% | `lines` | `LINE` |
+| Branches | 75% | `branches` | `BRANCH` |
+| Functions or methods | 80% | `functions` | `METHOD` |
+| Statements or instructions | 85% | `statements` | `INSTRUCTION` |
+
+Vitest counts source statements and JaCoCo counts Java bytecode instructions. The minimums
+apply to each repository's aggregate report.
 
 ## Ownership and structure
 
