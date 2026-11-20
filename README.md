@@ -69,7 +69,7 @@ and startup sequence.
 
 ## API client generation
 
-Frontend CI pins the backend commit in [frontend-ci.yml](.github/workflows/frontend-ci.yml).
+Frontend CI pins the backend commit in [ci.yml](.github/workflows/ci.yml).
 To reproduce the CI check locally, use the contract from that commit. The generator reads
 `../moodly-backend/docs/api/json/moodly-openapi.json` by default. Set `OPENAPI_INPUT` to use
 a copy of the pinned contract from another path.

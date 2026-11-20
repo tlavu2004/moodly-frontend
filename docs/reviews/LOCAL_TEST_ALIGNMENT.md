@@ -49,7 +49,7 @@ No file was deleted and no framework migrated.
 | Retained, updated env contracts | `.env.local.example`, `.env.test.example`, `.env.production.example` |
 | Retained, updated helpers/tests | `scripts/load-environment.*`, `scripts/validate-build-env.*`, `scripts/container-smoke.mjs`, `playwright.config.ts`, `e2e/auth.setup.ts`, `e2e/support/authSession.ts`, `e2e/support/reset.ts` |
 | Added | `scripts/build-deploy.mjs`, `scripts/validate-build-env.d.mts`, `scripts/e2e-safety.test.mjs`, `e2e/support/preflight.ts`, `e2e/support/teardown.ts`, this review |
-| Retained, updated CI/docs | `.github/workflows/frontend-ci.yml`, `README.md`, `docs/markdowns/FRONTEND_INTEGRATION_TESTING.md` |
+| Retained, updated CI/docs | `.github/workflows/ci.yml`, `README.md`, `docs/markdowns/FRONTEND_INTEGRATION_TESTING.md` |
 | Audited, unchanged | API client, Auth0 provider/cache/logout, unit/component tests, bundle budget script, image identity and postdeploy scripts, Docker ignore rules |
 
 The integration document now describes the current contract rather than presenting
