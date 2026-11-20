@@ -51,7 +51,7 @@ not loaded. See [E2E setup](docs/markdowns/FRONTEND_INTEGRATION_TESTING.md).
 | `npm run lint` | Run ESLint. |
 | `npm run test` | Run Vitest in watch mode. |
 | `npm run test:run` | Run unit/component tests once. |
-| `npm run test:coverage` | Run tests with coverage thresholds. |
+| `npm run test:coverage` | Run tests and require 85% lines and statements, 80% functions, and 75% branches across the frontend. |
 | `npm run test:e2e:public` | Run public Playwright scenarios on an owned test server. |
 | `npm run test:build-config` | Verify environment, reset and migration guards. |
 | `npm run build:deploy` | Validate target configuration and build deployment assets. |
