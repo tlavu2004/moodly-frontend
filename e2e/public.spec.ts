@@ -123,7 +123,7 @@ test('signup uses the selected language on Universal Login', async ({ page }) =>
   const params = new URL(authorizationUrl).searchParams
   expect(params.get('screen_hint')).toBe('signup')
   expect(params.get('ui_locales')).toBe('vi')
-  expect(params.get('ext-moodly-theme')).toBe('dark')
+  expect(params.has('ext-moodly-theme')).toBe(false)
 })
 
 test('sign-in introduction keeps its destination when switching to signup', async ({ page }) => {

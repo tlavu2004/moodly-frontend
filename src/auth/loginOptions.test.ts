@@ -12,15 +12,15 @@ describe('authentication destinations', () => {
   })
   it('reads the current locale when the action starts and only hints signup for signup', () => {
     setLocale('vi')
-    expect(loginOptions('signup', '/today')).toEqual({ appState: { returnTo: '/today' }, authorizationParams: { ui_locales: 'vi', 'ext-moodly-theme': 'light', screen_hint: 'signup' } })
+    expect(loginOptions('signup', '/today')).toEqual({ appState: { returnTo: '/today' }, authorizationParams: { ui_locales: 'vi', screen_hint: 'signup' } })
     setLocale('en')
-    expect(loginOptions('signin', '//evil.example')).toEqual({ appState: { returnTo: '/dashboard' }, authorizationParams: { ui_locales: 'en', 'ext-moodly-theme': 'light' } })
+    expect(loginOptions('signin', '//evil.example')).toEqual({ appState: { returnTo: '/dashboard' }, authorizationParams: { ui_locales: 'en' } })
   })
 })
 
-it('forwards the resolved app palette as a presentation-only ACUL parameter', () => {
+it('keeps hosted branding independent of the app theme', () => {
   document.documentElement.dataset.theme = 'dark'
   try {
-    expect(loginOptions('signin').authorizationParams?.['ext-moodly-theme']).toBe('dark')
+    expect(loginOptions('signin').authorizationParams).toEqual({ ui_locales: 'en' })
   } finally { document.documentElement.dataset.theme = 'light' }
 })

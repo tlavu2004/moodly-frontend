@@ -1,163 +1,113 @@
-# Auth0 Advanced Customization for Universal Login
+# Moodly sign-in and Auth0 branding
 
-Decision updated 2026-11-15: Moodly now supplies the actual hosted email/password
-forms through **Advanced Customizations for Universal Login (ACUL)**, using the
-official `@auth0/auth0-acul-js` SDK. This replaces the previous standard-branding-only
-implementation. The code is implemented and tested in this repository; tenant
-activation and CDN hosting are separate deployment steps described below.
+Decision updated 2026-11-20: use **standard Auth0 Universal Login with branding**
+on the existing development/test tenant. The Dashboard showed that Advanced
+Customizations for Universal Login (ACUL) requires a plan upgrade. This release
+keeps the existing plan; ACUL is not part of its deployment path.
 
-## User flow and implementation
+## Active user flow
 
-Landing links still open `/login` or `/signup` introductions; Continue redirects
-through the existing SPA SDK (Authorization Code + PKCE). Auth0 serves the ACUL
-host page, loads the separate Moodly bundle from the asset host, and renders the
-custom forms. **The form fields themselves now use Moodly's layout and tokens.**
-`src/auth-hosted/` is a separate entry point, not a password form embedded in the SPA.
+- Landing Sign in opens `/login`; Start your journey opens `/signup`.
+- Protected deep links open the FE sign-in introduction with a validated return
+  destination. Continue uses the Auth0 SPA SDK redirect flow (Authorization Code +
+  PKCE). Auth0 collects credentials on its hosted page, then returns to the app.
+- Sign-up requests pass `screen_hint=signup`. Both actions pass the latest
+  `ui_locales` (`en` or `vi`). Enable both locales in the tenant to honor the choice.
+- The callback restores known app routes with their query and fragment. Backend
+  profile synchronization completes before protected pages render.
+- Password reset, verification, MFA and enabled social connections stay on Auth0.
+  The FE never collects passwords or needs a Management API client secret.
+- Pending redirects block repeated clicks. Failures show localizable recovery.
 
-The ACUL SDK submits credentials to the current Auth0 transaction by form POST.
-It handles the transaction `state`; the code does not call `/oauth/token` with a
-password grant, send passwords to Moodly's BE, log them, or save them to storage.
-Failed submission clears password fields and permits manual retry; a successful
-submission remains locked pending navigation. SDK-provided links retain the flow.
-The existing callback restores a validated application destination, and the BE
-profile synchronization gate remains in place.
+## Current local/test configuration
 
-| Prompt | Screens implemented |
+Keep the current tenant domain and API audience in FE `.env.local`, and keep the
+matching `AUTH0_ISSUER_URI` / `AUTH0_AUDIENCE` in the sibling BE. There is no custom
+Auth0 domain migration or BE issuer/timezone change in this release.
+
+The FE currently runs at `http://localhost:5173`. The SPA application's allowed
+callback/logout URLs and web origins and BE CORS must include the exact origin.
+Automated E2E uses `http://127.0.0.1:4173` by default and needs its own allowlist
+entries; changing hostname or port is not interchangeable for OAuth/CORS.
+
+## Hosted appearance
+
+Use Branding > Universal Login > Update branding theme. Publish the standard theme
+in the existing development tenant. The agreed settings are:
+
+| Setting | Value |
 | --- | --- |
-| login | login |
-| login-id | login-id |
-| login-password | login-password |
-| signup | signup |
-| signup-id | signup-id |
-| signup-password | signup-password |
-| reset-password | reset-password-request, reset-password, reset-password-email |
+| Primary button / Base Focus / Links & focused components | `#8f54dc` |
+| Primary button label | `#ffffff` |
+| Page background | `#fcf9ff` |
+| Header / Input filled text | `#262333` |
+| Body | `#595568` |
+| Widget / Input background | `#ffffff` |
+| Button / Input corner radius | 8px |
+| Widget corner radius | 12px |
+| Border weights | 1px |
+| Widget shadow | Enabled |
+| Reference font size | 16px |
+| Title | 150%, bold |
+| Subtitle / Body | 87.5%, regular |
+| Buttons / Input labels / Links | 87.5%, bold |
 
-Both single-screen email/password and identifier-first flows are supported. Signup
-assumes the Moodly DB connection uses **email** as its required signup identifier.
-Before enabling, verify it does not require additional username/phone/custom
-consent fields; those require extending the form first. Do not change the tenant's
-Authentication Profile solely to make a mock match. Existing supported flows and
-connections should drive the screen configuration.
+Leave the custom font URL unset until a suitable public font is available. Logo
+and favicon can be set later using publicly reachable HTTPS URLs; the repository
+provides `public/brand/moodly-mark.svg`. Do not enter a localhost logo URL into the
+hosted theme. The basic branding example is `docs/auth0/branding.example.json`;
+replace its public hostname before using it.
 
-Only alternate social/enterprise connections provided in the transaction appear.
-Passkey sign-in is exposed on `login-id` when the SDK enables it. Enrollment,
-passwordless OTP, MFA, consent, reset success/error and other unlisted screens
-remain in standard Universal Login and use the existing branding configuration.
-**Do not enable advanced rendering for unimplemented screens.**
+The SPA supports System/Light/Dark. Hosted standard branding is a separate tenant
+setting and does not automatically follow the app's dark mode. The app therefore
+sends no ACUL-only theme parameter. A generic Dashboard Try page may say "All
+Applications"; verify the actual Moodly app through the FE redirect.
 
-English/Vietnamese follows `transaction.locale`; the language picker calls Auth0's
-`changeLanguage`, so provider messages follow the enabled tenant language too.
-The app forwards its resolved light/dark choice as `ext-moodly-theme`; the rendering
-configuration explicitly exposes only this presentation parameter. It is never used
-for authentication decisions. The hosted bundle imports `src/index.css`, sharing
-the same semantic tokens and components as the application.
+The red **Dev Keys** alert means a social connection uses Auth0's shared development
+credentials. This is acceptable for local/test prototyping; it is not a branding
+or FE/BE token-validation failure. Before production use dedicated provider OAuth
+credentials. Do not add the provider secret to FE `VITE_*` values.
 
-## CAPTCHA and attack protection
+## Verification and CI
 
-The bundle renders Auth0 Simple CAPTCHA (`auth0`), Auth Challenge (`auth0_v2`,
-Turnstile), reCAPTCHA v2/Enterprise and hCaptcha from the server-provided challenge.
-The response is passed as `captcha` to the official SDK; expiry invalidates it.
-Other providers (including Friendly CAPTCHA and Arkose) are **not integrated** and
-fail closed with a recovery message; the form cannot submit without a challenge
-response. Verify the tenant's active provider before switching the screen to ACUL.
-Do not turn off bot detection to make the custom form work. Retain provider script,
-frame and connection CSP permissions required by the configured challenge.
+Default commands require no ACUL assets or entitlement:
 
-## Build, preview and release files
-
-```powershell
-npm run build:auth
-npm run test:auth-package
+```sh
+npm run lint
+npm run build
+npm run test:coverage
 npm run test:e2e:public
 ```
 
-The standalone production IIFE and CSS are in ignored `dist-acul/`. There are no
-runtime React/CDN imports, development preview fixtures or browser secrets in this
-bundle. Browser tests inject synthetic Auth0 context and intercept form submission;
-they exercise the compiled bundle without sending test credentials to any server.
-Screenshots are saved under ignored `reports/acul-*.png`.
+`npm run test:e2e` runs standard public, Auth0 setup and authenticated scenarios.
+It needs the synthetic account, reachable BE and isolated reset endpoint described
+in [the integration guide](FRONTEND_INTEGRATION_TESTING.md). The public suite
+intercepts authorization and checks locale/signup parameters; it does not prove
+real login, MFA or social-provider behavior. Historical test counts are not a
+certificate for a new tenant configuration.
 
-For a deployable rendering plan, set these **public build inputs** and rebuild:
+Before merge, verify login/logout, returning to a protected deep link, both
+languages, signup/reset and expected profile-sync recovery on the existing test
+configuration. Automated account creation/reset-password emails and social/MFA
+prompts may need a manual check; do not infer them from a successful database login.
+CI quality checks build the SPA, run lint/unit/coverage and audit dependencies;
+they do not build or package ACUL. Remote CI status must be checked on the commit
+or PR separately from local command results.
 
-```powershell
-$env:ACUL_ASSET_BASE_URL = 'https://assets.YOUR_DOMAIN/acul/'
-$env:ACUL_CLIENT_ID = 'YOUR_MOODLY_SPA_CLIENT_ID'
+## Optional implementation retained for later
+
+`src/auth-hosted/`, `vite.acul.config.ts` and the packaging script are retained,
+but the SPA does not import their entry point. The default browser suite excludes
+`e2e/hosted.spec.ts`. Source-level unit tests may still validate this retained code.
+
+Only explicit commands build/test the optional bundle:
+
+```sh
 npm run build:auth
+npm run test:auth-package
+npm run test:e2e:acul
 ```
 
-They are packaging inputs, never `VITE_*` secrets. With either input missing the
-plan is explicitly marked `readyForTenant: false` and contains placeholders.
-Do not apply a placeholder plan. `dist-acul/rendering-plan.json` contains the release
-hash, SRI hashes, app-scoped rendering config, and exact per-screen API endpoints.
-The immutable `<release>/` directory holds the referenced JS/CSS. Upload it intact
-to `<ACUL_ASSET_BASE_URL>/<release>/`; serve the correct content types, HTTPS and
-`Access-Control-Allow-Origin: *` (or the Auth0 origin) for anonymous SRI loading.
-Do not overwrite a published release; a code change creates a new directory/hash.
-
-## Actual environment and prerequisites
-
-Both FE and sibling BE `.env.local` were inspected without printing secrets. They
-currently reference the same default `dev-…us.auth0.com` tenant. They contain SPA/API
-settings and synthetic E2E credentials; they do not provide an ACUL asset host,
-custom-domain setting or Auth0 Management API access. A SPA client ID and backend
-API audience do not authorize editing tenant rendering configuration. Cloudinary
-upload credentials belong to avatar uploads and are not Auth0 management access.
-No local environment files were changed, and no live tenant update is claimed.
-
-Before activation obtain/verify:
-
-1. Universal Login + ACUL entitlement, a First Party SPA and a verified Auth0 custom
-   domain; a CDN/static host for this release; administrative tenant access.
-2. Enabled `en` and `vi` locales, DB connection identifiers/password policy,
-   social providers, MFA and the active CAPTCHA provider in a test tenant.
-3. The FE SDK must use that custom domain (`VITE_AUTH0_DOMAIN`). The BE must validate
-   the **matching custom-domain issuer** (`AUTH0_ISSUER_URI=https://<custom-domain>/`).
-   The API audience stays unchanged. Coordinate the issuer cutover: existing
-   default-domain sessions need reauthentication and social-provider callback
-   allowlists may need the new domain. This is a JWT configuration change, not a
-   Moodly calendar/timezone change. No sibling BE files have been edited here.
-
-## Apply and rollback
-
-Use an authenticated Auth0 CLI or Management API session in the test tenant. Keep
-management credentials in its private environment/credential store, not chat or
-browser bundles. Do not grant Management API permissions to the public SPA.
-
-1. Export current rendering configuration for each screen in the table before
-   modifying anything. Also record Universal Login branding, enabled languages,
-   custom-domain and application callback/origin settings.
-2. Publish assets and verify their HTTPS URLs, CORS, content types and SRI bytes.
-3. Use the app-scoped config from the generated plan. It filters by **Moodly's
-   client ID**, so other applications retain their existing UI. First activate the
-   login/signup screens exercised by the tenant's Authentication Profile.
-4. With the current CLI, for example, save `plan.config` to a JSON file, then use:
-
-   ```powershell
-   auth0 acul config get login --tenant YOUR_TENANT --file reports/login-before.json
-   auth0 acul config set login --tenant YOUR_TENANT --file reports/moodly-rendering.json
-   ```
-
-   The plan also supplies exact `PATCH /api/v2/prompts/{prompt}/screen/{screen}/rendering`
-   endpoints. Use current `auth0 acul config` commands, not the deprecated
-   `auth0 universal-login customize --rendering-mode advanced` command.
-5. Test real login/signup, wrong password, password reset, language switching,
-   social/enterprise redirects, bot challenge, MFA continuation, logout and a
-   protected deep link. Inspect actual BE token validation with the new issuer.
-6. Activate remaining supported screens only after those checks pass. Keep
-   unimplemented screens standard. No tracking, analytics or session-recording
-   scripts should be added to the credential page.
-7. For immediate recovery, PATCH `{ "rendering_mode": "standard" }` to each changed
-   screen endpoint (also generated as `dist-acul/rollback-standard.json`). This
-   restores hosted standard UI without touching tokens/users. Then restore the
-   exported previous per-screen configs if required. Keep the old asset release
-   available while old pages/transactions are still open. If reverting the domain
-   cutover, coordinate FE domain and BE issuer together as well.
-
-## References checked 2026-11-15
-
-- [ACUL architecture and prerequisites](https://auth0.com/docs/customize/login-pages/advanced-customizations)
-- [Rendering configuration, SRI and application filters](https://auth0.com/docs/customize/login-pages/advanced-customizations/configure/reference)
-- [Official ACUL SDK](https://github.com/auth0/universal-login)
-- [Official CAPTCHA reference app](https://github.com/auth0-samples/auth0-acul-samples)
-- [Auth0 CLI configuration](https://auth0.github.io/auth0-cli/auth0_acul_config_set.html)
-- [Custom-domain issuer and audience](https://auth0.com/docs/customize/custom-domains/configure-features-to-use-custom-domains)
+These do not activate tenant settings. Deployment, entitlement, custom domain,
+asset hosting and an eventual FE/BE issuer cutover are documented separately in
+[the optional ACUL guide](ACUL_OPTIONAL.md).
