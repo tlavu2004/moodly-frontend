@@ -1,5 +1,10 @@
 # Local/test architecture alignment review — 2026-11-14
 
+> Historical review: port/configuration and reset requirements below record an earlier design.
+> Current workstation setup is documented in
+> [Running FE and BE](../markdowns/RUNNING_FE_AND_BE.md) and
+> [E2E configuration](../markdowns/FRONTEND_INTEGRATION_TESTING.md).
+
 Branch: `chore/align-local-test-environments`. Scope: frontend repository only.
 No AGENTS.md was found in the repository or checked ancestor directories.
 No real env file was inspected/edited, hosted setting changed, deployment performed,

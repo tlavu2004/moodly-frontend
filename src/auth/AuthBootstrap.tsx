@@ -1,5 +1,7 @@
+import { loginOptions } from './loginOptions.ts'
+import { t, useLocale } from '../i18n/index.ts'
 import { useAuth0 } from '@auth0/auth0-react'
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import type { ApiClient } from '../api/client.ts'
 import { ApiRequestError } from '../api/errors.ts'
 import { getSessionApiClient } from '../api/useApiClient.ts'
@@ -12,9 +14,21 @@ type AuthBootstrapProps = {
 }
 
 export function AuthBootstrap({ children }: AuthBootstrapProps) {
+  useLocale()
   const { error, getAccessTokenSilently, isAuthenticated, isLoading, loginWithRedirect, user } = useAuth0()
   const client = useMemo(() => getSessionApiClient(getAccessTokenSilently, user?.sub), [getAccessTokenSilently, user?.sub])
   const [attempt, setAttempt] = useState(0)
+  const loginPending = useRef(false)
+  const [signingIn, setSigningIn] = useState(false)
+  const [loginFailed, setLoginFailed] = useState(false)
+  async function signInAgain() {
+    if (loginPending.current) return
+    loginPending.current = true
+    setSigningIn(true)
+    setLoginFailed(false)
+    try { await loginWithRedirect(loginOptions('signin')) }
+    catch { loginPending.current = false; setSigningIn(false); setLoginFailed(true) }
+  }
   const [profile, setProfile] = useState<{ client: ApiClient; failure?: unknown; ready: boolean } | null>(null)
   const failure = isAuthenticated && profile?.client === client ? profile.failure : null
   const isProfileReady = profile?.client === client && profile.ready
@@ -47,7 +61,7 @@ export function AuthBootstrap({ children }: AuthBootstrapProps) {
         aria-busy="true"
         aria-live="polite"
       >
-        <p>{isAuthenticated ? 'Preparing your Moodly space…' : 'Starting authentication…'}</p>
+        <p>{isAuthenticated ? t("Preparing your Moodly space…") : t("Starting authentication…")}</p>
       </main>
     )
   }
@@ -59,11 +73,11 @@ export function AuthBootstrap({ children }: AuthBootstrapProps) {
           className="max-w-md rounded-card border border-border bg-surface p-6"
           role="alert"
         >
-          <h1 className="text-lg font-semibold">Unable to prepare Moodly</h1>
-          <p className="mt-2 text-sm text-foreground/75">{error?.message ?? profileError}</p>
+          <h1 className="text-lg font-semibold">{t("Unable to prepare Moodly")}</h1>
+          <p className="mt-2 text-sm text-foreground/75">{loginFailed ? t('We could not open sign-in. Please try again.') : error ? t('Sign-in failed. Please try again.') : t(profileError ?? '')}</p>
           <div className="mt-4 flex flex-wrap gap-3">
-            <a className="button-secondary" href="/">Back to home</a>
-            {(error || profileUnauthorized) && <button className="button-primary" type="button" onClick={() => loginWithRedirect({ appState: { returnTo: '/dashboard' } })}>Sign in again</button>}
+            <a className="button-secondary" href="/">{t("Back to home")}</a>
+            {(error || profileUnauthorized) && <button className="button-primary" type="button" disabled={signingIn} aria-busy={signingIn} onClick={() => void signInAgain()}>{t(signingIn ? 'Opening secure sign-in…' : 'Sign in again')}</button>}
             {profileError && !profileUnauthorized && <RequestRetry retryAt={retryAt} onRetry={() => { setProfile(null); setAttempt((value) => value + 1) }} />}
           </div>
         </section>

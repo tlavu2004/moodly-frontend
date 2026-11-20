@@ -16,8 +16,16 @@ for (const path of ['/', '/dashboard', '/entries', '/index.html']) {
   assert.ok(body.includes('id="root"'), path)
   index ??= body
 }
-const asset = index.match(/src="([^" ]+\.js)"/)?.[1]
-assert.ok(asset, 'Application shell must reference a JavaScript entry')
+// The blocking theme initializer precedes the hashed application module.
+// Check their cache policies separately; a root public script is not immutable.
+assert.match(index, /<script\b[^>]*src=["']\/theme-init\.js["'][^>]*>/i)
+const themeResponse = await get('/theme-init.js')
+assert.equal(themeResponse.status, 200)
+assert.match(themeResponse.headers.get('content-type') ?? '', /javascript/)
+assert.match(themeResponse.headers.get('cache-control') ?? '', /no-store/)
+const asset = index.match(/<script\b(?=[^>]*\btype=["']module["'])[^>]*\bsrc=["']([^"']+)["'][^>]*>/i)?.[1]
+assert.ok(asset, 'Application shell must reference a JavaScript module entry')
+assert.match(asset, /^\/assets\/[^/?]+\.js$/, 'Application entry must be a hashed build asset')
 const response = await get(asset)
 assert.equal(response.status, 200)
 assert.match(response.headers.get('content-type') ?? '', /javascript/)

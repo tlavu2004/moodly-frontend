@@ -23,7 +23,8 @@ chứa MongoDB/ES và image FE không chứa BE.
   (Dockerfile BE hiện dùng Java 25). Maven Wrapper có trong repo BE.
 - GNU Make là tùy chọn cho FE; BE dùng Bash recipes, nên chạy Make của BE trong
   Git Bash/WSL trên Windows. Các ví dụ gán `$env:` phía dưới dành cho PowerShell.
-- FE: `npm ci`; tạo `.env.local` từ `.env.local.example`, dùng chung local/test. Không ghi đè file đã chứa giá trị thật.
+- FE: `npm ci`; tạo `.env.local` từ `.env.local.example`, dùng chung local/test. Không ghi đè file
+  đã chứa giá trị thật.
 - BE: làm theo README BE để chuẩn bị `.env.local`, Auth0, Cloudinary và infrastructure.
 - FE local dùng `http://127.0.0.1:5173`; FE test dùng `http://127.0.0.1:5173`.
   Auth0 callback/logout/web origins và BE CORS phải cho phép đúng origin và port.

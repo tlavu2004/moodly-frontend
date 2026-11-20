@@ -1,7 +1,9 @@
-import { withAuthenticationRequired } from '@auth0/auth0-react'
+import { t, useLocale } from './i18n/index.ts'
 import { lazy, Suspense } from 'react'
 import { Route, Routes } from 'react-router'
-import { AppShell } from './components/layout/AppShell.tsx'
+import { ProtectedAppShell } from './auth/ProtectedAppShell.tsx'
+
+const AuthWelcomePage = lazy(() => import('./features/auth/pages/AuthWelcomePage.tsx').then(({ AuthWelcomePage }) => ({ default: AuthWelcomePage })))
 
 const DashboardPage = lazy(() =>
   import('./features/dashboard/pages/DashboardPage.tsx').then(({ DashboardPage }) => ({ default: DashboardPage })),
@@ -31,31 +33,23 @@ const NotFoundPage = lazy(() =>
   import('./features/not-found/pages/NotFoundPage.tsx').then(({ NotFoundPage }) => ({ default: NotFoundPage })),
 )
 
-function RedirectingToLogin() {
-  return (
-    <main className="grid min-h-svh place-items-center p-6" aria-busy="true" aria-live="polite">
-      <p>Redirecting to sign in…</p>
-    </main>
-  )
-}
-
 function LoadingRoute() {
+  useLocale()
   return (
     <main className="grid min-h-svh place-items-center p-6" aria-busy="true" aria-live="polite">
-      <p>Loading page…</p>
+      <p>{t("Loading page…")}</p>
     </main>
   )
 }
-
-const ProtectedAppShell = withAuthenticationRequired(AppShell, {
-  onRedirecting: RedirectingToLogin,
-})
 
 function App() {
+  useLocale()
   return (
     <Suspense fallback={<LoadingRoute />}>
       <Routes>
         <Route path="/" element={<LandingPage />} />
+        <Route path="/login" element={<AuthWelcomePage mode="signin" />} />
+        <Route path="/signup" element={<AuthWelcomePage mode="signup" />} />
         <Route element={<ProtectedAppShell />}>
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/habits" element={<HabitsPage />} />

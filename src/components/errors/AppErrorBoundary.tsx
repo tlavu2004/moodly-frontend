@@ -1,3 +1,4 @@
+import { t } from '../../i18n/index.ts'
 import { Component, type ErrorInfo, type ReactNode } from 'react'
 
 type Props = { children: ReactNode }
@@ -28,13 +29,13 @@ export class AppErrorBoundary extends Component<Props, State> {
       <main className="grid min-h-svh place-items-center p-6">
         <section className="card max-w-lg p-8 text-center" role="alert">
           <span className="text-4xl" aria-hidden="true">🌦️</span>
-          <h1 className="mt-4 text-xl font-bold">Moodly needs a fresh start</h1>
+          <h1 className="mt-4 text-xl font-bold">{t("Moodly needs a fresh start")}</h1>
           <p className="mt-2 text-sm text-foreground-muted">
-            {chunkFailure ? 'A new version of Moodly is available. Reload to continue.' : 'Something unexpected happened. Your saved data is safe.'}
+            {chunkFailure ? t("A new version of Moodly is available. Reload to continue.") : t("Something unexpected happened. Your saved data is safe.")}
           </p>
           <div className="mt-6 flex justify-center gap-3">
-            {!chunkFailure && <button type="button" className="button-secondary" onClick={this.retry}>Try again</button>}
-            <button type="button" className="button-primary" onClick={() => window.location.reload()}>Reload Moodly</button>
+            {!chunkFailure && <button type="button" className="button-secondary" onClick={this.retry}>{t("Try again")}</button>}
+            <button type="button" className="button-primary" onClick={() => window.location.reload()}>{t("Reload Moodly")}</button>
           </div>
         </section>
       </main>

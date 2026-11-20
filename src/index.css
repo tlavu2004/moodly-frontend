@@ -12,7 +12,10 @@
   --color-primary-soft: oklch(0.94 0.045 300);
   --color-primary-dark: oklch(0.42 0.16 300);
   --color-secondary: oklch(0.75 0.12 180);
-  --color-success: oklch(0.63 0.14 155);
+  --color-success: oklch(0.45 0.12 155);
+  --color-success-foreground: oklch(0.99 0 0);
+  --color-danger: oklch(0.48 0.19 25);
+  --color-danger-soft: oklch(0.96 0.025 25);
   --color-warning-soft: oklch(0.96 0.06 85);
   --color-foreground-muted: oklch(0.5 0.025 285);
 
@@ -26,6 +29,28 @@
   /* Component radii */
   --radius-control: 0.5rem;
   --radius-card: 0.75rem;
+}
+
+/* Override semantic tokens; components never select palette colors directly. */
+:root { color-scheme: light; }
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --color-background: oklch(0.17 0.015 285);
+  --color-foreground: oklch(0.95 0.01 285);
+  --color-surface: oklch(0.22 0.02 285);
+  --color-surface-muted: oklch(0.28 0.025 285);
+  --color-border: oklch(0.4 0.025 285);
+  --color-primary: oklch(0.78 0.12 300);
+  --color-primary-foreground: oklch(0.18 0.025 285);
+  --color-primary-soft: oklch(0.3 0.065 300);
+  --color-primary-dark: oklch(0.87 0.08 300);
+  --color-secondary: oklch(0.78 0.1 180);
+  --color-success: oklch(0.78 0.13 155);
+  --color-success-foreground: oklch(0.17 0.025 155);
+  --color-danger: oklch(0.8 0.12 25);
+  --color-danger-soft: oklch(0.28 0.055 25);
+  --color-warning-soft: oklch(0.32 0.05 85);
+  --color-foreground-muted: oklch(0.75 0.025 285);
 }
 
 /* Tailwind Preflight provides the baseline reset. */
@@ -60,7 +85,7 @@
   .page-title { @apply text-3xl font-bold tracking-tight sm:text-4xl; }
   .page-subtitle { @apply mt-2 text-sm leading-6 text-foreground-muted sm:text-base; }
   .field-label { @apply mb-2 block text-sm font-bold; }
-  .field-input { @apply min-h-11 w-full rounded-control border border-border bg-surface px-3 py-2 text-sm outline-none transition placeholder:text-foreground-muted/60 focus:border-primary focus:ring-3 focus:ring-primary/10; }
+  .field-input { @apply min-h-11 w-full rounded-control border border-border bg-surface px-3 py-2 text-sm outline-none transition placeholder:text-foreground-muted focus:border-primary focus:ring-3 focus:ring-primary/10; }
 }
 
 @media (prefers-reduced-motion: reduce) {

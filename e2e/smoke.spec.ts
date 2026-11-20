@@ -85,5 +85,5 @@ test('logout returns to the public landing page', async ({ page }) => {
   await page.goto('/profile')
   await page.getByRole('main').getByRole('button', { name: 'Log out' }).click()
   await expect(page).toHaveURL(/\/$/)
-  await expect(page.getByRole('button', { name: 'Sign in' })).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Sign in' })).toBeVisible()
 })

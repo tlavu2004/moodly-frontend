@@ -70,7 +70,7 @@ describe('AuthBootstrap', () => {
   it('renders Auth0 and profile synchronization errors', async () => {
     vi.mocked(useAuth0).mockReturnValue(authState({ error: new Error('Auth initialization failed') }) as unknown as ReturnType<typeof useAuth0>)
     const { rerender } = render(<AuthBootstrap><p>Child</p></AuthBootstrap>)
-    expect(screen.getByRole('alert')).toHaveTextContent('Auth initialization failed')
+    expect(screen.getByRole('alert')).toHaveTextContent('Sign-in failed. Please try again.')
 
     synchronizeMock.mockRejectedValue(new Error('Profile synchronization failed'))
     vi.mocked(useAuth0).mockReturnValue(authState({ isAuthenticated: true }) as unknown as ReturnType<typeof useAuth0>)
@@ -85,7 +85,7 @@ it('provides sign-in recovery when the backend rejects profile sync with 401', a
   vi.mocked(useAuth0).mockReturnValue(authState({ isAuthenticated: true, loginWithRedirect }) as unknown as ReturnType<typeof useAuth0>)
   render(<AuthBootstrap><p>Child</p></AuthBootstrap>)
   await userEvent.setup().click(await screen.findByRole('button', { name: 'Sign in again' }))
-  expect(loginWithRedirect).toHaveBeenCalledWith({ appState: { returnTo: '/dashboard' } })
+  expect(loginWithRedirect).toHaveBeenCalledWith({ appState: { returnTo: '/dashboard' }, authorizationParams: { ui_locales: 'en' } })
   expect(screen.queryByRole('button', { name: 'Try again' })).not.toBeInTheDocument()
 })
 
@@ -125,4 +125,17 @@ it('waits for Retry-After and retries profile sync only after an explicit click'
     expect(synchronizeMock).toHaveBeenCalledTimes(2)
     expect(screen.getByText('Ready child')).toBeInTheDocument()
   } finally { vi.useRealTimers() }
+})
+
+
+it('recovers when the explicit sign-in retry cannot open Auth0', async () => {
+  const loginWithRedirect = vi.fn().mockRejectedValueOnce(new Error('provider details')).mockReturnValueOnce(new Promise(() => {}))
+  vi.mocked(useAuth0).mockReturnValue(authState({ error: new Error('Auth error'), loginWithRedirect }) as unknown as ReturnType<typeof useAuth0>)
+  render(<AuthBootstrap><p>Child</p></AuthBootstrap>)
+  const user = userEvent.setup()
+  await user.click(screen.getByRole('button', { name: 'Sign in again' }))
+  expect(await screen.findByRole('alert')).toHaveTextContent('We could not open sign-in. Please try again.')
+  await user.dblClick(screen.getByRole('button', { name: 'Sign in again' }))
+  expect(loginWithRedirect).toHaveBeenCalledTimes(2)
+  expect(screen.getByRole('button', { name: 'Opening secure sign-in…' })).toBeDisabled()
 })
