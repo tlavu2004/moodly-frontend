@@ -171,10 +171,7 @@ are available on the landing page, sign-in introduction and application toolbar.
 See [localization and API date rules](docs/markdowns/LOCALIZATION.md),
 [semantic theme tokens](docs/markdowns/THEMES.md), and
 [the active Auth0 sign-in and branding setup](docs/markdowns/AUTH_EXPERIENCE.md).
-The current release uses standard Universal Login with tenant branding; no ACUL
-subscription, custom-domain migration or separate login bundle is required.
+The current release uses standard Universal Login with tenant branding.
 FE theme and hosted Auth0 branding are configured independently.
-
-The existing ACUL source is retained as an optional future implementation. Its
-build and browser tests run only through explicit commands; see
-[the optional ACUL guide](docs/markdowns/ACUL_OPTIONAL.md).
+The FE sign-in introduction redirects to Auth0 for credential entry; no separate
+custom login bundle is maintained.

@@ -1,9 +1,8 @@
 # Moodly sign-in and Auth0 branding
 
 Decision updated 2026-11-20: use **standard Auth0 Universal Login with branding**
-on the existing development/test tenant. The Dashboard showed that Advanced
-Customizations for Universal Login (ACUL) requires a plan upgrade. This release
-keeps the existing plan; ACUL is not part of its deployment path.
+on the existing development/test tenant. Custom hosted form code has been removed;
+the supported release uses the tenant branding editor.
 
 ## Active user flow
 
@@ -60,7 +59,7 @@ replace its public hostname before using it.
 
 The SPA supports System/Light/Dark. Hosted standard branding is a separate tenant
 setting and does not automatically follow the app's dark mode. The app therefore
-sends no ACUL-only theme parameter. A generic Dashboard Try page may say "All
+does not forward an app theme parameter. A generic Dashboard Try page may say "All
 Applications"; verify the actual Moodly app through the FE redirect.
 
 The red **Dev Keys** alert means a social connection uses Auth0's shared development
@@ -70,7 +69,7 @@ credentials. Do not add the provider secret to FE `VITE_*` values.
 
 ## Verification and CI
 
-Default commands require no ACUL assets or entitlement:
+Verification commands:
 
 ```sh
 npm run lint
@@ -90,24 +89,6 @@ Before merge, verify login/logout, returning to a protected deep link, both
 languages, signup/reset and expected profile-sync recovery on the existing test
 configuration. Automated account creation/reset-password emails and social/MFA
 prompts may need a manual check; do not infer them from a successful database login.
-CI quality checks build the SPA, run lint/unit/coverage and audit dependencies;
-they do not build or package ACUL. Remote CI status must be checked on the commit
-or PR separately from local command results.
-
-## Optional implementation retained for later
-
-`src/auth-hosted/`, `vite.acul.config.ts` and the packaging script are retained,
-but the SPA does not import their entry point. The default browser suite excludes
-`e2e/hosted.spec.ts`. Source-level unit tests may still validate this retained code.
-
-Only explicit commands build/test the optional bundle:
-
-```sh
-npm run build:auth
-npm run test:auth-package
-npm run test:e2e:acul
-```
-
-These do not activate tenant settings. Deployment, entitlement, custom domain,
-asset hosting and an eventual FE/BE issuer cutover are documented separately in
-[the optional ACUL guide](ACUL_OPTIONAL.md).
+CI quality checks build the SPA, run lint/unit/coverage and audit dependencies.
+Remote CI status must be checked on the commit or PR separately from local
+command results.
