@@ -27,3 +27,6 @@ reports/
 *.njsproj
 *.sln
 *.sw?
+
+# Retired workstation test overlay; use .env.local instead.
+.env.test

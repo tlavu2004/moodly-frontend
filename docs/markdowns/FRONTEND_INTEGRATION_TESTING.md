@@ -1,115 +1,88 @@
-# Frontend integration test environment
+# Frontend integration and E2E
 
-This environment is isolated from production and must contain synthetic data only. Copy
-`.env.integration.example` to the ignored `.env.integration.local` file for local runs.
-`playwright.config.ts` loads that file automatically; explicit process/CI variables take
-precedence. Never commit test passwords, Auth0 client secrets, reset tokens, access
-tokens, or captured authenticated browser state.
+## Configuration
 
-## Environment inputs
+Workstation local/test share `.env.local` (template `.env.local.example`).
+No `.env.test` or `.env.test.local` is needed. Four public VITE variables configure
+Auth0/API. Four optional runner-only variables configure authenticated E2E:
 
-The repository provides the runner, tests, and configuration contract. Supply
-the following values through ignored local env files or CI/hosting secret stores:
-
-| Input | Required value / owner |
-| --- | --- |
-| `VITE_AUTH0_DOMAIN` | Domain of the isolated Auth0 test tenant/application. |
-| `VITE_AUTH0_CLIENT_ID` | Public client ID of the Auth0 SPA; this is not a client secret. |
-| `VITE_AUTH0_AUDIENCE` | Audience of the integration backend API. |
-| `VITE_API_BASE_URL` | Reachable integration backend base URL, without a secret. |
-| `E2E_BASE_URL` | Optional frontend origin. Leave unset for auto-started local Vite; set it for an already-running frontend or staging. |
-| `E2E_TEST_USER_EMAIL` | Synthetic Auth0 database-connection user stored locally or in CI secrets. |
-| `E2E_TEST_USER_PASSWORD` | Password for that synthetic user, stored only as a secret. |
-| `E2E_DATA_RESET_URL` | Absolute URL of the non-production reset endpoint. |
-| `E2E_DATA_RESET_TOKEN` | Server-side reset credential stored only as a secret. |
-
-Local status (2026-10-15): the non-production Auth0 application, synthetic account,
-backend, and reset service are configured outside Git; the authenticated E2E suite
-passed 13/13. The repository intentionally contains no E2E credentials or reset token.
-Provision and verify staging separately before running its suite.
-
-## Auth0 application
-
-Create a dedicated **Single Page Application** or test tenant for browser automation. It
-must not share users with production. Configure these URLs for the actual E2E origin:
-
-- Allowed callback URL: `<E2E_BASE_URL>`
-- Allowed logout URL: `<E2E_BASE_URL>`
-- Allowed web origin: `<E2E_BASE_URL>`
-
-Create one least-privilege synthetic user for the smoke suite. Store its email and
-password in the CI secret store as `E2E_TEST_USER_EMAIL` and
-`E2E_TEST_USER_PASSWORD`. Use an Auth0 database connection supported by Universal Login;
-the automated setup expects username/email and password controls. Disable MFA, CAPTCHA,
-social-login prompts, and forced password changes for this isolated account, or replace
-`e2e/auth.setup.ts` with an approved machine-assisted login flow. The user should be
-email-verified and have only normal Moodly user permissions.
-
-The Playwright setup creates `playwright/.auth/user.json` at runtime. The directory is
-ignored by Git and must be treated as credential material. Do not upload this file as a
-CI artifact.
-
-## Backend test data contract
-
-The backend provides `POST /internal/e2e/reset`, disabled by default and excluded from
-the `prod` and `production` profiles. Before each isolated E2E run it:
-
-1. Resolves the synthetic Auth0 subject from server configuration, never from the request.
-2. Deletes only that subject's habits, daily entries, and search documents. It leaves
-   the Auth0 account and application profile untouched.
-3. Seeds a deterministic baseline of 2 habits and 3 entries, then refreshes and verifies
-   all three search documents before returning success.
-
-Configure its URL and credential as `E2E_DATA_RESET_URL` and
-`E2E_DATA_RESET_TOKEN`. These are runner-side variables and must never use the `VITE_`
-prefix. Reset operations must be idempotent and scoped to the synthetic account.
-
-The current runner calls the endpoint as follows:
-
-```http
-POST <E2E_DATA_RESET_URL>
-X-E2E-Reset-Token: <E2E_DATA_RESET_TOKEN>
+```dotenv
+E2E_TEST_USER_EMAIL=
+E2E_TEST_USER_PASSWORD=
+E2E_DATA_RESET_URL=
+E2E_DATA_RESET_TOKEN=
 ```
 
-Any `2xx` response is accepted. A non-`2xx` response fails the authenticated suite
-before browser scenarios start. A missing or wrong reset token returns `403`.
-`MOODLY_E2E_USER_ID` on the backend fixes the target subject; the browser test cannot
-choose another user. Two resets must return the same 2-habit/3-entry baseline and
-`searchIndexing: "verified"` without changing other users' data. The smoke flow may
-create its own habit, mood entry, completion, avatar, and search result.
+The test user must be a synthetic account whose Auth0 subject matches BE's configured
+`MOODLY_E2E_USER_ID`; never use your real journal account. The account's credentials
+are not exposed to Vite or Docker build arguments. Production never reads `.env.local`.
+CI receives values explicitly through its test environment, not committed env files.
 
-## Local startup order
+## One frontend origin
 
-1. Install the browser once with `npx playwright install chromium`.
-2. Start backend dependencies and the backend integration profile.
-3. Verify the backend health and reset endpoints from the test machine.
-4. Copy `.env.integration.example` to `.env.integration.local`, fill the required values, and leave `E2E_BASE_URL` unset for auto-started local Vite.
-5. Run `npm run test:e2e`; Playwright starts Vite in integration mode automatically.
+Every workstation mode uses `http://127.0.0.1:5173`: local/test, Vite/Nginx.
+Stop the server you own before switching; Playwright never adopts an unknown server.
+FE execution mode and server type are checked using `/moodly-config.json` before tests.
+API host/port comes from VITE_API_BASE_URL; sharing FE port does not isolate BE data.
+Auth0 callback/logout/web origins and backend CORS must permit the exact origin.
+See [Auth0 setup](./AUTH0_LOCAL_SETUP.md).
 
-Useful commands:
+## Commands (FE repository)
 
-```bash
-# Public routes only; does not require the test account or reset service
+```sh
+make verify
+# Public only, owns Vite and cleans it up afterwards; port 5173 must be free
 npx playwright test --project=public
 
-# Full suite, including auth setup, smoke flows, and failure paths
-npm run test:e2e
+# Full suite on owned Vite, requires BE and synthetic credentials
+make e2e-dev
 
-# Interactive local debugging
-npm run test:e2e:ui
+# Full suite on existing Nginx; stop Vite first
+make test-container-up
+make e2e-container
+make local-container-stop
 ```
 
-For CI, use the same order and wait for explicit health checks instead of fixed sleeps.
-Keep Playwright traces, screenshots, and videos only for failed or retried tests.
+Make supplies E2E_TARGET for each invocation. Do not add E2E_TARGET/E2E_BASE_URL to
+.env.local. They are runner switches, not additional required environment inputs.
+Auth state gets a new per-run ignored directory; teardown removes only that run's
+known files. Do not upload authenticated storage state, video/trace or sensitive notes.
 
-## Completion checks
+## Actual backend reset contract
 
-- Opening `/` does not start an Auth0 redirect.
-- Opening `/dashboard` returns to `/dashboard` after authentication.
-- Profile synchronization finishes before the first protected feature request.
-- Resetting twice produces the same baseline and never modifies another user.
-- No secret or authenticated storage-state file appears in `git status`.
+The checked-in sibling BE implements `POST /internal/e2e/reset` with
+`X-E2E-Reset-Token`. The controller/service are disabled for prod/production and opt-in
+elsewhere. The target userId is server-configured and cannot be supplied by the FE.
+The service deletes/seeds only that fixed synthetic subject. It seeds 2 habits/3
+entries and verifies search indexing. Do not enable/configure it for a real user.
 
-The public project is locally runnable without external credentials. The full local
-E2E suite passed against the provisioned Auth0 tenant and integration backend on
-2026-10-15 (13/13). Staging remains unverified.
+FE checks the four runner inputs, exact reset path, same API origin, no URL
+credentials/query/fragment and no redirects before sending a reset token. Local runs
+are restricted to loopback unless explicitly authorized as remote. A failure/403
+stops the suite; there is no retry against another endpoint or reset target.
+
+There is no BE capabilities/namespace-attestation endpoint in this implementation.
+The former proposed E2E_NAMESPACE/E2E_TEST_CONTRACT_URL requirements have been removed;
+FE does not invent endpoint variables for contracts BE has not implemented. These
+client checks cannot prove database isolation: the BE owner must configure the fixed
+synthetic subject and choose the correct local/test data namespace. Use the BE test
+launcher where appropriate, never a production deployment.
+
+## Remote (optional, separately authorized)
+
+Remote mode remains available in CI or explicit process inputs; it is not in the
+workstation template. Configure a test frontend URL and test backend/synthetic account.
+The backend must enforce its non-production/fixed-account restrictions. No production
+writes are permitted. HTTPS and E2E_ALLOW_REMOTE_WRITES=1 are required; keep the flag
+out of .env.local and supply it only for the authorized run. CI workflow_dispatch asks
+for authenticated_remote explicitly, default false.
+
+## Troubleshooting
+
+- Port occupied: stop the Vite/Nginx instance you started; do not enable server reuse.
+- Build identity mismatch: rebuild the container with the current shared public config.
+- Auth0 callback mismatch: verify the SPA/client ID and allowlist 127.0.0.1:5173.
+- API CORS: restart BE after updating its allowlist; Auth0 settings do not set API CORS.
+- Reset 403/unavailable: check BE opt-in reset configuration and token on the dedicated
+  synthetic account. Do not disable FE validation or redirect tokens to another URL.
+- Scope the tests you actually ran; public-only does not establish authenticated coverage.
