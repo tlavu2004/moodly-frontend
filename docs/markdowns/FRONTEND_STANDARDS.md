@@ -39,7 +39,7 @@ limits in Maven `verify`.
 | --- | ---: | --- | --- |
 | Lines | 85% | `lines` | `LINE` |
 | Branches | 75% | `branches` | `BRANCH` |
-| Functions or methods | 80% | `functions` | `METHOD` |
+| Functions or methods | 85% | `functions` | `METHOD` |
 | Statements or instructions | 85% | `statements` | `INSTRUCTION` |
 
 Vitest counts source statements and JaCoCo counts Java bytecode instructions. The minimums

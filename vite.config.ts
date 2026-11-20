@@ -58,7 +58,7 @@ export default defineConfig(({ mode, command }) => {
         exclude: ['src/api/openapi/**', 'src/main.tsx', 'src/test/**'],
         thresholds: {
           lines: 85,
-          functions: 80,
+          functions: 85,
           branches: 75,
           statements: 85,
         },
