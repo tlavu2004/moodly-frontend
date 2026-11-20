@@ -172,7 +172,10 @@ proxy; this Compose configuration is for local verification.
 CI builds with synthetic public configuration after quality checks, then checks
 health, SPA routes, asset delivery, caching and missing asset 404s. It does not
 publish or deploy an image. Real authenticated E2E remains a separate environment
-check. Dependabot tracks Docker base image updates, including pinned digests.
+check in the separate **Authenticated E2E** manual workflow, using the GitHub `test`
+environment and explicit synthetic-account write authorization. Ordinary PR checks
+contain only `quality` and `container`. See [E2E setup](docs/markdowns/FRONTEND_INTEGRATION_TESTING.md)
+for the manual procedure. Dependabot tracks Docker base image updates, including pinned digests.
 
 ### Container lifecycle
 

@@ -74,8 +74,20 @@ Remote mode remains available in CI or explicit process inputs; it is not in the
 workstation template. Configure a test frontend URL and test backend/synthetic account.
 The backend must enforce its non-production/fixed-account restrictions. No production
 writes are permitted. HTTPS and E2E_ALLOW_REMOTE_WRITES=1 are required; keep the flag
-out of .env.local and supply it only for the authorized run. CI workflow_dispatch asks
-for authenticated_remote explicitly, default false.
+out of .env.local and supply it only for the authorized run. The separate **Authenticated E2E** workflow
+(`.github/workflows/authenticated-e2e.yml`) runs only through `workflow_dispatch`
+and uses the GitHub `test` environment. Its `authenticated_remote` input defaults
+to false; a run without explicit authorization fails before checkout or test writes.
+Runs are serialized across refs because they share one synthetic account.
+
+To run it, open Actions > Authenticated E2E > Run workflow, select the reviewed ref,
+enable `authenticated_remote`, and ensure the test FE/BE are reachable and the
+`test` environment variables/secrets are configured. A newly added manual workflow
+appears in the Actions list after its file is merged into the default branch.
+
+**Frontend CI** remains independent: PRs and pushes to `main` run quality checks
+and public E2E on Vite/Nginx. Its manual trigger runs those same checks and never
+authorizes authenticated remote writes. Remote E2E is not a required PR check.
 
 ## Troubleshooting
 

@@ -1,0 +1,52 @@
+name: Authenticated E2E
+
+on:
+  workflow_dispatch:
+    inputs:
+      authenticated_remote:
+        description: Authorize authenticated writes/reset for the configured synthetic test account
+        type: boolean
+        required: true
+        default: false
+
+permissions:
+  contents: read
+
+# All refs share the same remote synthetic account. Queue runs instead of
+# cancelling a run while it may be writing/resetting test data.
+concurrency:
+  group: frontend-authenticated-e2e-test
+  cancel-in-progress: false
+
+jobs:
+  e2e-test:
+    runs-on: ubuntu-latest
+    environment: test
+    timeout-minutes: 20
+    steps:
+      - name: Require explicit authorization for synthetic account writes
+        if: ${{ !inputs.authenticated_remote }}
+        run: |
+          echo "::error::Enable authenticated_remote to authorize writes/reset for the configured synthetic test account."
+          exit 1
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+        env:
+          MOODLY_ENV_SOURCE: process
+          E2E_TARGET: remote
+          E2E_ALLOW_REMOTE_WRITES: '1'
+          E2E_BASE_URL: ${{ vars.E2E_BASE_URL }}
+          E2E_DATA_RESET_URL: ${{ vars.E2E_DATA_RESET_URL }}
+          E2E_DATA_RESET_TOKEN: ${{ secrets.E2E_DATA_RESET_TOKEN }}
+          E2E_TEST_USER_EMAIL: ${{ secrets.E2E_TEST_USER_EMAIL }}
+          E2E_TEST_USER_PASSWORD: ${{ secrets.E2E_TEST_USER_PASSWORD }}
+          VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
+          VITE_AUTH0_AUDIENCE: ${{ vars.VITE_AUTH0_AUDIENCE }}
+          VITE_AUTH0_CLIENT_ID: ${{ vars.VITE_AUTH0_CLIENT_ID }}
+          VITE_AUTH0_DOMAIN: ${{ vars.VITE_AUTH0_DOMAIN }}

@@ -5,14 +5,13 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
-    inputs:
-      authenticated_remote:
-        description: Authorize authenticated writes to the configured synthetic remote test account
-        type: boolean
-        default: false
 
 permissions:
   contents: read
+
+concurrency:
+  group: frontend-ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   quality:
@@ -87,6 +86,10 @@ jobs:
         run: |
           for attempt in $(seq 1 30); do
             if curl -fsS http://127.0.0.1:5173/healthz; then break; fi
+            if [ "$attempt" -eq 30 ]; then
+              echo "::error::Frontend container did not become ready within 30 attempts."
+              exit 1
+            fi
             sleep 1
           done
           node scripts/container-smoke.mjs http://127.0.0.1:5173 moodly-frontend-ci
@@ -107,29 +110,3 @@ jobs:
       - name: Remove container
         if: always()
         run: docker rm -f moodly-frontend-ci || true
-
-  e2e-test:
-    if: github.event_name == 'workflow_dispatch' && inputs.authenticated_remote
-    runs-on: ubuntu-latest
-    environment: test
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-      - run: npm ci
-      - run: npx playwright install --with-deps chromium
-      - run: npm run test:e2e
-        env:
-          E2E_TARGET: remote
-          E2E_ALLOW_REMOTE_WRITES: '1'
-          E2E_BASE_URL: ${{ vars.E2E_BASE_URL }}
-          E2E_DATA_RESET_URL: ${{ vars.E2E_DATA_RESET_URL }}
-          E2E_DATA_RESET_TOKEN: ${{ secrets.E2E_DATA_RESET_TOKEN }}
-          E2E_TEST_USER_EMAIL: ${{ secrets.E2E_TEST_USER_EMAIL }}
-          E2E_TEST_USER_PASSWORD: ${{ secrets.E2E_TEST_USER_PASSWORD }}
-          VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
-          VITE_AUTH0_AUDIENCE: ${{ vars.VITE_AUTH0_AUDIENCE }}
-          VITE_AUTH0_CLIENT_ID: ${{ vars.VITE_AUTH0_CLIENT_ID }}
-          VITE_AUTH0_DOMAIN: ${{ vars.VITE_AUTH0_DOMAIN }}
