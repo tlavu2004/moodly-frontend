@@ -67,6 +67,16 @@ describe('request cancellation and stale response protection', () => {
     expect(inverted.result.current.error).toContain('valid date range')
     expect(future.result.current.error).toContain('future dates')
   })
+
+  it('passes the selected history page and exposes the pagination totals', async () => {
+    const items = [{ entryId: 'entry-11' }]
+    getEntriesPageMock.mockResolvedValueOnce({ items, totalElements: 11, totalPages: 2 })
+    const { result } = renderHook(() => useEntries('2020-01-01', '2020-01-02', 1))
+
+    await waitFor(() => expect(result.current.entries).toEqual(items))
+    expect(getEntriesPageMock).toHaveBeenCalledWith(client, '2020-01-01', '2020-01-02', 1, expect.any(AbortSignal))
+    expect(result.current).toMatchObject({ totalElements: 11, totalPages: 2, error: null })
+  })
 })
 
 it.each([[500, 'INTERNAL_SERVER_ERROR'], [503, 'SEARCH_UNAVAILABLE']] as const)('shows a safe search error without automatically retrying %s / %s', async (status, code) => {
