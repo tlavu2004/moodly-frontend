@@ -60,6 +60,7 @@ not loaded. See [E2E setup](docs/markdowns/FRONTEND_INTEGRATION_TESTING.md).
 | `npm run smoke:deploy -- https://your-deployment.example` | Verify the deployed app shell and SPA fallback. |
 | `npm run analyze` | Generate `reports/bundle.html`. |
 | `npm run generate:api` | Regenerate the OpenAPI client. |
+| `npm run verify:api` | Regenerate the client and compare it with the current commit. |
 
 Authenticated E2E requires a dedicated synthetic Auth0 account and the opt-in,
 non-production BE fixed-account reset endpoint.
@@ -68,13 +69,19 @@ and startup sequence.
 
 ## API client generation
 
-Run `npm run generate:api` after the backend OpenAPI contract changes. The command reads
-`../moodly-backend/docs/api/json/moodly-openapi.json` and refreshes the committed files under
-`src/api/openapi/`.
+Frontend CI pins the backend commit in [frontend-ci.yml](.github/workflows/frontend-ci.yml).
+To reproduce the CI check locally, use the contract from that commit. The generator reads
+`../moodly-backend/docs/api/json/moodly-openapi.json` by default. Set `OPENAPI_INPUT` to use
+a copy of the pinned contract from another path.
 
-Files under `src/api/openapi/` are generated artifacts and must not be edited manually.
-Change the backend OpenAPI source, run the generator, then review and commit the generated
-diff together with the handwritten adapters that consume it.
+Run `npm run verify:api` before pushing changes to the generator or API client. This command
+rewrites `src/api/openapi/` and reports tracked changes against the current commit, including
+staged changes. Run `make verify` separately for the application checks.
+
+When adopting a new backend contract, update the pinned backend commit, run
+`npm run generate:api` with that contract, and review and commit the generated changes and
+any corresponding adapter changes in the same frontend PR. Make client changes through
+the contract or the generator configuration.
 
 ## Mutation retries
 
