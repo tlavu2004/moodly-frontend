@@ -51,7 +51,7 @@ not loaded. See [E2E setup](docs/markdowns/FRONTEND_INTEGRATION_TESTING.md).
 | `npm run lint` | Run ESLint. |
 | `npm run test` | Run Vitest in watch mode. |
 | `npm run test:run` | Run unit/component tests once. |
-| `npm run test:coverage` | Run tests with coverage thresholds. |
+| `npm run test:coverage` | Run tests and require 85% lines, statements, and functions, plus 75% branches across the frontend. |
 | `npm run test:e2e:public` | Run public Playwright scenarios on an owned test server. |
 | `npm run test:build-config` | Verify environment, reset and migration guards. |
 | `npm run build:deploy` | Validate target configuration and build deployment assets. |
@@ -60,6 +60,7 @@ not loaded. See [E2E setup](docs/markdowns/FRONTEND_INTEGRATION_TESTING.md).
 | `npm run smoke:deploy -- https://your-deployment.example` | Verify the deployed app shell and SPA fallback. |
 | `npm run analyze` | Generate `reports/bundle.html`. |
 | `npm run generate:api` | Regenerate the OpenAPI client. |
+| `npm run verify:api` | Regenerate the client and compare it with the current commit. |
 
 Authenticated E2E requires a dedicated synthetic Auth0 account and the opt-in,
 non-production BE fixed-account reset endpoint.
@@ -68,13 +69,19 @@ and startup sequence.
 
 ## API client generation
 
-Run `npm run generate:api` after the backend OpenAPI contract changes. The command reads
-`../moodly-backend/docs/api/json/moodly-openapi.json` and refreshes the committed files under
-`src/api/openapi/`.
+Frontend CI pins the backend commit in [ci.yml](.github/workflows/ci.yml).
+To reproduce the CI check locally, use the contract from that commit. The generator reads
+`../moodly-backend/docs/api/json/moodly-openapi.json` by default. Set `OPENAPI_INPUT` to use
+a copy of the pinned contract from another path.
 
-Files under `src/api/openapi/` are generated artifacts and must not be edited manually.
-Change the backend OpenAPI source, run the generator, then review and commit the generated
-diff together with the handwritten adapters that consume it.
+Run `npm run verify:api` before pushing changes to the generator or API client. This command
+rewrites `src/api/openapi/` and reports tracked changes against the current commit, including
+staged changes. Run `make verify` separately for the application checks.
+
+When adopting a new backend contract, update the pinned backend commit, run
+`npm run generate:api` with that contract, and review and commit the generated changes and
+any corresponding adapter changes in the same frontend PR. Make client changes through
+the contract or the generator configuration.
 
 ## Mutation retries
 
@@ -172,7 +179,10 @@ proxy; this Compose configuration is for local verification.
 CI builds with synthetic public configuration after quality checks, then checks
 health, SPA routes, asset delivery, caching and missing asset 404s. It does not
 publish or deploy an image. Real authenticated E2E remains a separate environment
-check. Dependabot tracks Docker base image updates, including pinned digests.
+check in the separate **Authenticated E2E** manual workflow, using the GitHub `test`
+environment and explicit synthetic-account write authorization. Ordinary PR checks
+contain only `quality` and `container`. See [E2E setup](docs/markdowns/FRONTEND_INTEGRATION_TESTING.md)
+for the manual procedure. Dependabot tracks Docker base image updates, including pinned digests.
 
 ### Container lifecycle
 

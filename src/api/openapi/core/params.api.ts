@@ -18,7 +18,7 @@ export type Field =
   | {
       in: Extract<Slot, 'body'>;
       /**
-       * Key isn't required for bodies.
+       * Key is not required for bodies.
        */
       key?: string;
       map?: string;
