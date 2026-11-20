@@ -8,7 +8,7 @@ test('public landing is available without authentication', async ({ page }) => {
 })
 
 test('a protected URL starts the Auth0 flow', async ({ page }) => {
-  const appOrigin = new URL(process.env.E2E_BASE_URL ?? 'http://127.0.0.1:4173').origin
+  const appOrigin = new URL(process.env.E2E_BASE_URL ?? 'http://127.0.0.1:5173').origin
   let authorizationUrl = ''
   await page.route('**/authorize**', async (route) => {
     authorizationUrl = route.request().url()
