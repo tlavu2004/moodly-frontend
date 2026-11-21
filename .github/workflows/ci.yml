@@ -18,6 +18,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: ${{ github.event_name == 'pull_request' && '0' || '1' }}
       - name: Check out backend API contract
         uses: actions/checkout@v4
         with:
@@ -38,6 +40,12 @@ jobs:
       - run: npm run build
       - run: npm run test:run
       - run: npm run test:coverage
+      - name: Summarize changed-line coverage
+        if: ${{ !cancelled() && github.event_name == 'pull_request' }}
+        continue-on-error: true
+        env:
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: python3 scripts/summarize-patch-coverage.py
       - run: npx playwright install --with-deps chromium
       - name: Public E2E on owned Vite test server
         run: npx playwright test --project=public
