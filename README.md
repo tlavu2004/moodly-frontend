@@ -85,6 +85,12 @@ Import the frontend repository into SonarQube Cloud and select CI-based analysis
 
 After Vitest coverage succeeds, the scanner imports LCOV on pushes to `main` and pull requests from this repository. The scan is advisory. GitHub branch protection can enforce a SonarQube check separately after the rollout is validated.
 
+### Codecov
+
+Enable the frontend repository in Codecov and add the `CODECOV_TOKEN` GitHub Actions repository secret. CI uploads Vitest LCOV on pushes to `main` and pull requests from this repository after coverage succeeds. Run a build on `main` first to establish a baseline.
+
+Codecov's project status and 85% patch target are informational. The PR job summary reports the four Moodly metrics separately, and Vitest enforces the project coverage thresholds.
+
 ## API client generation
 
 Frontend CI pins the backend commit in [ci.yml](.github/workflows/ci.yml).
