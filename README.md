@@ -79,6 +79,12 @@ The PR job summary uses the diff from the PR merge base to the tested checkout. 
 
 The summary displays `N/A` when a metric has no measurable units. PR targets are advisory. The Vitest thresholds control the required coverage gate.
 
+### SonarQube Cloud
+
+Import the frontend repository into SonarQube Cloud and select CI-based analysis. Disable Automatic Analysis for that project. Set the GitHub Actions repository variables `SONAR_ORGANIZATION` and `SONAR_PROJECT_KEY`, and store the analysis token as the `SONAR_TOKEN` repository secret.
+
+After Vitest coverage succeeds, the scanner imports LCOV on pushes to `main` and pull requests from this repository. The scan is advisory. GitHub branch protection can enforce a SonarQube check separately after the rollout is validated.
+
 ## API client generation
 
 Frontend CI pins the backend commit in [ci.yml](.github/workflows/ci.yml).

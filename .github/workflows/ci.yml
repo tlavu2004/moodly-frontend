@@ -19,7 +19,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: ${{ github.event_name == 'pull_request' && '0' || '1' }}
+          fetch-depth: ${{ (github.event_name == 'pull_request' || github.ref == 'refs/heads/main') && '0' || '1' }}
       - name: Check out backend API contract
         uses: actions/checkout@v4
         with:
@@ -46,6 +46,21 @@ jobs:
         env:
           PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: node --experimental-strip-types scripts/summarize-patch-coverage.ts
+      - name: Analyze with SonarQube Cloud
+        if: >-
+          ${{ success() && env.SONAR_TOKEN != '' &&
+              vars.SONAR_ORGANIZATION != '' && vars.SONAR_PROJECT_KEY != '' &&
+              ((github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) ||
+               (github.event_name == 'push' && github.ref == 'refs/heads/main')) }}
+        continue-on-error: true
+        uses: SonarSource/sonarqube-scan-action@d209202bc7d53ff1cc128f7f907dac145c9d6ae9 # v8.3.0
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: https://sonarcloud.io
+        with:
+          args: >-
+            -Dsonar.organization=${{ vars.SONAR_ORGANIZATION }}
+            -Dsonar.projectKey=${{ vars.SONAR_PROJECT_KEY }}
       - run: npx playwright install --with-deps chromium
       - name: Public E2E on owned Vite test server
         run: npx playwright test --project=public
