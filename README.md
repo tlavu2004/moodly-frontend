@@ -62,10 +62,22 @@ not loaded. See [E2E setup](docs/markdowns/FRONTEND_INTEGRATION_TESTING.md).
 | `npm run generate:api` | Regenerate the OpenAPI client. |
 | `npm run verify:api` | Regenerate the client and compare it with the current commit. |
 
-Authenticated E2E requires a dedicated synthetic Auth0 account and the opt-in,
-non-production BE fixed-account reset endpoint.
-See [E2E setup](docs/markdowns/FRONTEND_INTEGRATION_TESTING.md) for the required inputs
-and startup sequence.
+Authenticated E2E requires a dedicated synthetic Auth0 account and the opt-in, non-production BE fixed-account reset endpoint. See [E2E setup](docs/markdowns/FRONTEND_INTEGRATION_TESTING.md) for the required inputs and startup sequence.
+
+## Test Coverage
+
+Run `npm run test:coverage` locally. The GitHub Actions quality job runs the same command and Vitest enforces the following thresholds across the included frontend source files.
+
+| Metric | Required project coverage | Advisory PR target |
+| --- | ---: | ---: |
+| Line | 85% | 85% |
+| Branch | 75% | 75% |
+| Function | 85% | 85% |
+| Statement | 85% | 85% |
+
+The PR job summary uses the diff from the PR merge base to the tested checkout. Line and branch counts come from Vitest LCOV records on added or modified executable lines. Function and statement counts come from Vitest's JSON coverage report. A function or statement counts once if its reported source range overlaps the diff, including edits inside an existing function body. It is covered if its hit count is greater than zero.
+
+The summary displays `N/A` when a metric has no measurable units. PR targets are advisory. The Vitest thresholds control the required coverage gate.
 
 ## API client generation
 

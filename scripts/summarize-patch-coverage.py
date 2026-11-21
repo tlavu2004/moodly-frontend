@@ -1,3 +1,4 @@
+import json
 import os
 import re
 import subprocess
@@ -5,6 +6,37 @@ from collections import defaultdict
 from pathlib import Path
 
 REPORT = Path("coverage/lcov.info")
+DETAIL_REPORT = Path("coverage/coverage-final.json")
+
+
+def source_path(value):
+    path = Path(value.replace("\\", "/")).resolve()
+    try:
+        return path.relative_to(Path.cwd()).as_posix()
+    except ValueError:
+        return ""
+
+
+def detail_counts(changes):
+    counts = {"FUNCTION": [0, 0], "STATEMENT": [0, 0]}
+    for path, record in json.loads(DETAIL_REPORT.read_text(encoding="utf-8")).items():
+        changed = changes.get(source_path(path), ())
+        if not changed:
+            continue
+        for metric, locations, hits in (
+            ("FUNCTION", record["fnMap"], record["f"]),
+            ("STATEMENT", record["statementMap"], record["s"]),
+        ):
+            for identifier, location in locations.items():
+                span = location["loc"] if metric == "FUNCTION" else location
+                start = location["decl"]["start"]["line"] if metric == "FUNCTION" else span["start"]["line"]
+                end = span["end"]["line"]
+                if span["end"]["column"] == 0 and end > start:
+                    end -= 1
+                if any(start <= line <= end for line in changed):
+                    counts[metric][0] += hits[identifier] > 0
+                    counts[metric][1] += 1
+    return counts
 
 
 def coverage_rows(changes):
@@ -15,12 +47,7 @@ def coverage_rows(changes):
         for record in report:
             key, _, value = record.rstrip("\r\n").partition(":")
             if key == "SF":
-                path = Path(value.replace("\\", "/")).resolve()
-                try:
-                    path = path.relative_to(Path.cwd()).as_posix()
-                except ValueError:
-                    path = ""
-                changed = changes.get(path, ())
+                changed = changes.get(source_path(value), ())
                 line_hits.clear()
                 branch_hits.clear()
             elif key == "DA":
@@ -66,17 +93,20 @@ def changed_lines(base):
 
 def main():
     lines = ["## Coverage on changed lines", "",
-             "Advisory. Counts include changed source lines present in the coverage report.", ""]
-    if not REPORT.is_file():
+             "Advisory. Counts use changed executable lines and functions or statements that overlap the diff.", ""]
+    if not REPORT.is_file() or not DETAIL_REPORT.is_file():
         lines.append("Coverage report unavailable.")
     else:
         changes = changed_lines(os.environ["PR_BASE_SHA"])
         coverage = list(coverage_rows(changes))
+        details = detail_counts(changes)
         lines.extend(["| Metric | Covered | Total | Coverage | Target | Result |",
                       "| --- | ---: | ---: | ---: | ---: | --- |"])
         for name, target, covered, total in (
             ("LINE", 85, sum(row[0] for row in coverage), len(coverage)),
             ("BRANCH", 75, sum(row[1] for row in coverage), sum(row[2] for row in coverage)),
+            ("FUNCTION", 85, *details["FUNCTION"]),
+            ("STATEMENT", 85, *details["STATEMENT"]),
         ):
             percent = f"{covered / total:.2%}" if total else "N/A"
             result = "N/A" if not total else ("Pass" if covered * 100 >= target * total else "Below target")
