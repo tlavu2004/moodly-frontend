@@ -53,7 +53,7 @@ export default defineConfig(({ mode, command }) => {
       setupFiles: ['./src/test/setup.ts'],
       coverage: {
         provider: 'v8',
-        reporter: ['text', 'html', 'lcov'],
+        reporter: ['text', 'html', 'lcov', 'json'],
         include: ['src/**/*.{ts,tsx}'],
         exclude: ['src/api/openapi/**', 'src/main.tsx', 'src/test/**'],
         thresholds: {
