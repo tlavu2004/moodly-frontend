@@ -15,7 +15,7 @@ ARG VITE_API_BASE_URL
 ARG DEPLOY_ENV=test
 RUN MOODLY_ENV=$DEPLOY_ENV npm run build:deploy
 
-FROM nginx:1.30.6-alpine@sha256:583b7f2fce1cdb8da5ad5c39ebd3c33b98b87d493190e548bdee1fa8c619c311 AS runtime
+FROM nginx:1.31.0-alpine@sha256:2f07d83bf561b506400dc183b1b2003803e39efbd22451f848adaba14d28c7c7 AS runtime
 ARG DEPLOY_ENV=test
 ARG SOURCE_REVISION=unknown
 ARG IMAGE_VERSION=local
