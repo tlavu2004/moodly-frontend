@@ -3,19 +3,20 @@ import { vi } from 'vitest'
 import { normalizeApiError } from '../../../api/errors.ts'
 import { useTodayEntry } from './useTodayEntry.ts'
 
-const { client, getTodayEntry, getActiveHabits, saveMood, saveHabitLog } = vi.hoisted(() => ({
+const { client, getTodayEntry, listHabits, saveMood, saveHabitLog } = vi.hoisted(() => ({
   client: {},
   getTodayEntry: vi.fn(),
-  getActiveHabits: vi.fn(),
+  listHabits: vi.fn(),
   saveMood: vi.fn(),
   saveHabitLog: vi.fn(),
 }))
 vi.mock('../../../api/useApiClient.ts', () => ({ useApiClient: () => client }))
-vi.mock('../api/entriesApi.ts', () => ({ getTodayEntry, getActiveHabits, saveMood, saveHabitLog }))
+vi.mock('../api/entriesApi.ts', () => ({ getTodayEntry, saveMood, saveHabitLog }))
+vi.mock('../../habits/api/habitsApi.ts', () => ({ listHabits }))
 
 beforeEach(() => {
   vi.resetAllMocks()
-  getActiveHabits.mockResolvedValue([])
+  listHabits.mockResolvedValue([])
 })
 
 it.each([401, 500, 503])('normalizes Today load failures at HTTP %s', async (status) => {
@@ -27,12 +28,12 @@ it.each([401, 500, 503])('normalizes Today load failures at HTTP %s', async (sta
 })
 
 it('applies the saved mood and habit log while preserving the active habits', async () => {
-  const habits = [{ id: 'walk', name: 'Walk' }]
+  const habits = [{ id: 'walk', name: 'Walk', active: true }]
   const input = { score: 4, note: 'A good day' }
   const savedMood = { mood: input }
   const savedLog = { ...savedMood, habitLogs: [{ habitId: 'walk', done: true }] }
   getTodayEntry.mockResolvedValue(null)
-  getActiveHabits.mockResolvedValue(habits)
+  listHabits.mockResolvedValue(habits)
   saveMood.mockResolvedValue(savedMood)
   saveHabitLog.mockResolvedValue(savedLog)
   const { result } = renderHook(() => useTodayEntry())
@@ -43,6 +44,21 @@ it('applies the saved mood and habit log while preserving the active habits', as
   expect(result.current.entry).toEqual(savedMood)
 
   await act(() => result.current.toggleHabit('walk', true))
-  expect(saveHabitLog).toHaveBeenCalledWith(client, 'walk', true, expect.any(AbortSignal))
+  expect(saveHabitLog).toHaveBeenCalledWith(client, 'walk', true, expect.any(AbortSignal), undefined)
   expect(result.current).toMatchObject({ entry: savedLog, habits })
+})
+
+it('keeps notes on completion changes and only offers archived habits with existing logs', async () => {
+  const active = { id: 'walk', active: true }
+  const archived = { id: 'read', active: false }
+  const entry = { habits: [{ habitId: 'read', done: false, note: 'One page' }] }
+  listHabits.mockResolvedValue([active, archived, { id: 'run', active: false }])
+  getTodayEntry.mockResolvedValue(entry)
+  saveHabitLog.mockResolvedValue(entry)
+  const { result } = renderHook(() => useTodayEntry())
+  await waitFor(() => expect(result.current.habits).toEqual([active, archived]))
+  await act(() => result.current.toggleHabit('read', true))
+  expect(saveHabitLog).toHaveBeenLastCalledWith(client, 'read', true, expect.any(AbortSignal), 'One page')
+  await act(() => result.current.toggleHabit('read', false, null))
+  expect(saveHabitLog).toHaveBeenLastCalledWith(client, 'read', false, expect.any(AbortSignal), null)
 })

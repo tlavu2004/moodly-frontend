@@ -26,8 +26,8 @@ export async function saveMood(client: ApiClient, body: SetMoodRequest, signal?:
   return result.data.data
 }
 
-export async function saveHabitLog(client: ApiClient, habitId: string, done: boolean, signal?: AbortSignal): Promise<DailyEntry> {
-  const result = await updateTodayHabit({ client, signal, body: { habitId, done }, throwOnError: true })
+export async function saveHabitLog(client: ApiClient, habitId: string, done: boolean, signal?: AbortSignal, note?: string | null): Promise<DailyEntry> {
+  const result = await updateTodayHabit({ client, signal, body: { habitId, done, note }, throwOnError: true })
   if (!result.data.data) throw new Error('The habit response was empty.')
   return result.data.data
 }

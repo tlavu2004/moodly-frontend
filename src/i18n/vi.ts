@@ -1,4 +1,12 @@
 export const vi: Record<string, string> = {
+  'Archived': 'Đã lưu trữ',
+  'Habit note': 'Ghi chú thói quen',
+  'Edit habit note': 'Sửa ghi chú thói quen',
+  'Add habit note': 'Thêm ghi chú thói quen',
+  'Save note': 'Lưu ghi chú',
+  'Remove note': 'Xóa ghi chú',
+  'Habit note saved.': 'Đã lưu ghi chú thói quen.',
+  'Habit note removed.': 'Đã xóa ghi chú thói quen.',
   'Edit habit': 'Sửa thói quen',
   'Save habit': 'Lưu thói quen',
   'Archive': 'Lưu trữ',
