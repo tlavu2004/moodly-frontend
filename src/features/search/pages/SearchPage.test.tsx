@@ -53,7 +53,8 @@ describe('SearchPage', () => {
       error: null,
     })
     const { container } = renderPage('/search?q=walk')
-    expect(screen.getByText('<img src=x onerror=alert(1)>')).toBeInTheDocument()
+    expect(screen.getByText('Mood note').parentElement).toHaveTextContent('<img src=x onerror=alert(1)>')
+    expect(container.querySelector('mark')).toHaveTextContent('<im')
     expect(container.querySelector('img')).toBeNull()
     expect(screen.getByRole('link', { name: 'View in journal' })).toHaveAttribute('href', '/entries?from=2026-09-20&to=2026-09-20')
   })

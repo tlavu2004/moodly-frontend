@@ -31,15 +31,14 @@ export function TodayPage() {
   const mood = entry?.mood
   const savedScore = mood?.score
   const savedNote = mood?.note
-  const savedTags = JSON.stringify(mood?.tags ?? [])
-  useEffect(() => {
-    if (savedScore === undefined) return
-    queueMicrotask(() => {
-      setScore(savedScore)
-      setNote(savedNote ?? '')
-      setSelectedTags(JSON.parse(savedTags) as string[])
-    })
-  }, [savedScore, savedNote, savedTags])
+  const [savedMoodKey, setSavedMoodKey] = useState<string | undefined>(undefined)
+  const moodKey = mood ? JSON.stringify(mood) : undefined
+  if (moodKey !== undefined && moodKey !== savedMoodKey) {
+    setSavedMoodKey(moodKey)
+    setScore(savedScore ?? null)
+    setNote(savedNote ?? '')
+    setSelectedTags(mood?.tags ?? [])
+  }
   const logs = new Map(entry?.habits?.map((log) => [log.habitId, log]))
   const activeHabits = habits.filter((habit) => habit.active)
   const completed = activeHabits.filter((habit) => logs.get(habit.id)?.done).length

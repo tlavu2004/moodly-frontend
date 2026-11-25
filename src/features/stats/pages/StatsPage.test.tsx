@@ -34,11 +34,14 @@ describe('StatsPage', () => {
   it('maps missed habit IDs to names and safely falls back for unknown IDs', () => {
     vi.mocked(useStats).mockReturnValue(state({
       missed: [{ habitId: 'habit-1', missedCount: 3 }, { habitId: 'unknown', missedCount: 1 }],
-      habits: [habit],
+      habits: [{ ...habit, active: false }],
     }))
     render(<StatsPage />)
     expect(screen.getByText('1. Morning walk')).toBeInTheDocument()
     expect(screen.getByText('2. Habit')).toBeInTheDocument()
+    expect(screen.getByText('All recorded history')).toBeInTheDocument()
+    expect(screen.getByText('This week, Monday to Sunday')).toBeInTheDocument()
+    expect(screen.getByText('Active habits').closest('article')).toHaveTextContent('0')
   })
 
   it('renders a one-point chart safely', () => {

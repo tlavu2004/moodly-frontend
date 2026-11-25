@@ -18,13 +18,19 @@ describe('EntriesPage', () => {
   })
 
   it('renders an entry that contains habit logs without a mood', () => {
-    vi.mocked(useEntries).mockReturnValue({ reload: vi.fn(), retryAt: null, habits: [], habitError: null, reloadHabits: vi.fn(), habitRetryAt: null,
-      entries: [{ id: 'entry-1', userId: 'user-1', date: '2026-09-20', habits: [{ habitId: 'habit-1', done: true }], createdAt: '', updatedAt: '' }],
+    vi.mocked(useEntries).mockReturnValue({ reload: vi.fn(), retryAt: null, habits: [{ id: 'habit-1', userId: 'user-1', name: 'Renamed reading', icon: 'book', active: false, version: 2, targetFrequency: 'DAILY' }], habitError: null, reloadHabits: vi.fn(), habitRetryAt: null,
+      entries: [{ id: 'entry-1', userId: 'user-1', date: '2026-09-20', habits: [{ habitId: 'habit-1', done: true, note: 'One page' }, { habitId: 'missing', done: false }], createdAt: '', updatedAt: '' }],
       totalElements: 1, totalPages: 1, isLoading: false,
       error: null,
     })
     render(<MemoryRouter><EntriesPage /></MemoryRouter>)
     expect(screen.getByText('Habit check-in')).toBeInTheDocument()
     expect(screen.getByText('1 habits complete')).toBeInTheDocument()
+    expect(screen.getByText('Renamed reading')).toBeInTheDocument()
+    expect(screen.getByText('📖')).toBeInTheDocument()
+    expect(screen.getByText('Completed')).toBeInTheDocument()
+    expect(screen.getByText('One page')).toBeInTheDocument()
+    expect(screen.getByText('Unknown habit')).toBeInTheDocument()
+    expect(screen.getByText('Incomplete')).toBeInTheDocument()
   })
 })

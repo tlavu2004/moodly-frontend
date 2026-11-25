@@ -62,3 +62,20 @@ it('keeps notes on completion changes and only offers archived habits with exist
   await act(() => result.current.toggleHabit('read', false, null))
   expect(saveHabitLog).toHaveBeenLastCalledWith(client, 'read', false, expect.any(AbortSignal), null)
 })
+
+it('refreshes and removes a newly archived habit after a rejected log creation without retrying', async () => {
+  const habit = { id: 'read', active: true }
+  listHabits.mockResolvedValueOnce([habit]).mockResolvedValueOnce([{ ...habit, active: false }])
+  getTodayEntry.mockResolvedValue(null)
+  saveHabitLog.mockRejectedValueOnce(normalizeApiError({
+    success: false, error: { code: 'HABIT_ARCHIVED', message: 'Archived' },
+  }, new Response(null, { status: 409 })))
+  const { result } = renderHook(() => useTodayEntry())
+  await waitFor(() => expect(result.current.habits).toEqual([habit]))
+  await act(async () => {
+    await expect(result.current.toggleHabit('read', false, 'Draft')).rejects.toThrow('Archived')
+  })
+  await waitFor(() => expect(result.current.isLoading).toBe(false))
+  expect(result.current.habits).toEqual([])
+  expect(saveHabitLog).toHaveBeenCalledOnce()
+})

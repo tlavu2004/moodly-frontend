@@ -1,6 +1,7 @@
 import { vi } from 'vitest'
 
 const sdk = vi.hoisted(() => ({
+  archive: vi.fn(), restore: vi.fn(), update: vi.fn(), delete_: vi.fn(),
   confirm: vi.fn(), create: vi.fn(), current: vi.fn(), currentStreak: vi.fn(),
   findBetween: vi.fn(), findByStatus: vi.fn(), getDashboard: vi.fn(), moodTrend: vi.fn(),
   mostMissedHabits: vi.fn(), search: vi.fn(), setTodayMood: vi.fn(), signature: vi.fn(),
@@ -38,17 +39,17 @@ describe('feature API adapters', () => {
   })
 
   it('unwraps entry lists, today data, and mutation responses safely', async () => {
-    const { getActiveHabits, getEntriesPage, getTodayEntry, saveHabitLog, saveMood } = await import('../features/entries/api/entriesApi.ts')
+    const { getEntriesPage, getTodayEntry, saveHabitLog, saveMood } = await import('../features/entries/api/entriesApi.ts')
     sdk.findBetween.mockResolvedValue(envelope(undefined))
     sdk.findByStatus.mockResolvedValue(envelope(undefined))
     sdk.today.mockResolvedValue(envelope(undefined))
     await expect(getEntriesPage(client, '2026-09-01', '2026-09-22', 0)).rejects.toThrow('entries response was empty')
-    await expect(getActiveHabits(client)).resolves.toEqual([])
     await expect(getTodayEntry(client)).resolves.toBeNull()
     sdk.setTodayMood.mockResolvedValue(envelope({ id: 'entry-1' }))
     sdk.updateTodayHabit.mockResolvedValue(envelope({ id: 'entry-1' }))
     await expect(saveMood(client, { score: 4 })).resolves.toMatchObject({ id: 'entry-1' })
-    await expect(saveHabitLog(client, 'habit-1', true)).resolves.toMatchObject({ id: 'entry-1' })
+    await expect(saveHabitLog(client, 'habit-1', false, undefined, null)).resolves.toMatchObject({ id: 'entry-1' })
+    expect(sdk.updateTodayHabit).toHaveBeenLastCalledWith(expect.objectContaining({ body: { habitId: 'habit-1', done: false, note: null } }))
     sdk.setTodayMood.mockResolvedValue(envelope(undefined))
     await expect(saveMood(client, { score: 4 })).rejects.toThrow('response was empty')
   })
@@ -81,4 +82,31 @@ it('preserves totals and requests later pages for entries and search', async () 
   await expect(searchEntriesPage(client, { q: 'walk' }, 1)).resolves.toEqual(page)
   expect(sdk.findBetween).toHaveBeenLastCalledWith(expect.objectContaining({ query: { from: '2026-09-01', to: '2026-09-30', page: 1, size: 20 } }))
   expect(sdk.search).toHaveBeenLastCalledWith(expect.objectContaining({ query: { q: 'walk', page: 1, size: 20 } }))
+})
+
+it('sends the supplied habit version on update, archive, and restore', async () => {
+  const { changeHabit } = await import('../features/habits/api/habitsApi.ts')
+  const signal = new AbortController().signal
+  const edited = { ...habit, name: 'Read', icon: 'book', version: 4 }
+  const archived = { ...edited, active: false, version: 5 }
+  const restored = { ...archived, active: true, version: 6 }
+  sdk.update.mockResolvedValue(envelope(edited))
+  sdk.archive.mockResolvedValue(envelope(archived))
+  sdk.restore.mockResolvedValue(envelope(restored))
+  await expect(changeHabit(client, { ...habit, version: 3 }, { name: 'Read', icon: 'book' }, signal)).resolves.toBe(edited)
+  await expect(changeHabit(client, edited, 'archive', signal)).resolves.toBe(archived)
+  await expect(changeHabit(client, archived, 'restore', signal)).resolves.toBe(restored)
+  const path = { habitId: habit.id }
+  expect(sdk.update).toHaveBeenLastCalledWith(expect.objectContaining({ path, body: { name: 'Read', icon: 'book', version: 3 } }))
+  expect(sdk.archive).toHaveBeenLastCalledWith(expect.objectContaining({ path, body: { version: 4 } }))
+  expect(sdk.restore).toHaveBeenLastCalledWith(expect.objectContaining({ path, body: { version: 5 } }))
+})
+
+it('uses the cleared avatar returned by DELETE', async () => {
+  const { removeAvatar } = await import('../features/profile/api/profileApi.ts')
+  const signal = new AbortController().signal
+  const cleared = {}
+  sdk.delete_.mockResolvedValue(envelope(cleared))
+  await expect(removeAvatar(client, signal)).resolves.toBe(cleared)
+  expect(sdk.delete_).toHaveBeenLastCalledWith({ client, signal, throwOnError: true })
 })

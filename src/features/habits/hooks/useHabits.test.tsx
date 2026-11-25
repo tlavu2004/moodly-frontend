@@ -1,6 +1,6 @@
 import { act, renderHook, waitFor } from '@testing-library/react'
 import { vi } from 'vitest'
-import { ApiRequestError } from '../../../api/errors.ts'
+import { normalizeApiError } from '../../../api/errors.ts'
 import { useHabits } from './useHabits.ts'
 
 const { client, changeHabitMock, createHabitMock, listHabitsMock, listHabitStreaksMock } = vi.hoisted(() => ({
@@ -51,9 +51,7 @@ it('reloads on conflict and uses the refreshed version on an explicit resubmissi
   const original = { id: 'habit-1', name: 'Walk', active: true, version: 1 }
   const latest = { ...original, name: 'Morning walk', version: 2 }
   listHabitsMock.mockReset().mockResolvedValueOnce([original]).mockResolvedValue([latest])
-  changeHabitMock.mockReset().mockRejectedValueOnce(new ApiRequestError({
-    status: 409, message: 'Conflict', error: { code: 'HABIT_CONFLICT' },
-  })).mockResolvedValueOnce({ ...latest, active: false, version: 3 })
+  changeHabitMock.mockReset().mockRejectedValueOnce(normalizeApiError({ success: false, error: { code: 'HABIT_CONFLICT', message: 'Conflict' } }, new Response(null, { status: 409 }))).mockResolvedValueOnce({ ...latest, active: false, version: 3 })
   const { result } = renderHook(() => useHabits())
   await waitFor(() => expect(result.current.habits).toEqual([original]))
   await act(async () => {

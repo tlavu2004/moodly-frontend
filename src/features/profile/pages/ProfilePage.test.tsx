@@ -54,3 +54,18 @@ describe('ProfilePage', () => {
     expect(screen.getByText('1.00 MB')).toBeInTheDocument()
   })
 })
+
+it('removes a custom photo and renders the Auth0 fallback when the server clears it', async () => {
+  vi.mocked(useAuth0).mockReturnValue({ user: { name: 'Mai Nguyen', picture: 'https://auth.example/avatar.jpg' }, logout: vi.fn() } as unknown as ReturnType<typeof useAuth0>)
+  const remove = vi.fn().mockResolvedValue(undefined)
+  const state = { reload: vi.fn(), retryAt: null, isLoading: false, isUploading: false, error: null, upload, isRemoving: false, remove }
+  vi.mocked(useAvatar).mockReturnValue({ ...state, avatar: { deliveryUrl: 'https://cdn.example/custom.png' } })
+  const { rerender } = render(<ProfilePage />)
+  expect(screen.getByRole('img')).toHaveAttribute('src', 'https://cdn.example/custom.png')
+  await userEvent.click(screen.getByRole('button', { name: 'Remove photo' }))
+  expect(remove).toHaveBeenCalledOnce()
+  vi.mocked(useAvatar).mockReturnValue({ ...state, avatar: {} })
+  rerender(<ProfilePage />)
+  expect(screen.getByRole('img')).toHaveAttribute('src', 'https://auth.example/avatar.jpg')
+  expect(screen.queryByRole('button', { name: 'Remove photo' })).toBeNull()
+})

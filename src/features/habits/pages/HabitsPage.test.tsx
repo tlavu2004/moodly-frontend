@@ -84,3 +84,28 @@ describe('HabitsPage', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('already exists')
   })
 })
+
+it('edits a name and icon and exposes archive and restore controls', async () => {
+  const change = vi.fn()
+  vi.mocked(useHabits).mockReturnValue(state({
+    habits: [habit],
+    archived: [{ ...habit, id: 'archived', name: 'Reading', active: false }],
+    change,
+  }))
+  const user = userEvent.setup()
+  render(<HabitsPage />)
+  expect(screen.queryByRole('button', { name: 'Restore' })).toBeNull()
+  await user.click(screen.getByRole('button', { name: 'Edit habit' }))
+  const name = screen.getByLabelText('Habit name')
+  expect(name).toHaveFocus()
+  await user.clear(name)
+  await user.type(name, 'Walk outside')
+  await user.click(screen.getByRole('button', { name: 'Use 🌿 icon' }))
+  await user.click(screen.getByRole('button', { name: 'Save habit' }))
+  expect(change).toHaveBeenCalledWith(habit.id, { name: 'Walk outside', icon: '🌿' })
+  await user.click(screen.getByRole('button', { name: 'Archive' }))
+  expect(change).toHaveBeenCalledWith(habit.id, 'archive')
+  await user.click(screen.getByRole('button', { name: 'Archived habits' }))
+  await user.click(screen.getByRole('button', { name: 'Restore' }))
+  expect(change).toHaveBeenCalledWith('archived', 'restore')
+})
