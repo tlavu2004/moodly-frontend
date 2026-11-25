@@ -1,4 +1,9 @@
 export const vi: Record<string, string> = {
+  'Average mood this week': 'Tâm trạng trung bình tuần này',
+  'Mood check-ins this week': 'Lượt ghi tâm trạng tuần này',
+  'This week, Monday to Sunday': 'Tuần này, từ thứ Hai đến Chủ nhật',
+  'All recorded history': 'Toàn bộ lịch sử đã ghi',
+  'Counts logs marked incomplete.': 'Đếm các lượt ghi được đánh dấu chưa hoàn thành.',
   'Remove photo': 'Xóa ảnh đại diện',
   'Removing photo…': 'Đang xóa ảnh đại diện…',
   'Unable to remove the photo.': 'Không thể xóa ảnh đại diện.',
