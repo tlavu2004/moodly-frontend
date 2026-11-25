@@ -1,4 +1,8 @@
 export const vi: Record<string, string> = {
+  'Unknown habit': 'Thói quen không xác định',
+  'Completed': 'Đã hoàn thành',
+  'Incomplete': 'Chưa hoàn thành',
+  'Unable to load habit names.': 'Không tải được tên thói quen.',
   'Archived': 'Đã lưu trữ',
   'Habit note': 'Ghi chú thói quen',
   'Edit habit note': 'Sửa ghi chú thói quen',
