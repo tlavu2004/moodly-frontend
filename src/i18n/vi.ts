@@ -1,4 +1,9 @@
 export const vi: Record<string, string> = {
+  'Mood note': 'Ghi chú tâm trạng',
+  'Habit log note': 'Ghi chú lượt ghi thói quen',
+  'Mood tag': 'Thẻ tâm trạng',
+  'Search match': 'Nội dung khớp',
+
   'Average mood this week': 'Tâm trạng trung bình tuần này',
   'Mood check-ins this week': 'Lượt ghi tâm trạng tuần này',
   'This week, Monday to Sunday': 'Tuần này, từ thứ Hai đến Chủ nhật',
