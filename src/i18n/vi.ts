@@ -1,4 +1,11 @@
 export const vi: Record<string, string> = {
+  'Edit habit': 'Sửa thói quen',
+  'Save habit': 'Lưu thói quen',
+  'Archive': 'Lưu trữ',
+  'Restore': 'Khôi phục',
+  'Archived habits': 'Thói quen đã lưu trữ',
+  'No archived habits.': 'Chưa có thói quen nào được lưu trữ.',
+
   "Create your Moodly space": "Tạo không gian Moodly của bạn",
   "Welcome back to Moodly": "Chào mừng bạn trở lại Moodly",
   "A small moment for your moods, habits, and reflections.": "Một chút thời gian cho tâm trạng, thói quen và suy ngẫm của bạn.",

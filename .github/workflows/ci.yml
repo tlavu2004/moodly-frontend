@@ -22,7 +22,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: tlavu2004/moodly-backend
-          ref: b80c3103e84cbbfea565ed3d2706f60abacf3425
+          ref: 5038c9660aaf787a59e39c1e2313a98c957e9581
           path: moodly-backend
       - uses: actions/setup-node@v4
         with:
