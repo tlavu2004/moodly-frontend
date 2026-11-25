@@ -2,12 +2,12 @@ import { act, renderHook, waitFor } from '@testing-library/react'
 import { vi } from 'vitest'
 import { ApiRequestError } from '../../../api/errors.ts'
 import type { AvatarResponse } from '../../../api/openapi/types.api.ts'
-import { getAvatar, uploadAvatar } from '../api/profileApi.ts'
+import { getAvatar, removeAvatar, uploadAvatar } from '../api/profileApi.ts'
 import { useAvatar } from './useAvatar.ts'
 
 const client = {}
 vi.mock('../../../api/useApiClient.ts', () => ({ useApiClient: () => client }))
-vi.mock('../api/profileApi.ts', () => ({ getAvatar: vi.fn(), uploadAvatar: vi.fn() }))
+vi.mock('../api/profileApi.ts', () => ({ getAvatar: vi.fn(), removeAvatar: vi.fn(), uploadAvatar: vi.fn() }))
 
 const previousAvatar = { publicId: 'previous' }
 const file = new File(['image'], 'avatar.png', { type: 'image/png' })
@@ -71,4 +71,12 @@ describe('useAvatar', () => {
 
     expect(result.current).toMatchObject({ avatar: previousAvatar, isUploading: false, error: null })
   })
+})
+
+it('replaces old avatar metadata with the cleared response', async () => {
+  vi.mocked(removeAvatar).mockResolvedValue({})
+  const { result } = await renderLoadedAvatar()
+  await act(() => result.current.remove())
+  expect(removeAvatar).toHaveBeenCalledWith(client, expect.any(AbortSignal))
+  expect(result.current.avatar).toEqual({})
 })

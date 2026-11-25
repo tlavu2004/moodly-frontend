@@ -1,4 +1,5 @@
 import { t, useLocale, formatNumber } from '../../../i18n/index.ts'
+import { habitIcon } from '../../habits/habitIcon.ts'
 import { RequestRetry } from '../../../components/ui/RequestRetry.tsx'
 import { useEffect, useRef, useState } from 'react'
 import { getUserFacingError } from '../../../api/errorMessages.ts'
@@ -116,7 +117,7 @@ export function TodayPage() {
             <button type="button" aria-pressed={done} disabled={pending}
               className="flex min-h-11 w-full items-center gap-4 rounded-control text-left disabled:opacity-70"
               onClick={() => void changeHabit(habit.id, !done)}>
-              <span aria-hidden="true" className="grid size-11 place-items-center rounded-xl bg-surface-muted text-xl">{habit.icon || '🌿'}</span>
+              <span aria-hidden="true" className="grid size-11 place-items-center rounded-xl bg-surface-muted text-xl">{habitIcon(habit.icon)}</span>
               <span className={`flex-1 font-semibold ${done ? 'text-foreground-muted line-through' : ''}`}>{habit.name}</span>
               <span className={`grid size-7 place-items-center rounded-full ${done ? 'bg-success text-success-foreground' : 'border-2 border-border'}`} aria-hidden="true">
                 {done && <Icon name="check" className="size-4" />}

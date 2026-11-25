@@ -1,4 +1,8 @@
 export const vi: Record<string, string> = {
+  'Remove photo': 'Xóa ảnh đại diện',
+  'Removing photo…': 'Đang xóa ảnh đại diện…',
+  'Unable to remove the photo.': 'Không thể xóa ảnh đại diện.',
+  'The avatar response was empty.': 'Phản hồi ảnh đại diện trống.',
   'Unknown habit': 'Thói quen không xác định',
   'Completed': 'Đã hoàn thành',
   'Incomplete': 'Chưa hoàn thành',

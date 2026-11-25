@@ -1,4 +1,5 @@
 import { t, useLocale, formatNumber, formatDate, countMessage } from '../../../i18n/index.ts'
+import { habitIcon } from '../../habits/habitIcon.ts'
 import { RequestRetry } from '../../../components/ui/RequestRetry.tsx'
 import { readPage } from '../../../utils/pagination.ts'
 import { Pagination } from '../../../components/ui/Pagination.tsx'
@@ -25,7 +26,7 @@ export function EntriesPage() {
         const habit = habitsById.get(log.habitId)
         return <li key={log.habitId} className="text-sm">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-            <span aria-hidden="true">{habit?.icon || '🌿'}</span>
+            <span aria-hidden="true">{habitIcon(habit?.icon)}</span>
             <span className="font-semibold">{habit?.name ?? t('Unknown habit')}</span>
             <span className="text-foreground-muted">{t(log.done ? 'Completed' : 'Incomplete')}</span>
           </div>
