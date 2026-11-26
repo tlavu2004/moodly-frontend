@@ -1,45 +1,21 @@
-# Local/test architecture alignment review — 2026-11-14
+# Local/Test Architecture Alignment Review — 2026-11-14
 
-> Historical review: port/configuration and reset requirements below record an earlier design.
-> Current workstation setup is documented in
-> [Running FE and BE](../markdowns/RUNNING_FE_AND_BE.md) and
-> [E2E configuration](../markdowns/FRONTEND_INTEGRATION_TESTING.md).
+> Historical review: port/configuration and reset requirements below record an earlier design. Current workstation setup is documented in [Running FE and BE](../markdowns/RUNNING_FE_AND_BE.md) and [E2E configuration](../markdowns/FRONTEND_INTEGRATION_TESTING.md).
 
-Branch: `chore/align-local-test-environments`. Scope: frontend repository only.
-No AGENTS.md was found in the repository or checked ancestor directories.
-No real env file was inspected/edited, hosted setting changed, deployment performed,
-BE repository modified, reset sent, volume removed or BE service stopped.
+Branch: `chore/align-local-test-environments`. Scope: frontend repository only. No AGENTS.md was found in the repository or checked ancestor directories. No real env file was inspected/edited, hosted setting changed, deployment performed, BE repository modified, reset sent, volume removed or BE service stopped.
 
-## Findings and changes
+## Findings and Changes
 
-- Compose previously derived separate projects from MOODLY_ENV, including
-  `moodly-frontend-test`. It now declares `moodly-frontend-local`; Make explicitly
-  uses that project for all environments. No legacy stack was discovered or removed.
-- Keep all three env templates and separate local/test files. Make local-run/test-run
-  explicitly select their own environment. Local origin is now consistently
-  `http://127.0.0.1:5173`; test uses `http://127.0.0.1:4173`. Coordinate this exact
-  local origin with Auth0/CORS owners before authenticated local use.
-- Build validation previously always read production files. Deploy build now passes
-  one selected environment through validation and Vite. Configured dev/build paths
-  reject Docker-only API hostnames. Only the four documented public VITE variables
-  are injected; implicit VITE prefix exposure is disabled. No runtime-config scheme
-  was introduced: changing static public config requires rebuilding.
-- Playwright previously inferred remote from E2E_BASE_URL and reused an occupied
-  server outside CI. It now selects dev/container/remote explicitly, never reuses
-  the owned dev server, and checks build-time identity before any browser scenario.
-- Auth storage uses a new directory per invocation, fresh contexts and a dedicated
-  test account. Teardown removes only the current run's known auth files.
-- Token-only reset was unsafe evidence of cleanup authority. The new client refuses
-  authentication/reset without BE attestation of test environment, protected namespace,
-  exact endpoints, scoped cleanup and the exact dedicated test account email. BE must
-  enforce that contract on POST; client assertions cannot provide server isolation.
-- Nginx remains non-root/read-only with tmpfs, dropped capabilities, health and cache
-  checks. Build identity JSON is public and uncached. Vercel's source routing exempts
-  this static file; hosted behavior was not exercised.
-- CI separately tests public Vite and Nginx. Hosted authenticated writes require an
-  explicit opt-in workflow_dispatch input, plus the protected namespace contract.
+- Compose previously derived separate projects from MOODLY_ENV, including `moodly-frontend-test`. It now declares `moodly-frontend-local`; Make explicitly uses that project for all environments. No legacy stack was discovered or removed.
+- Keep all three env templates and separate local/test files. Make local-run/test-run explicitly select their own environment. Local origin is now consistently `http://127.0.0.1:5173`; test uses `http://127.0.0.1:4173`. Coordinate this exact local origin with Auth0/CORS owners before authenticated local use.
+- Build validation previously always read production files. Deploy build now passes one selected environment through validation and Vite. Configured dev/build paths reject Docker-only API hostnames. Only the four documented public VITE variables are injected; implicit VITE prefix exposure is disabled. No runtime-config scheme was introduced: changing static public config requires rebuilding.
+- Playwright previously inferred remote from E2E_BASE_URL and reused an occupied server outside CI. It now selects dev/container/remote explicitly, never reuses the owned dev server, and checks build-time identity before any browser scenario.
+- Auth storage uses a new directory per invocation, fresh contexts and a dedicated test account. Teardown removes only the current run's known auth files.
+- Token-only reset was unsafe evidence of cleanup authority. The new client refuses authentication/reset without BE attestation of test environment, protected namespace, exact endpoints, scoped cleanup and the exact dedicated test account email. BE must enforce that contract on POST; client assertions cannot provide server isolation.
+- Nginx remains non-root/read-only with tmpfs, dropped capabilities, health and cache checks. Build identity JSON is public and uncached. Vercel's source routing exempts this static file; hosted behavior was not exercised.
+- CI separately tests public Vite and Nginx. Hosted authenticated writes require an explicit opt-in workflow_dispatch input, plus the protected namespace contract.
 
-## File disposition
+## File Disposition
 
 No file was deleted and no framework migrated.
 
@@ -52,14 +28,11 @@ No file was deleted and no framework migrated.
 | Retained, updated CI/docs | `.github/workflows/ci.yml`, `README.md`, `docs/markdowns/FRONTEND_INTEGRATION_TESTING.md` |
 | Audited, unchanged | API client, Auth0 provider/cache/logout, unit/component tests, bundle budget script, image identity and postdeploy scripts, Docker ignore rules |
 
-The integration document now describes the current contract rather than presenting
-historical authenticated results as evidence for the new architecture. Broad docs
-language cleanup and historical checklist rewrites were excluded.
+The integration document now describes the current contract rather than presenting historical authenticated results as evidence for the new architecture. Broad docs language cleanup and historical checklist rewrites were excluded.
 
-## Verification results
+## Verification Results
 
-All workstation checks used explicit synthetic public configuration. Node host:
-24.22.2; Docker builder: pinned Node 22 image. No real credential was loaded.
+All workstation checks used explicit synthetic public configuration. Node host: 24.22.2; Docker builder: pinned Node 22 image. No real credential was loaded.
 
 | Check | Result |
 | --- | --- |
@@ -80,20 +53,10 @@ All workstation checks used explicit synthetic public configuration. Node host:
 | Hosted/authenticated E2E | NOT RUN; no authorization for hosted writes; protected BE contract and valid credentials not verified |
 | CI execution / hosted routing | NOT RUN; workflow updated, local checks only |
 
-The temporary lifecycle test was removed after observation. The initial sandboxed
-Vite attempt could not open its listener; public checks passed outside the sandbox.
-Docker npm ci reported 13 moderate vulnerabilities; dependency remediation is outside
-this change. No migration/audit fix was applied.
+The temporary lifecycle test was removed after observation. The initial sandboxed Vite attempt could not open its listener; public checks passed outside the sandbox. Docker npm ci reported 13 moderate vulnerabilities; dependency remediation is outside this change. No migration/audit fix was applied.
 
-FE container was stopped after verification; image, container and network retained.
-No routine down or exit-time BE cleanup was added. Force-kill/power loss can bypass
-teardown; ignored auth remnants must be protected and are never reused by new runs.
+FE container was stopped after verification; image, container and network retained. No routine down or exit-time BE cleanup was added. Force-kill/power loss can bypass teardown; ignored auth remnants must be protected and are never reused by new runs.
 
-## Commands, matrix and BE follow-up
+## Commands, Matrix and BE Follow-Up
 
-See [the integration contract](../markdowns/FRONTEND_INTEGRATION_TESTING.md) for the
-full origin/API matrix, commands, exact required reset response and BE acceptance
-checks. Required coordination: BE project ownership; separately published browser
-local/test API URLs; exact CORS origins; isolated test database/search namespace and
-subject; namespace-scoped reset credential; test-only attestation/reset enforcement;
-Auth0 owner confirmation of callback/logout/web origins and dedicated test account.
+See [the integration contract](../markdowns/FRONTEND_INTEGRATION_TESTING.md) for the full origin/API matrix, commands, exact required reset response and BE acceptance checks. Required coordination: BE project ownership; separately published browser local/test API URLs; exact CORS origins; isolated test database/search namespace and subject; namespace-scoped reset credential; test-only attestation/reset enforcement; Auth0 owner confirmation of callback/logout/web origins and dedicated test account.

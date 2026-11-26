@@ -1,40 +1,33 @@
-# Hướng dẫn chạy Moodly FE và BE
+# Running the Moodly Frontend and Backend
 
-## 1. Chọn cách chạy
+## 1. Choose a Setup
 
-Hai repo nằm cùng cấp: `moodly-frontend/` và `moodly-backend/`.
-Mỗi lệnh `make` phải chạy tại root của đúng repo. Makefile FE không quản lý BE.
+Keep `moodly-frontend/` and `moodly-backend/` as sibling repositories. Run each `make` command from the root of the relevant repository. The frontend Makefile manages the frontend only.
 
-| Mục đích | MongoDB + Elasticsearch | BE | FE |
+| Use Case | MongoDB and Elasticsearch | Backend | Frontend |
 | --- | --- | --- | --- |
-| Sửa code hằng ngày (khuyến nghị) | Docker, BE quản lý | Java trên máy/IDE | Vite trên máy |
-| Kiểm tra bản build FE | Docker hoặc dịch vụ sẵn có | Java hoặc container | Container Nginx |
-| Kiểm tra cả hai image ứng dụng | Docker hoặc dịch vụ sẵn có | Container Java | Container Nginx |
-| Production đã chọn | Dịch vụ database/search theo cấu hình BE | Docker trên Render | Vite/static trên Vercel |
+| Daily development | Docker, managed by the backend | Local Java or IDE | Local Vite |
+| Verify the frontend build | Docker or existing services | Java or a container | Nginx container |
+| Verify both application images | Docker or existing services | Java container | Nginx container |
+| Production hosting | Services configured by the backend | Docker on Render | Static build on Vercel |
 
-Nginx là web server phục vụ FE đã build, nằm trong image FE. Nó không đóng vai trò
-lưu trữ dữ liệu như MongoDB/ES. Docker Compose chỉ ghép các service; image BE không
-chứa MongoDB/ES và image FE không chứa BE.
+Nginx serves the built frontend from the frontend image. MongoDB and Elasticsearch are separate services managed through Docker Compose. Each application image contains its own runtime and application files.
 
-## 2. Chuẩn bị một lần
+## 2. One-Time Setup
 
-- Cài Docker Desktop và bật Linux Engine.
-- Nếu chạy ứng dụng trên máy: Node/npm theo yêu cầu FE và Java theo yêu cầu BE
-  (Dockerfile BE hiện dùng Java 25). Maven Wrapper có trong repo BE.
-- GNU Make là tùy chọn cho FE; BE dùng Bash recipes, nên chạy Make của BE trong
-  Git Bash/WSL trên Windows. Các ví dụ gán `$env:` phía dưới dành cho PowerShell.
-- FE: `npm ci`; tạo `.env.local` từ `.env.local.example`, dùng chung local/test. Không ghi đè file
-  đã chứa giá trị thật.
-- BE: làm theo README BE để chuẩn bị `.env.local`, Auth0, Cloudinary và infrastructure.
-- FE local dùng `http://127.0.0.1:5173`; FE test dùng `http://127.0.0.1:5173`.
-  Auth0 callback/logout/web origins và BE CORS phải cho phép đúng origin và port.
-  `localhost` và `127.0.0.1` là hai origin khác nhau.
-- API URL trong FE phải truy cập được từ trình duyệt. Không dùng tên Compose service
-  như `backend` cho URL mà trình duyệt gọi.
+- Install Docker Desktop and start the Linux engine.
+- For native application runs, install the Node.js and npm versions required by the frontend and the Java version required by the backend. The backend Dockerfile uses Java 25, and the backend repository includes Maven Wrapper.
+- GNU Make is optional for the frontend. Backend Make recipes use Bash, so run them in Git Bash or WSL on Windows. The environment variable examples that use `$env:` are for PowerShell.
+- In the frontend repository, run `npm ci` and create `.env.local` from `.env.local.example` if you have no existing configuration. Local and test runs share that file.
+- Follow the backend README to configure its `.env.local`, Auth0, Cloudinary, and infrastructure.
+- Local and test frontend runs share `http://127.0.0.1:5173`. Configure the Auth0 callback, logout, and web origins as well as backend CORS for that exact origin. `localhost` and `127.0.0.1` are distinct origins.
+- Give the frontend an API URL reachable from the browser. Compose service names such as `backend` only resolve within the Docker network.
 
-## 3. Phát triển bình thường: chỉ hạ tầng BE chạy Docker
+## 3. Local Development With Backend Infrastructure in Docker
 
-### Terminal A — repo moodly-backend
+### Terminal A — Backend Infrastructure
+
+In `moodly-backend`, run:
 
 ```sh
 make local-up
@@ -43,52 +36,47 @@ make local-replica-status
 make local-elasticsearch-status
 ```
 
-Lệnh này bật/giữ MongoDB và ES; không chạy ứng dụng Java. `local-up` còn khởi tạo
-replica set và chờ readiness. Sau đó có thể đóng terminal A, container vẫn chạy.
-Không dùng `local-container-run` nếu chỉ muốn bật hạ tầng.
+`make local-up` starts and retains MongoDB and Elasticsearch, initializes the replica set, and waits for readiness. The containers continue running after you close terminal A. Use this mode when you want infrastructure without the Java application.
 
-### Terminal B — repo moodly-backend
+### Terminal B — Backend Application
 
-```sh
-make local-run
-```
-
-BE chạy trên máy ở foreground. Có thể thay bằng Run/Debug trong IDE với cùng cấu
-hình local. Không chạy cả IDE và Make trên cùng port BE. Launcher Make bảo đảm
-infrastructure sẵn sàng; `local-up` riêng là cách pin infrastructure hoạt động độc lập.
-
-### Terminal C — repo moodly-frontend
+In `moodly-backend`, run:
 
 ```sh
 make local-run
 ```
 
-Mở `http://127.0.0.1:5173`. FE chạy Vite/hot reload, đọc `.env.local`.
-Tương đương `npm run dev`. Không cần bật container FE.
+The backend runs in the foreground. You can also run or debug it in an IDE with the same local configuration. Run one Java instance on the backend port at a time. The launcher ensures the infrastructure is ready. Run `make local-up` separately to keep the infrastructure available independently of the application.
 
-### Khi kết thúc
+### Terminal C — Frontend Application
 
-1. `Ctrl+C` ở Vite và ứng dụng BE/launcher, hoặc Stop trong IDE.
-2. Có thể giữ MongoDB/ES chạy cho lần làm việc tiếp theo.
-3. Nếu muốn dừng infrastructure, tại BE chạy `make local-stop` sau khi dừng các
-   phiên ứng dụng/test. BE từ chối stop khi còn phiên được quản lý đang dùng stack.
-
-## 4. Kiểm tra FE bằng Docker/Nginx
-
-Bật BE theo cách ở mục 3 hoặc mục 5 trước nếu cần đăng nhập/dữ liệu thật.
-Tại repo FE, chọn đúng một chế độ:
+In `moodly-frontend`, run:
 
 ```sh
-# Cấu hình local từ .env.local, port host 5173
+make local-run
+```
+
+Open `http://127.0.0.1:5173`. Vite reads `.env.local` and enables hot reload, as it does with `npm run dev`. This setup runs Vite directly on the host.
+
+### Shutdown
+
+1. Press `Ctrl+C` in the Vite and backend launcher terminals, or stop the backend in the IDE.
+2. Leave MongoDB and Elasticsearch running if you will use them again soon.
+3. To stop the infrastructure, run `make local-stop` from the backend repository after all managed application and test sessions have ended. The backend refuses to stop the stack while those sessions are active.
+
+## 4. Verify the Frontend With Docker and Nginx
+
+If you need to sign in or use real data, start the backend as described in section 3 or 5. In the frontend repository, choose one of these modes:
+
+```sh
+# Local mode uses .env.local and host port 5173.
 make local-container-up
 
-# Hoặc chế độ test, cùng .env.local và port 5173
+# Test mode uses the same file and port.
 make test-container-up
 ```
 
-Các lệnh build image, chạy detached và chờ healthy. Terminal sẽ trả quyền điều khiển.
-Đây là static build, không có hot reload. Sửa code/env rồi chạy lại lệnh up để rebuild.
-Dừng Vite mà bạn đang chạy trước khi dùng container cùng port.
+Both commands build the static image, start Nginx in the background, and wait for a healthy container before returning. Rerun the appropriate command after changing code or configuration. Stop Vite before starting Nginx on the same port.
 
 ```sh
 make local-container-status
@@ -96,52 +84,43 @@ make local-container-logs
 make local-container-stop
 ```
 
-`Ctrl+C` khi xem logs chỉ kết thúc xem log; không dừng container. `stop` giữ container
-và network. Tên lifecycle `local-container-*` chỉ stack Docker workstation của FE;
-nó không bật/tắt MongoDB/ES. Khi không chỉ định, các lệnh dùng env test mặc định.
-Nếu cần validate cấu hình local: `make validate-local MOODLY_ENV=local`.
+Pressing `Ctrl+C` while viewing logs stops log streaming. The `stop` command stops the frontend container and retains the container and network. The `local-container-*` lifecycle commands manage the frontend workstation stack only and default to the test environment. To validate a local configuration, run `make validate-local MOODLY_ENV=local`.
 
-## 5. Chạy ứng dụng BE bằng Docker
+## 5. Run the Backend Application in Docker
 
-Tại repo BE, chọn một chế độ:
+In the backend repository, choose one of these modes:
 
 ```sh
 make local-container-build
 make local-container-run
 
-# Hoặc dùng namespace test do launcher BE quản lý
+# Use the test namespace managed by the backend launcher.
 make test-container-run
 ```
 
-Khác FE `*-container-up`, BE `*-container-run` là foreground owner: launcher quản lý
-phiên, infrastructure và vòng đời test. Dùng `Ctrl+C` để kết thúc bình thường.
-Không chạy đồng thời BE Java trên máy và BE container cùng port (thường 8080).
-`local-container-stop` dành cho phục hồi/dừng container BE bị bỏ lại; xem README BE.
+Backend `*-container-run` commands run in the foreground and manage the session, infrastructure, and test lifecycle. Press `Ctrl+C` for a normal shutdown. Run either the native Java backend or its container on the configured port, usually `8080`. See the backend README for recovering or stopping a leftover container with `local-container-stop`.
 
-Namespace test của BE là dữ liệu có thể reset. Không chọn test chỉ để xem dữ liệu local.
-Không dùng lệnh Docker trực tiếp để vượt cơ chế ownership/lease của BE đang hoạt động.
+The backend test namespace contains disposable data. Use local mode to inspect local data. Manage active infrastructure through the backend launcher so it can honor its session leases.
 
-## 6. Kiểm tra chất lượng và E2E
+## 6. Quality Checks and E2E
 
-Tại FE:
+In the frontend repository, run:
 
 ```sh
 make verify
 ```
 
-Chạy kiểm tra cấu hình/an toàn, lint, tests/coverage và build; không cần BE thật.
-Tại BE, `make verify` có các integration test sử dụng infrastructure do BE quản lý;
-không chạy cùng một manual test session đang giữ độc quyền namespace test.
+This runs configuration and safety checks, lint, tests with coverage, and the build without a live backend. The backend's `make verify` includes integration tests that use backend-managed infrastructure. Finish any manual test session holding the exclusive test namespace first.
 
-Với cấu hình E2E hiện đang được chuẩn hóa trong working tree:
+Use Playwright either with an owned Vite server or against the running test Nginx container:
 
 ```powershell
-# FE: public routes, để Playwright tự khởi động Vite test trên port trống 5173
+# Public routes on a Playwright-owned Vite server. Leave port 5173 free.
 $env:E2E_TARGET = 'dev'
 npx playwright test --project=public
 Remove-Item Env:E2E_TARGET
 
-# FE: kiểm thử trên Nginx đã chạy bằng make test-container-up
+# Tests against Nginx started with make test-container-up.
 $env:E2E_TARGET = 'container'
 $env:E2E_BASE_URL = 'http://127.0.0.1:5173'
 npm run test:e2e
@@ -149,58 +128,46 @@ Remove-Item Env:E2E_TARGET
 Remove-Item Env:E2E_BASE_URL
 ```
 
-Suite authenticated cần BE health UP và tài khoản synthetic đúng với userId reset
-được cấu hình ở BE. FE dùng contract reset hiện có: POST endpoint cố định, token,
-không redirect và cùng origin API. Xem [hướng dẫn E2E](./FRONTEND_INTEGRATION_TESTING.md).
-Public-only không chứng minh login hay API hoạt động. Không chạy reset trên production.
+Authenticated E2E requires a healthy backend and a synthetic account matching the reset user configured in the backend. The runner uses a fixed reset POST endpoint on the API origin, sends a token, and disallows redirects. Use the authenticated suite to verify login and live API calls. Run resets only in test environments. See [Frontend Integration Testing](./FRONTEND_INTEGRATION_TESTING.md).
 
-## 7. Tại sao Docker Desktop còn hai stack FE?
+## 7. Multiple Frontend Stacks in Docker Desktop
 
-`moodly-frontend-test` là project được tạo bởi cấu hình cũ. Cấu hình workstation hiện
-đang hướng đến một project `moodly-frontend-local`, dùng local/test luân phiên.
-Đổi tên Compose project không tự di chuyển/xóa container cũ. Hai container cùng ánh
-xạ port 5173 không thể đồng thời chiếm port đó.
+`moodly-frontend-test` is a legacy Compose project. The current workstation setup alternates local and test modes on `moodly-frontend-local`. Renaming a Compose project leaves its previous containers in place. Only one container can bind host port `5173`.
 
-- Giữ project hiện tại và dùng Make để chuyển local/test.
-- Đừng bấm Start cả project cũ và mới.
-- Stack cũ chỉ cần cleanup một lần, tách biệt với stop hằng ngày. Tại FE:
+- Keep the current project and use Make to switch between local and test modes.
+- Start only the current project on the shared port.
+- Clean up the legacy stack once. For everyday shutdown, use `stop`.
+
+In the frontend repository, run:
 
 ```sh
-# Xem kế hoạch, chưa thay đổi Docker
+# Preview the migration.
 node scripts/migrate-frontend-stack.mjs
-# Áp dụng: chỉ container FE cũ đã dừng và network thuộc project cũ
+# Apply it to stopped legacy frontend containers and their networks.
 make local-container-migrate
 ```
 
-Migration từ chối container đang chạy, khác checkout/service, có mount dữ liệu hoặc
-network có container ngoài phạm vi. Không xóa image/volume, không đụng BE hay project
-FE mới. Chạy lại sau migration là no-op. Sau đó `make local-container-up` và
-`make test-container-up` cùng dùng project `moodly-frontend-local`; thay đổi env sẽ
-rebuild/recreate service FE trong project đó, không tạo project test riêng.
+The migration refuses running containers, containers for a different checkout or service, data mounts, and networks containing out-of-scope containers. It preserves images, volumes, the backend, and the current frontend project. Running it again has no effect. `make local-container-up` and `make test-container-up` both use `moodly-frontend-local`; environment changes rebuild or recreate its service as needed.
 
-| Thao tác | Container/network | Image | Dữ liệu volume |
+| Operation | Containers and Networks | Images | Volume Data |
 | --- | --- | --- | --- |
-| stop | Giữ, container dừng | Giữ | Giữ |
-| up | Tạo/bật/recreate khi cần | Build hoặc sử dụng image | Giữ volume được cấu hình |
-| down | Xóa container/network thuộc project | Thông thường giữ | Giữ named volumes mặc định |
-| down -v / clean | Xóa theo phạm vi lệnh | Tùy lệnh | Có thể xóa dữ liệu |
+| `stop` | Retained with containers stopped | Retained | Retained |
+| `up` | Created, started, or recreated as needed | Built or reused | Configured volumes retained |
+| `down` | Removes the project's containers and networks | Normally retained | Named volumes retained by default |
+| `down -v` or `clean` | Depends on the command scope | Depends on the command | May delete data |
 
-Chỉ stop sau công việc thường ngày. `down` là cleanup chủ động; không xóa volume BE
-khi chưa quyết định rõ việc mất dữ liệu.
+Use `stop` for routine shutdown. Use `down` for deliberate cleanup and decide explicitly before deleting backend volume data.
 
-## 8. Chỉ tải image về có chạy được app không?
+## 8. Run From Published Images
 
-Có thể khởi động ứng dụng mà không cần source, Node/Maven hay build lại, nếu có Docker,
-image đúng OS/architecture, cấu hình và các dịch vụ phụ thuộc truy cập được.
-Container chạy được chưa đồng nghĩa toàn bộ hệ thống hoạt động.
+Docker can run the application without a source checkout, Node.js, Maven, or a local build if the image matches the host architecture and the required configuration and services are reachable. A running container only confirms the process started.
 
-| Image runtime | Chứa | Cần cung cấp bên ngoài |
+| Image | Contents | External Requirements |
 | --- | --- | --- |
-| FE | Alpine + Nginx + dist (HTML/JS/CSS/assets), cấu hình public đã nhúng | BE, Auth0, Cloudinary delivery và origin hợp lệ |
-| BE | Alpine + Java JRE + application JAR/thư viện | MongoDB replica set, ES, Auth0, Cloudinary, runtime env/CORS |
+| Frontend | Alpine, Nginx, built HTML, JavaScript, CSS, assets, and embedded public configuration | Backend, Auth0, Cloudinary delivery, and valid origins |
+| Backend | Alpine, Java JRE, application JAR, and libraries | MongoDB replica set, Elasticsearch, Auth0, Cloudinary, runtime environment, and CORS |
 
-Ví dụ PowerShell: thay image minh họa bằng registry/tag hoặc digest thật đã publish.
-Registry private cần `docker login`. Các lệnh dưới đây không build source.
+The PowerShell examples below use placeholder image names. Substitute a published registry, tag, or digest. Use `docker login` for private registries. These commands run prebuilt images.
 
 ```powershell
 $feImage = 'registry.example.com/moodly/frontend:release'
@@ -208,10 +175,7 @@ docker pull $feImage
 docker run -d --name moodly-fe-image --read-only --tmpfs /tmp --cap-drop ALL --security-opt no-new-privileges:true -p 127.0.0.1:5173:8080 $feImage
 ```
 
-Mở port 5173 để xem FE. Image phải được build sẵn với API/Auth0 đúng môi trường.
-`docker run -e VITE_API_BASE_URL=...` không sửa được JS đã build. Nếu image trỏ đến API
-local của tác giả thì máy tải image sẽ không tự có API đó; cần image build đúng đích.
-FE không cần BE để trả HTML public, nhưng login/dữ liệu nghiệp vụ cần các dịch vụ thật.
+Open port `5173` to view the frontend. Use an image built against the API and Auth0 configuration for the target environment. `docker run -e VITE_API_BASE_URL=...` cannot change the JavaScript embedded at build time. An image pointing to its author's loopback API needs a rebuild for another environment. Nginx can serve public pages independently, while sign-in and application data require reachable services.
 
 ```powershell
 $beImage = 'registry.example.com/moodly/backend:release'
@@ -219,39 +183,23 @@ docker pull $beImage
 docker run -d --name moodly-be-image --env-file backend.runtime.env -p 127.0.0.1:8080:8080 $beImage
 ```
 
-`backend.runtime.env` do người vận hành tạo, không nằm trong image. Với profile `prod`,
-tham khảo `.env.production.example` trong repo BE: `SPRING_PROFILES_ACTIVE=prod`,
-`MONGODB_URI`, `ELASTICSEARCH_URIS`, Auth0, Cloudinary và CORS. Database/search phải tồn
- tại và truy cập được. `localhost` bên trong container BE là chính container đó;
-không phải máy host hay MongoDB container khác. Dùng network/service DNS đúng topology.
-Nếu database local chỉ publish trên loopback thì không mặc định container BE sẽ gọi
-được; Compose BE có cấu hình network riêng cho trường hợp đó.
+Create `backend.runtime.env` outside the image. For the `prod` profile, use the backend's `.env.production.example` as a reference for `SPRING_PROFILES_ACTIVE=prod`, `MONGODB_URI`, `ELASTICSEARCH_URIS`, Auth0, Cloudinary, and CORS. The database and search services must exist and be reachable. Inside the backend container, `localhost` refers to that container. Use the correct network and service DNS names for your topology. A service published only on the host loopback address is not automatically reachable from the backend container. The backend Compose configuration has a network setup for this case.
 
-Không chạy raw image với database production để thử nghiệm. Không truyền secret BE
-vào image FE. Nếu container BE không healthy, kiểm tra dependency/config thay vì chỉ
-nhìn trạng thái Running. Nên dùng Compose/launcher BE khi phát triển có source để giữ
-đúng replica-set, network và ownership.
+Use test services when trying an image and keep backend secrets out of frontend images. If the backend is unhealthy, check dependencies and configuration as well as container state. When developing from source, use the backend Compose and launcher setup to preserve replica-set, network, and session ownership behavior.
 
-Image build trên máy chỉ nằm trong Docker Engine local. `docker push` mới đưa image
-lên registry; `git push` chỉ đẩy source/commit. Repo FE hiện không mặc định publish image
-lên Docker Hub. FE Vercel phục vụ static deployment; image Docker FE không được Vercel
-chạy chỉ vì source repo có Dockerfile.
+Local builds remain in the local Docker Engine until you publish them with `docker push`. `git push` publishes commits. The frontend repository does not publish images to Docker Hub by default. Vercel serves the static frontend deployment separately from the Docker image.
 
-## 9. Docker Desktop: danh sách chuẩn
+## 9. Expected Docker Desktop Stack Layout
 
-Chỉ giữ hai Compose groups, không tạo thêm project riêng cho test:
+Keep these two Compose groups for workstation use:
 
 ```text
 moodly-backend-local
   moodly-mongodb-local
   moodly-elasticsearch-local
-  [ứng dụng BE: chỉ khi chạy BE container]
+  [backend application when running in a container]
 moodly-frontend-local
-  moodly-frontend-local       # Nginx + FE, host 5173 -> container 8080
+  moodly-frontend-local       # Nginx and the frontend, host 5173 -> container 8080
 ```
 
-Tên BE service do repo BE quản lý. Nếu BE chạy IDE/JVM thì Docker chỉ có MongoDB/ES,
-đó là bình thường. Image tags thể hiện các phiên bản build; chúng không phải các
-stack đang chạy và không cần xóa sau mỗi lần test. Giữ volume và stop stack khi không
-làm việc. FE local/test dùng chung cấu hình public, file và port; vẫn chọn execution
-mode để Playwright kiểm tra đúng bản test. Không chạy Vite và Nginx cùng port 5173.
+The backend repository manages its service names. When the backend runs in an IDE or native JVM, Docker shows only MongoDB and Elasticsearch in its group. Image tags represent build versions and can remain after a container stops. Preserve volumes and stop idle stacks as needed. Local and test frontend modes share public configuration, an environment file, and a port. Select test mode for Playwright verification and run one frontend server on port `5173` at a time.

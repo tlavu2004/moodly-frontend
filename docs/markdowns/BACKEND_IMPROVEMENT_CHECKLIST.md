@@ -1,210 +1,167 @@
 # Moodly Backend Improvement Checklist
 
-> Các việc frontend còn thiếu được theo dõi riêng tại
-> [`FRONTEND_COMPLETION_CHECKLIST.md`](./FRONTEND_COMPLETION_CHECKLIST.md).
+> Track outstanding frontend work in the [Frontend Completion Checklist](./FRONTEND_COMPLETION_CHECKLIST.md).
 
-## Mục đích
+## Purpose
 
-Tài liệu này tổng hợp những điểm backend cần hoàn thiện sau khi đối chiếu giao diện frontend với
-`moodly-openapi.json` phiên bản `v1`.
+This checklist records backend changes identified while comparing the frontend with `moodly-openapi.json` v1. Frontend milestone 6 covered the following functional routes:
 
-Phạm vi frontend route số 6 hiện được xem là hoàn thành:
+- Dashboard with live habit, entry, streak, and mood trend data.
+- Habit listing, creation, and streaks.
+- Daily mood check-in and habit log updates.
+- Journal history filtered by date.
+- Weekly mood trend and most-missed habit statistics.
+- Avatar signatures, Cloudinary uploads, and confirmation.
+- Search using `q`, `from`, and `to`.
 
-- Dashboard sử dụng dữ liệu thật từ habits, entries, streak và mood trend.
-- Habits có danh sách, tạo mới và streak.
-- Daily entry/mood có check-in tâm trạng và cập nhật habit trong ngày.
-- Entries có lịch sử theo khoảng ngày.
-- Stats có mood trend theo tuần và danh sách habit bị bỏ lỡ.
-- Profile/avatar có upload signature, upload Cloudinary và confirm.
-- Search sử dụng query parameter `q`, `from`, `to`.
+The backend and contract work below was tracked separately from completion of that milestone. The introductory notes under each item describe the gap identified at the time of the review.
 
-Các mục dưới đây là cải tiến backend hoặc contract, không chặn việc đánh dấu frontend route số 6 là
-`DONE`.
+## P0 — Product Decisions Before Expanding Scope
 
-## P0 — Cần thống nhất trước khi mở rộng nghiệp vụ
+### 1. Standardize `targetFrequency`
 
-### 1. Chuẩn hóa `targetFrequency`
+The original request accepted any nonblank string. The frontend offered `DAILY`, `WEEKDAYS`, and `WEEKLY`, while the backend stored the string without frequency-specific streak or missed-habit logic.
 
-Hiện tại `CreateHabitRequest.targetFrequency` chỉ là một chuỗi không rỗng. Frontend đang cung cấp
-các giá trị:
+- [x] Support `DAILY` as the only official frequency.
+- [x] Model the frequency as a backend enum.
+- [x] Expose the enum in OpenAPI so the SDK generates the intended union type.
+- [x] Return a validation error on `targetFrequency` for unsupported values.
+- [x] Exclude `WEEKDAYS` from the frontend selector and backend rules.
+- [x] Exclude `WEEKLY` from the frontend selector and backend rules.
+- [x] Keep the daily streak calculation for `DAILY`.
+- [x] Count daily habit logs with `done: false` for most-missed habits.
+- [x] Cover `DAILY` and unsupported values in integration tests.
 
-- `DAILY`
-- `WEEKDAYS`
-- `WEEKLY`
-
-Backend hiện lưu nguyên chuỗi và chưa thể hiện logic tính streak hoặc missed count theo từng tần
-suất.
-
-- [x] Quyết định tập giá trị frequency chính thức: chỉ hỗ trợ `DAILY`.
-- [x] Chuyển frequency thành enum ở backend.
-- [x] Xuất enum trong OpenAPI để SDK sinh union type chính xác.
-- [x] Từ chối giá trị không hợp lệ bằng validation error có field `targetFrequency`.
-- [x] Không áp dụng quy tắc `WEEKDAYS`; frontend không cung cấp lựa chọn này.
-- [x] Không áp dụng quy tắc `WEEKLY`; frontend không cung cấp lựa chọn này.
-- [x] Giữ thuật toán streak theo ngày cho frequency duy nhất `DAILY`.
-- [x] Giữ thống kê missed habits theo các daily habit log có `done: false`.
-- [x] Bổ sung integration test cho contract `DAILY` và trường hợp frequency không được hỗ trợ.
-
-Nếu sản phẩm hiện chỉ hỗ trợ habit hằng ngày, backend và OpenAPI nên chỉ chấp nhận `DAILY`;
-frontend sẽ bỏ hai lựa chọn còn lại.
-
-### 2. Làm rõ phạm vi thống kê mood
-
-Endpoint hiện tại chỉ chấp nhận:
+### 2. Define the Mood Statistics Period
 
 ```http
 GET /stats/mood-trend?period=week
 ```
 
-Frontend vì vậy chỉ hiển thị thống kê “This week”. Nếu sản phẩm muốn có bộ chọn 4 tuần, 12 tuần hoặc
-6 tháng, backend phải hỗ trợ trước.
+The frontend shows the current week. Ranges such as four weeks, twelve weeks, or six months require backend support before adding a frontend selector.
 
-- [x] Chỉ hỗ trợ period `week` trong phạm vi hiện tại.
-- [x] Khai báo `period` bằng enum chỉ gồm `week` trong OpenAPI.
-- [x] Period `week` trả các bucket theo ngày trong tuần hiện tại.
-- [x] Response được sắp xếp tăng dần theo ngày.
-- [x] Tuần bắt đầu vào thứ Hai theo múi giờ `Asia/Ho_Chi_Minh`.
-- [x] Period không hợp lệ trả `INVALID_REQUEST` với danh sách giá trị được hỗ trợ.
-- [x] Bổ sung integration coverage cho `week` và period không được hỗ trợ.
+- [x] Support only the `week` period in the current scope.
+- [x] Expose `week` as the only `period` value in the OpenAPI enum.
+- [x] Return daily buckets for the current week.
+- [x] Sort the response in ascending date order.
+- [x] Start the week on Monday in `Asia/Ho_Chi_Minh`.
+- [x] Return `INVALID_REQUEST` with supported values when the period is invalid.
+- [x] Cover supported and unsupported periods in integration tests.
 
-## P1 — Nên làm để frontend ổn định và hiệu quả hơn
+## P1 — Frontend Reliability and Efficiency
 
-### 3. Bổ sung dashboard summary endpoint
+### 3. Add a Dashboard Summary Endpoint
 
-Dashboard hiện phải gọi nhiều endpoint:
+The original dashboard used `GET /entries`, `GET /habits`, `GET /stats/mood-trend`, and one `GET /habits/{habitId}/streak` per habit. Per-habit streak requests produced an N+1 pattern.
 
-- `GET /entries`
-- `GET /habits`
-- `GET /stats/mood-trend`
-- `GET /habits/{habitId}/streak` cho từng habit
+- [x] Add authenticated `GET /dashboard`.
+- [x] Return today's entry, active habits, completion ratio, weekly mood summary, and best streak in one response.
+- [x] Use the summary endpoint and read entry history once to compute the best streak.
+- [x] Use `Cache-Control: no-store` because the summary is user-specific and changes after check-in.
+- [x] Verify in integration tests that the summary belongs to the authenticated user.
 
-Việc gọi streak theo từng habit tạo mô hình N+1 request và sẽ chậm khi số habit tăng.
+### 4. Complete the Habit Lifecycle
 
-- [x] Thêm `GET /dashboard` cho authenticated user.
-- [x] Trả về today entry, active habits, completion ratio, weekly mood summary và streak lớn nhất
-  trong một response.
-- [x] Chọn summary endpoint thay cho batch streak; backend đọc lịch sử entry một lần để tính streak
-  lớn nhất.
-- [x] Dashboard là dữ liệu user-specific thay đổi sau check-in nên response dùng
-  `Cache-Control: no-store`.
-- [x] Thêm integration test xác nhận dữ liệu summary thuộc đúng authenticated user.
+The original contract only listed active habits and created them. Renaming, changing icons, archiving, and restoring required lifecycle endpoints.
 
-### 4. Hoàn thiện vòng đời habit
+- [x] Add an endpoint for updating habits.
+- [x] Add archiving or deactivation in place of hard deletion.
+- [x] Preserve historical entries and their habit logs after archival.
+- [x] Support `active`, `archived`, and `all` filters on `GET /habits`.
+- [x] Use optimistic locking with client-supplied `version` and HTTP 409 on conflicts.
 
-OpenAPI hiện chỉ có list active habits và create habit. Giao diện tương lai chưa thể đổi tên, thay
-icon, archive hoặc khôi phục habit.
+### 5. Paginate Unbounded Results
 
-- [x] Thêm endpoint cập nhật habit.
-- [x] Thêm endpoint archive/deactivate thay vì hard delete.
-- [x] Historical entries giữ nguyên habit log sau khi habit bị archive.
-- [x] `GET /habits` hỗ trợ filter `active`, `archived` và `all`.
-- [x] Habit dùng optimistic locking; client gửi `version`, conflict trả HTTP 409.
+The original Entries and Search endpoints returned every matching result.
 
-### 5. Bổ sung pagination cho dữ liệu có thể tăng vô hạn
+- [x] Paginate `GET /entries`.
+- [x] Paginate `GET /entries/search`.
+- [x] Use zero-based `page` and consistent `size` parameters.
+- [x] Return `totalElements`, `totalPages`, and `hasNext`.
+- [x] Enforce a maximum `size` of 100.
+- [x] Document both endpoints' pagination in OpenAPI.
 
-Các endpoint entries và search hiện trả về toàn bộ kết quả trong phạm vi truy vấn.
+### 6. Define and Enforce Avatar Upload Limits
 
-- [x] Bổ sung pagination cho `GET /entries`.
-- [x] Bổ sung pagination cho `GET /entries/search`.
-- [x] Dùng `page` 0-based và `size` nhất quán giữa hai endpoint.
-- [x] Trả `totalElements`, `totalPages` và `hasNext`.
-- [x] Đặt giới hạn `size` tối đa là 100 ở backend.
-- [x] Khai báo đầy đủ pagination trong OpenAPI.
+The frontend already limited uploads to JPG, PNG, WebP, and roughly 5 MB. The API schema needed to express those limits.
 
-### 6. Siết validation và mô tả avatar upload
+- [x] List supported MIME types in OpenAPI.
+- [x] Document the 5 MiB file limit in the schema.
+- [x] Return distinct error codes for invalid content type, oversized files, and missing uploads.
+- [x] Expire upload signatures after one hour and return `expiresAt`.
+- [x] Save the new profile metadata before deleting the old Cloudinary asset.
+- [x] Add `DELETE /me/avatar` to clear the custom avatar.
+- [x] Test expired signatures and confirmation with an invalid `publicId`.
 
-Frontend hiện kiểm tra JPG, PNG, WebP và tối đa 5 MB, nhưng các giới hạn này chưa được biểu diễn đầy
-đủ trong schema OpenAPI.
+### 7. Standardize Search Highlights
 
-- [x] Khai báo danh sách MIME type được hỗ trợ trong OpenAPI.
-- [x] Khai báo kích thước file tối đa 5 MiB trong schema.
-- [x] Trả error code riêng cho sai content type, quá dung lượng và upload không tồn tại.
-- [x] Upload signature hết hạn sau 1 giờ và response trả `expiresAt`.
-- [x] Sau khi confirm avatar mới, backend lưu profile trước rồi xóa Cloudinary asset cũ.
-- [x] Thêm `DELETE /me/avatar` để xóa avatar và khôi phục mặc định.
-- [x] Bổ sung test cho signature hết hạn và confirm sai `publicId`.
+The original `EntrySearchResult.highlights` mapped field names to string arrays without specifying whether the strings contained markup.
 
-### 7. Chuẩn hóa search highlights
+- [x] Return highlight content as plain text.
+- [x] Include zero-based, end-exclusive ranges to reduce XSS risk.
+- [x] Keep markup out of API responses.
+- [x] Limit highlights to `mood.note`, `habits.note`, and `mood.tags`.
+- [x] Reject blank `q` after trimming and limit it to 200 characters.
+- [x] Sort reliably by descending `_score`, then by descending `date`.
 
-`EntrySearchResult.highlights` hiện là map từ tên field tới mảng string. Contract chưa nói chuỗi là
-plain text hay có HTML highlight.
+### 8. Add an Endpoint for Today's Entry
 
-- [x] Highlight được trả dưới dạng plain text, không phải markup.
-- [x] Trả plain text kèm ranges 0-based, end-exclusive để tránh rủi ro XSS.
-- [x] Không trả markup từ API.
-- [x] Chỉ các field `mood.note`, `habits.note`, `mood.tags` xuất hiện trong `highlights`.
-- [x] `q` sau trim phải khác rỗng và tối đa 200 ký tự.
-- [x] Kết quả sort ổn định theo `_score` giảm dần rồi `date` giảm dần.
+The frontend originally used `GET /entries` with identical `from` and `to` dates.
 
-### 8. Bổ sung endpoint đọc entry hôm nay
+- [x] Add `GET /entries/today`.
+- [x] Return `{ date, checkedIn: false, entry: null }` before check-in.
+- [x] Return the full updated daily entry from today's PUT and PATCH endpoints.
 
-Frontend hiện lấy entry hôm nay bằng cách gọi `GET /entries` với `from` và `to` cùng một ngày.
+## P2 — Contract Quality and Operations
 
-- [x] Thêm `GET /entries/today` để contract thể hiện đúng use case.
-- [x] Trả `{ date, checkedIn: false, entry: null }` khi chưa check-in.
-- [x] PUT/PATCH hôm nay trả về toàn bộ DailyEntry mới nhất.
+### 9. Define Required Response Fields
 
-## P2 — Cải thiện chất lượng contract và vận hành
+The original schema marked most response fields optional, so the SDK generated optional fields that the backend always returned.
 
-### 9. Hoàn thiện required fields trong response schemas
+- [x] Require guaranteed fields such as IDs, dates, and core response fields.
+- [x] Describe nullable fields separately.
+- [x] Add examples for successful, empty, and error responses.
+- [x] Use the `success/data/error/timestamp` envelope consistently.
 
-Phần lớn thuộc tính response hiện đều optional trong OpenAPI, khiến TypeScript SDK sinh ra nhiều
-trường có dấu `?` dù backend thực tế luôn trả chúng.
+### 10. Standardize Error Codes
 
-- [x] Đánh dấu required cho các field backend luôn đảm bảo, ví dụ ID, date và các trường chính của
-  response.
-- [x] Khai báo nullable riêng biệt nếu một field có thể là `null`.
-- [x] Thêm example cho success, empty và error response.
-- [x] Đảm bảo mọi endpoint dùng thống nhất envelope `success/data/error/timestamp`.
+- [x] Define stable codes for validation, authentication, missing resources, conflicts, and uploads.
+- [x] Return a validation `field` that matches the request field name.
+- [x] Distinguish business errors from system errors.
+- [x] Keep exception details and sensitive data out of client responses and logs.
+- [x] Include important error codes in OpenAPI examples.
 
-### 10. Chuẩn hóa error codes
+### 11. Define Calendar and Time Zone Rules
 
-- [x] Xây dựng danh sách error code ổn định cho validation, auth, not found, conflict và upload.
-- [x] Đảm bảo validation error luôn trả `field` trùng tên field trong request.
-- [x] Phân biệt lỗi nghiệp vụ với lỗi hệ thống.
-- [x] Không trả chi tiết exception hoặc dữ liệu nhạy cảm cho client/log.
-- [x] Ghi các error code quan trọng vào OpenAPI examples.
+- [x] Use `Asia/Ho_Chi_Minh` as the calendar source for entries, streaks, and statistics.
+- [x] Keep profile-level time zones out of scope while the product supports one region.
+- [x] Start weeks on Monday.
+- [x] Test the date boundary and confirm the absence of future DST transitions.
+- [x] Document calendar conventions in the API documentation.
 
-### 11. Quy định ngày, tuần và múi giờ
+### 12. Performance and Observability
 
-Daily entry, streak và statistics phụ thuộc mạnh vào khái niệm “hôm nay”.
+- [x] Use a unique compound `userId + date` index for daily entries.
+- [x] Map keyword filters for `userId` and date, and map text fields for full-text search in Elasticsearch.
+- [x] Add the `userId + habits.done + habits.habitId` compound index and use the `userId + date` prefix for mood trends.
+- [x] Configure Cloudinary's two-second connection timeout and five-second request timeout through the environment.
+- [x] Include `X-Request-ID` in MDC, the response header, and the error envelope.
+- [x] Track latency and error rates with `http.server.requests` and percentile histograms.
+- [x] Keep tokens, authorization headers, mood notes, and raw exception messages out of logs.
 
-- [x] Dùng timezone hệ thống `Asia/Ho_Chi_Minh` làm nguồn sự thật.
-- [x] Chưa lưu timezone trong profile vì sản phẩm hiện không hỗ trợ nhiều khu vực.
-- [x] Quy định tuần bắt đầu vào thứ Hai.
-- [x] Kiểm thử thời điểm chuyển ngày và xác nhận không có DST transition tương lai.
-- [x] Ghi quy ước ngày/timezone trong API documentation.
+## Implementation Order
 
-### 12. Performance và observability
+The review recorded all seven implementation groups as complete. Work followed the P0, P1, and P2 business dependencies. Required response fields were finalized in P2.9 after the P1 endpoints were in place, so OpenAPI could be updated against the final contract.
 
-- [x] Dùng unique compound index `userId + date` cho daily entries.
-- [x] Elasticsearch mapping có keyword filter cho `userId`, date và text fields phục vụ full-text
-  search.
-- [x] Bổ sung compound index cho `userId + habits.done + habits.habitId`; mood trend dùng prefix
-  `userId + date`.
-- [x] Cloudinary có connect timeout 2 giây và request timeout 5 giây, cấu hình được bằng
-  environment.
-- [x] Gắn `X-Request-ID` vào MDC, response header và error response.
-- [x] Theo dõi latency/error rate qua `http.server.requests` và bật percentile histogram.
-- [x] Không log access token, Authorization header, nội dung mood note hoặc raw exception message.
+1. Decide the supported `targetFrequency`.
+2. Define the statistics period.
+3. Standardize OpenAPI enums, required fields, and validation.
+4. Address the Dashboard N+1 request pattern with a summary or batch endpoint.
+5. Paginate Entries and Search.
+6. Complete the habit and avatar lifecycles.
+7. Standardize time zone behavior, performance controls, and observability.
 
-## Đề xuất thứ tự triển khai
-
-> Trạng thái rà soát: đã triển khai đủ cả 7 nhóm. Trình tự thực tế giữ đúng các
-> phụ thuộc nghiệp vụ P0 → P1 → P2; riêng việc hoàn thiện toàn bộ `required`
-> response schema được thực hiện ở P2.9 sau các endpoint P1 để OpenAPI được
-> chuẩn hóa một lần trên contract cuối cùng. Đây là điều chỉnh thứ tự hợp lý,
-> không làm thiếu hạng mục nào.
-
-1. Chốt nghiệp vụ `targetFrequency`.
-2. Chốt phạm vi period cho statistics.
-3. Chuẩn hóa OpenAPI enum, required fields và validation.
-4. Xử lý dashboard N+1 bằng summary hoặc batch streak.
-5. Thêm pagination cho entries/search.
-6. Hoàn thiện lifecycle habit và avatar.
-7. Chuẩn hóa timezone, performance và observability.
-
-Sau mỗi thay đổi contract:
+After each contract change, run the frontend checks:
 
 ```bash
 npm run generate:api
@@ -212,12 +169,11 @@ npm run lint
 npm run build
 ```
 
-Frontend không nên tự thêm lựa chọn hoặc hành vi chưa được contract/backend hỗ trợ.
+Expose frontend options and behaviors supported by the current backend contract.
 
-## Ghi chú về cảnh báo bundle frontend
+## Frontend Bundle Warning
 
-Cảnh báo bundle khoảng 545 kB không yêu cầu thay đổi backend và đã được xử lý
-trong frontend cùng mục 9.1 của `FRONTEND_COMPLETION_CHECKLIST.md`:
+The frontend addressed the roughly 545 kB bundle warning under section 9.1 of the [Frontend Completion Checklist](./FRONTEND_COMPLETION_CHECKLIST.md).
 
 ```tsx
 import { lazy, Suspense } from 'react'
@@ -229,8 +185,4 @@ const StatsPage = lazy(() =>
 )
 ```
 
-Route tree đã được bọc bằng `Suspense` với loading fallback accessible; các page
-public/protected đều được tách khỏi initial chunk, AppShell vẫn nằm trong initial
-chunk và vendor được chia theo React, React Router và Auth0. Production build
-đọc Vite manifest để đo raw/gzip/brotli và fail nếu vượt performance budget,
-thay vì tăng `chunkSizeWarningLimit` để che cảnh báo.
+At this checkpoint, the route tree used an accessible `Suspense` loading fallback and split public and protected pages from the initial chunk. AppShell remained in the initial chunk, and React, React Router, and Auth0 had separate vendor chunks. The build checks raw, gzip, and Brotli sizes from the Vite manifest against a performance budget.
