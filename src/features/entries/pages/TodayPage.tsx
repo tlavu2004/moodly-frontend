@@ -11,6 +11,11 @@ import { CheckInDateChanged, useTodayEntry } from '../hooks/useTodayEntry.ts'
 
 const moods = [{ score: 1, emoji: '😞', label: 'Rough' }, { score: 2, emoji: '😕', label: 'Low' }, { score: 3, emoji: '😌', label: 'Okay' }, { score: 4, emoji: '🙂', label: 'Good' }, { score: 5, emoji: '🤩', label: 'Great' }]
 const tags = ['Calm', 'Energized', 'Grateful', 'Tired', 'Anxious', 'Focused']
+function compareTags(left: string, right: string): number {
+  if (left < right) return -1
+  return left === right ? 0 : 1
+}
+
 type UnconfirmedSave = { date: string } & (
   { kind: 'mood'; input: SetMoodRequest } |
   { kind: 'habit'; id: string; done: boolean; note: string | null; editing: boolean }
@@ -104,7 +109,7 @@ export function TodayPage() {
     const match = sameDate && (uncertain.kind === 'mood'
       ? savedMood?.score === uncertain.input.score &&
         (savedMood?.note || undefined) === uncertain.input.note &&
-        JSON.stringify([...(savedMood?.tags ?? [])].sort()) === JSON.stringify([...(uncertain.input.tags ?? [])].sort())
+        JSON.stringify([...(savedMood?.tags ?? [])].sort(compareTags)) === JSON.stringify([...(uncertain.input.tags ?? [])].sort(compareTags))
       : savedLog?.done === uncertain.done && (savedLog.note || null) === uncertain.note)
     // Record which server mood was reviewed without replacing the user's draft.
     if (uncertain.kind === 'mood') setSavedMoodKey(JSON.stringify([latestDate, savedMood]))
@@ -236,7 +241,7 @@ export function TodayPage() {
                 value={habitNote} onChange={(event) => setHabitNote(event.target.value)} />
               {noteError && <p id={`${noteId}-error`} role="alert" className="text-sm text-danger">{t(noteError)}</p>}
               <div className="mt-3 flex flex-wrap gap-2">
-                <button className="button-primary" disabled={pending}>{savingHabitId === habit.id ? t('Saving…') : t('Save note')}</button>
+                <button type="submit" className="button-primary" disabled={pending}>{savingHabitId === habit.id ? t('Saving…') : t('Save note')}</button>
                 {log?.note && <button type="button" className="button-secondary" disabled={pending} onClick={() => void changeHabit(habit.id, done, null)}>{t('Remove note')}</button>}
                 <button type="button" className="button-secondary" disabled={pending} onClick={closeNote}>{t('Cancel')}</button>
               </div>
