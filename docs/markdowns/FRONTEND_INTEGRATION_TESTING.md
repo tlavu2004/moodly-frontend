@@ -115,12 +115,38 @@ npx playwright test e2e/habits-performance.smoke.spec.ts --project=authenticated
 Remove-Item Env:E2E_HABITS_BENCHMARK
 ```
 
-It measures navigation until all habit cards render at a 390px viewport. For each
-habit count, discard one warm-up and report the median and p95 of 20 navigations.
-Check the habit list plus streak request count and any failed streak reads. The
-local test instance needs enough quota for the full batch under its existing
-test configuration. Review the N+1 pattern if typical active counts grow beyond
-10 or measured p95 exceeds one second.
+For each habit count, discard one warm-up and collect 100 navigations at a
+390px viewport. Use the runner's monotonic clock immediately before
+`page.goto('/habits')` and stop when Playwright observes all expected habit
+cards in the DOM. This includes navigation, authentication bootstrap and API
+reads, rendering, and Playwright's observation delay. It is a page-load
+measurement, not endpoint latency or paint timing. Use the same machine,
+backend, browser, and observation method when comparing runs.
+
+Sort each group's 100 elapsed times in ascending order. The median is the
+mean of ranks 50 and 51. Use nearest rank `ceil(p × N)` for percentiles
+with one-based ranks, so p95 is rank 95 and p99 is rank 99. Round the final
+statistics to whole milliseconds. With 100 observations, p99 can change
+noticeably with a few slow navigations. Treat it as a local snapshot.
+
+Check the habit list plus streak request count and any failed streak reads.
+The local test instance needs enough quota for the full batch under its
+existing test configuration. Review the N+1 pattern if typical active
+counts grow beyond 10 or measured p95 exceeds one second.
+
+### Local backend result on 2026-11-26
+
+Chromium, 390px viewport, loopback test backend with the synthetic history
+described above. Authentication setup and the benchmark both passed.
+
+| Active habits | Samples | Median | p95 | p99 | Habit requests per load |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| 2 | 100 | 901 ms | 935 ms | 941 ms | 3 |
+| 10 | 100 | 905 ms | 942 ms | 951 ms | 11 |
+
+Both groups stayed under the one-second p95 review threshold on this fixture.
+The short local history and loopback connection limit what this run says about
+deployed performance.
 
 If Auth0 blocks the browser benchmark, the fixture below renders the actual FE
 page in jsdom. It simulates a 100 ms list read and streak reads ranging from

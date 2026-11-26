@@ -34,7 +34,7 @@ it.skipIf(process.env.MOODLY_HABITS_FIXTURE_BENCHMARK !== '1')(
       })
 
       const samples: number[] = []
-      for (let index = 0; index <= 20; index++) {
+      for (let index = 0; index <= 100; index++) {
         sdk.findByStatus.mockClear()
         sdk.currentStreak.mockClear()
         const started = performance.now()
@@ -50,13 +50,14 @@ it.skipIf(process.env.MOODLY_HABITS_FIXTURE_BENCHMARK !== '1')(
       result.push({
         habits: count,
         samples: samples.length,
-        medianMs: Math.round((samples[9] + samples[10]) / 2),
-        p95Ms: Math.round(samples[18]),
+        medianMs: Math.round((samples[samples.length / 2 - 1] + samples[samples.length / 2]) / 2),
+        p95Ms: Math.round(samples[Math.ceil(0.95 * samples.length) - 1]),
+        p99Ms: Math.round(samples[Math.ceil(0.99 * samples.length) - 1]),
         requestsPerLoad: 1 + count,
       })
     }
     mkdirSync('reports', { recursive: true })
     writeFileSync('reports/habits-fixture-performance.json', JSON.stringify(result, null, 2) + '\n')
   },
-  45_000,
+  120_000,
 )

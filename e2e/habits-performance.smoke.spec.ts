@@ -5,7 +5,7 @@ import { restoreAuthSession } from './support/authSession.ts'
 test.skip(process.env.E2E_HABITS_BENCHMARK !== '1', 'Explicit local benchmark opt-in required.')
 
 test('measures Habits with two and ten active habits on mobile', async ({ page, request }) => {
-  test.setTimeout(180_000)
+  test.setTimeout(360_000)
   const api = new URL(process.env.VITE_API_BASE_URL ?? '')
   expect(['localhost', '127.0.0.1', '[::1]']).toContain(api.hostname)
   await resetTestData(request)
@@ -24,7 +24,7 @@ test('measures Habits with two and ten active habits on mobile', async ({ page, 
   const cards = page.getByRole('button', { name: 'Archive', exact: true })
   async function measure(count: number) {
     const samples: number[] = []
-    for (let index = 0; index <= 20; index++) {
+    for (let index = 0; index <= 100; index++) {
       streakRequests = 0
       const started = performance.now()
       await page.goto('/habits', { waitUntil: 'domcontentloaded' })
@@ -38,8 +38,9 @@ test('measures Habits with two and ten active habits on mobile', async ({ page, 
     return {
       activeHabits: count,
       samples: samples.length,
-      medianMs: Math.round((samples[9] + samples[10]) / 2),
-      p95Ms: Math.round(samples[18]),
+      medianMs: Math.round((samples[samples.length / 2 - 1] + samples[samples.length / 2]) / 2),
+      p95Ms: Math.round(samples[Math.ceil(0.95 * samples.length) - 1]),
+      p99Ms: Math.round(samples[Math.ceil(0.99 * samples.length) - 1]),
       habitRequestsPerLoad: 1 + count,
     }
   }
