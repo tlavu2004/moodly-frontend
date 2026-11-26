@@ -188,7 +188,7 @@ export function TodayPage() {
         <span className="text-sm font-bold text-primary">{t('{done} of {total}', { done: formatNumber(completed), total: formatNumber(activeHabits.length) })}</span>
       </div>
       <div className="mt-3"><MutationLiveRegion message={habitMessage} label={t('Habit update')} /></div>
-      {uncertain?.kind === 'habit' && <SaveRecovery check={checkSave} />}
+      {uncertain?.kind === 'habit' && !uncertain.editing && <SaveRecovery check={checkSave} />}
       <div className="mt-4 space-y-3">
         {habits.length === 0 && <div className="card p-6 text-center text-sm text-foreground-muted">{t("No active habits yet. Add one from the Habits page.")}</div>}
         {habits.map((habit) => {
@@ -233,6 +233,7 @@ export function TodayPage() {
                 {log?.note && <button type="button" className="button-secondary" disabled={pending} onClick={() => void changeHabit(habit.id, done, null)}>{t('Remove note')}</button>}
                 <button type="button" className="button-secondary" disabled={pending} onClick={closeNote}>{t('Cancel')}</button>
               </div>
+              {uncertain?.kind === 'habit' && uncertain.id === habit.id && <SaveRecovery check={checkSave} />}
             </form>}
           </article>
         })}

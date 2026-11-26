@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import { cleanup, render, screen, waitFor } from '@testing-library/react'
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { setTimeout as delay } from 'node:timers/promises'
