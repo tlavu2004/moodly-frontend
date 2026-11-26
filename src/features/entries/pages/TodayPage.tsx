@@ -5,10 +5,9 @@ import { useEffect, useRef, useState } from 'react'
 import { getUserFacingError } from '../../../api/errorMessages.ts'
 import { SaveRecovery } from '../../../components/ui/SaveRecovery.tsx'
 import type { SetMoodRequest } from '../../../api/openapi/types.api.ts'
-import { toMoodlyDateKey } from '../../../utils/date.ts'
 import { ApiRequestError, isSaveOutcomeUnknown } from '../../../api/errors.ts'
 import { Icon } from '../../../components/ui/Icon.tsx'
-import { useTodayEntry } from '../hooks/useTodayEntry.ts'
+import { CheckInDateChanged, useTodayEntry } from '../hooks/useTodayEntry.ts'
 
 const moods = [{ score: 1, emoji: '😞', label: 'Rough' }, { score: 2, emoji: '😕', label: 'Low' }, { score: 3, emoji: '😌', label: 'Okay' }, { score: 4, emoji: '🙂', label: 'Good' }, { score: 5, emoji: '🤩', label: 'Great' }]
 const tags = ['Calm', 'Energized', 'Grateful', 'Tired', 'Anxious', 'Focused']
@@ -25,7 +24,7 @@ function MutationLiveRegion({ message, label }: { message: MutationMessage | nul
 
 export function TodayPage() {
   useLocale()
-  const { entry, habits, isLoading, error, reload, retryAt, updateMood, toggleHabit, refresh } = useTodayEntry()
+  const { date, entry, habits, isLoading, error, reload, retryAt, updateMood, toggleHabit, refresh } = useTodayEntry()
   const [score, setScore] = useState<number | null>(null); const [note, setNote] = useState(''); const [selectedTags, setSelectedTags] = useState<string[]>([]); const [isSaving, setIsSaving] = useState(false); const [savingHabitId, setSavingHabitId] = useState<string | null>(null); const [moodMessage, setMoodMessage] = useState<MutationMessage | null>(null); const [habitMessage, setHabitMessage] = useState<MutationMessage | null>(null)
   const [uncertain, setUncertain] = useState<UnconfirmedSave | null>(null)
   const [orphanedNote, setOrphanedNote] = useState<string | null>(null)
@@ -42,7 +41,7 @@ export function TodayPage() {
   const savedScore = mood?.score
   const savedNote = mood?.note
   const [savedMoodKey, setSavedMoodKey] = useState<string | undefined>(undefined)
-  const moodKey = mood ? JSON.stringify(mood) : undefined
+  const moodKey = date ? JSON.stringify([date, mood]) : undefined
   if (moodKey !== undefined && moodKey !== savedMoodKey) {
     setSavedMoodKey(moodKey)
     if (uncertain?.kind !== 'mood') {
@@ -55,7 +54,6 @@ export function TodayPage() {
   const activeHabits = habits.filter((habit) => habit.active)
   const completed = activeHabits.filter((habit) => logs.get(habit.id)?.done).length
   const pending = isSaving || savingHabitId !== null || Boolean(uncertain)
-  const date = toMoodlyDateKey(new Date())
 
   useEffect(() => {
     if (editingHabitId) noteField.current?.focus()
@@ -88,7 +86,8 @@ export function TodayPage() {
       await updateMood(input)
       setMoodMessage({ text: 'Your check-in is saved. Be proud of showing up.', kind: 'success' })
     } catch (reason) {
-      if (isSaveOutcomeUnknown(reason)) setUncertain({ kind: 'mood', date, input })
+      if (date && isSaveOutcomeUnknown(reason)) setUncertain({ kind: 'mood', date, input })
+      else if (reason instanceof CheckInDateChanged) setReview(reason.message)
       else setMoodMessage({ text: getUserFacingError(reason, 'Unable to save your check-in.'), kind: 'error' })
     } finally {
       submitPending.current = false
@@ -98,8 +97,8 @@ export function TodayPage() {
 
   async function checkSave() {
     if (!uncertain) return
-    const { entry: latest, habits: latestHabits } = await refresh()
-    const sameDate = (latest?.date ?? toMoodlyDateKey(new Date())) === uncertain.date
+    const { date: latestDate, entry: latest, habits: latestHabits } = await refresh()
+    const sameDate = latestDate === uncertain.date
     const savedMood = latest?.mood
     const savedLog = uncertain.kind === 'habit' ? latest?.habits?.find((log) => log.habitId === uncertain.id) : undefined
     const match = sameDate && (uncertain.kind === 'mood'
@@ -108,7 +107,7 @@ export function TodayPage() {
         JSON.stringify([...(savedMood?.tags ?? [])].sort()) === JSON.stringify([...(uncertain.input.tags ?? [])].sort())
       : savedLog?.done === uncertain.done && (savedLog.note || null) === uncertain.note)
     // Record which server mood was reviewed without replacing the user's draft.
-    if (uncertain.kind === 'mood') setSavedMoodKey(savedMood ? JSON.stringify(savedMood) : undefined)
+    if (uncertain.kind === 'mood') setSavedMoodKey(JSON.stringify([latestDate, savedMood]))
     setUncertain(null)
     if (match) {
       if (uncertain.kind === 'habit' && uncertain.editing) closeNote()
@@ -145,7 +144,15 @@ export function TodayPage() {
         kind: 'success',
       })
     } catch (reason) {
-      if (isSaveOutcomeUnknown(reason)) {
+      if (reason instanceof CheckInDateChanged) {
+        if (replacement !== undefined) {
+          setOrphanedNote(habitNote)
+          setEditingHabitId(null)
+        }
+        setReview(reason.message)
+        return
+      }
+      if (date && isSaveOutcomeUnknown(reason)) {
         setUncertain({ kind: 'habit', date, id: habitId, done, note: replacement === undefined ? logs.get(habitId)?.note || null : replacement, editing: replacement !== undefined })
         return
       }

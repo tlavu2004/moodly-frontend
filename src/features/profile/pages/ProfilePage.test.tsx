@@ -26,10 +26,12 @@ describe('ProfilePage', () => {
     expect(screen.getByText('MN')).toBeInTheDocument()
   })
 
-  it('rejects unsupported formats and files larger than 5 MiB', async () => {
+  it('rejects empty images, unsupported formats, and files larger than 5 MiB', async () => {
     const { container } = render(<ProfilePage />)
     const input = container.querySelector('input[type="file"]') as HTMLInputElement
     const user = userEvent.setup({ applyAccept: false })
+    await user.upload(input, new File([], 'empty.png', { type: 'image/png' }))
+    expect(screen.getByRole('alert')).toHaveTextContent('Choose an image that is not empty.')
     await user.upload(input, new File(['text'], 'avatar.gif', { type: 'image/gif' }))
     expect(screen.getByRole('alert')).toHaveTextContent('JPG, PNG, or WebP')
     await user.upload(input, new File([new Uint8Array(5 * 1024 * 1024 + 1)], 'large.png', { type: 'image/png' }))

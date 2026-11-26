@@ -1,6 +1,6 @@
 import type { ApiClient } from '../../../api/client.ts'
 import { findBetween, setTodayMood, today, updateTodayHabit } from '../../../api/openapi/sdk.api.ts'
-import type { DailyEntryResponse as DailyEntry, SetMoodRequest } from '../../../api/openapi/types.api.ts'
+import type { DailyEntryResponse as DailyEntry, SetMoodRequest, TodayEntryResponse } from '../../../api/openapi/types.api.ts'
 
 export async function getEntriesPage(client: ApiClient, from: string, to: string, page: number, signal?: AbortSignal) {
   const result = await findBetween({ client, query: { from, to, page, size: 20 }, signal, throwOnError: true })
@@ -9,9 +9,10 @@ export async function getEntriesPage(client: ApiClient, from: string, to: string
 }
 
 
-export async function getTodayEntry(client: ApiClient, signal?: AbortSignal): Promise<DailyEntry | null> {
+export async function getTodayEntry(client: ApiClient, signal?: AbortSignal): Promise<TodayEntryResponse> {
   const result = await today({ client, signal, throwOnError: true })
-  return result.data.data?.entry ?? null
+  if (!result.data.data) throw new Error('The check-in response was empty.')
+  return result.data.data
 }
 
 export async function saveMood(client: ApiClient, body: SetMoodRequest, signal?: AbortSignal): Promise<DailyEntry> {

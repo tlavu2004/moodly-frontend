@@ -1,3 +1,4 @@
+import { toMoodlyDateKey } from '../utils/date.ts'
 import { act, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -6,13 +7,13 @@ import { LanguageSelect } from './LanguageSelect.tsx'
 import { TodayPage } from '../features/entries/pages/TodayPage.tsx'
 import { useTodayEntry } from '../features/entries/hooks/useTodayEntry.ts'
 
-vi.mock('../features/entries/hooks/useTodayEntry.ts', () => ({ useTodayEntry: vi.fn() }))
+vi.mock('../features/entries/hooks/useTodayEntry.ts', async (original) => ({ ...(await original<typeof import('../features/entries/hooks/useTodayEntry.ts')>()), useTodayEntry: vi.fn() }))
 afterEach(() => { act(() => setLocale('en')); vi.restoreAllMocks() })
 
 describe('localization', () => {
   it('switches accessible labels and persists the preference without losing entered text or API tag values', async () => {
     const updateMood = vi.fn().mockResolvedValue(undefined)
-    vi.mocked(useTodayEntry).mockReturnValue({ entry: null, habits: [], isLoading: false, error: null, retryAt: null, refresh: vi.fn(), reload: vi.fn(), updateMood, toggleHabit: vi.fn() })
+    vi.mocked(useTodayEntry).mockReturnValue({ date: toMoodlyDateKey(new Date()), entry: null, habits: [], isLoading: false, error: null, retryAt: null, refresh: vi.fn(), reload: vi.fn(), updateMood, toggleHabit: vi.fn() })
     const user = userEvent.setup()
     render(<><LanguageSelect /><TodayPage /></>)
     expect(screen.getByRole('heading', { name: 'How is your inner weather?' })).toBeInTheDocument()
