@@ -63,6 +63,7 @@ test('critical habit, mood, history, stats, avatar, and search flow', async ({ p
   await expect(page.getByRole('columnheader', { name: 'Check-ins' })).toBeVisible()
 
   await page.goto('/profile')
+  await expect(page.getByRole('button', { name: 'Change photo' })).toBeEnabled()
   await page.locator('input[type="file"]').setInputFiles({ name: 'avatar.gif', mimeType: 'image/gif', buffer: Buffer.from('not-an-image') })
   await expect(page.getByRole('alert')).toContainText('JPG, PNG, or WebP')
   await page.locator('input[type="file"]').setInputFiles({ name: 'large.png', mimeType: 'image/png', buffer: Buffer.alloc(5 * 1024 * 1024 + 1) })

@@ -57,7 +57,8 @@ test('renders backend validation errors on habit creation', async ({ page }) => 
   await page.getByRole('button', { name: 'New habit' }).click()
   await page.getByLabel('Habit name').fill('Duplicate')
   await page.getByRole('button', { name: 'Create habit' }).click()
-  await expect(page.getByRole('alert')).toContainText('Name is already in use.')
+  await expect(page.getByRole('alert')).toContainText('Already exists.')
+  await expect(page.getByLabel('Habit name')).toHaveAccessibleDescription('Already exists.')
 })
 
 test('locks a mutation while its request is in flight', async ({ page }) => {
