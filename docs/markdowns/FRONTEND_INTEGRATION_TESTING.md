@@ -98,3 +98,39 @@ authorizes authenticated remote writes. Remote E2E is not a required PR check.
 - Reset 403/unavailable: check BE opt-in reset configuration and token on the dedicated
   synthetic account. Do not disable FE validation or redirect tokens to another URL.
 - Scope the tests you actually ran; public-only does not establish authenticated coverage.
+
+
+## Habits page performance
+
+The browser benchmark uses the existing authenticated setup and fixed-account
+reset guard. Run it against the loopback backend with a synthetic account after
+the other authenticated tests have finished. It resets that subject, measures
+the two seeded active habits, creates eight more, and records today's completion
+for each new habit. The seeded history is small, so repeat on a dedicated test
+dataset before extrapolating to long journal histories.
+
+```powershell
+$env:E2E_HABITS_BENCHMARK = '1'
+npx playwright test e2e/habits-performance.smoke.spec.ts --project=authenticated
+Remove-Item Env:E2E_HABITS_BENCHMARK
+```
+
+It measures navigation until all habit cards render at a 390px viewport. For each
+habit count, discard one warm-up and report the median and p95 of 20 navigations.
+Check the habit list plus streak request count and any failed streak reads. The
+local test instance needs enough quota for the full batch under its existing
+test configuration. Review the N+1 pattern if typical active counts grow beyond
+10 or measured p95 exceeds one second.
+
+If Auth0 blocks the browser benchmark, the fixture below renders the actual FE
+page in jsdom. It simulates a 100 ms list read and streak reads ranging from
+100 to 280 ms, with the same sample count. The numbers exclude browser paint,
+Auth0, and backend processing.
+
+```powershell
+$env:MOODLY_HABITS_FIXTURE_BENCHMARK = '1'
+npx vitest run src/features/habits/pages/HabitsPage.performance.test.tsx
+Remove-Item Env:MOODLY_HABITS_FIXTURE_BENCHMARK
+```
+
+Fixture results are written to `reports/habits-fixture-performance.json`.
