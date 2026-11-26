@@ -116,15 +116,28 @@ Remove-Item Env:E2E_HABITS_BENCHMARK
 ```
 
 For each habit count, discard one warm-up and collect 100 navigations at a
-390px viewport. Use the runner's monotonic clock immediately before
-`page.goto('/habits')` and stop when Playwright observes all expected habit
-cards in the DOM. This includes navigation, authentication bootstrap and API
-reads, rendering, and Playwright's observation delay. It is a page-load
-measurement, not endpoint latency or paint timing. Use the same machine,
-backend, browser, and observation method when comparing runs.
+390px viewport. Each navigation captures correlated measurements:
 
-Sort each group's 100 elapsed times in ascending order. The median is the
-mean of ranks 50 and 51. Use nearest rank `ceil(p × N)` for percentiles
+| Metric | Start and end |
+| --- | --- |
+| Page load | Runner monotonic clock from just before `page.goto('/habits')` until Playwright observes all expected cards. Includes navigation, auth bootstrap, fetching, rendering, and Playwright's polling delay. |
+| Habit list request | Browser Resource Timing duration for `GET /habits`. |
+| Individual streak request | Resource duration for each `GET /habits/{habitId}/streak`, pooled across navigations. |
+| Slowest streak per load | Maximum individual streak duration in that navigation. |
+| Parallel streak group | First streak request start to last streak response end in that navigation. Includes gaps between dispatches and overlap. |
+| Last response to cards in DOM | Last habit API response end to the first DOM update with the expected card count, marked with a MutationObserver. |
+
+API timings include browser and network overhead along with backend time.
+The last-response interval includes client processing and DOM updates.
+Server-only execution and visual paint require separate instrumentation.
+Keep comparisons on the same machine, backend, browser, and observation method.
+The Playwright attachment includes per-navigation samples so slow phases can
+be compared within the same load. Percentiles from different phases may come
+from different navigations and should not be subtracted.
+
+Sort each metric's elapsed times in ascending order. For 100 samples, the
+median is the mean of ranks 50 and 51. Pooled streak request metrics contain
+200 or 1,000 samples. Use nearest rank `ceil(p × N)` for percentiles
 with one-based ranks, so p95 is rank 95 and p99 is rank 99. Round the final
 statistics to whole milliseconds. With 100 observations, p99 can change
 noticeably with a few slow navigations. Treat it as a local snapshot.
@@ -139,14 +152,46 @@ counts grow beyond 10 or measured p95 exceeds one second.
 Chromium, 390px viewport, loopback test backend with the synthetic history
 described above. Authentication setup and the benchmark both passed.
 
-| Active habits | Samples | Median | p95 | p99 | Habit requests per load |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| 2 | 100 | 901 ms | 935 ms | 941 ms | 3 |
-| 10 | 100 | 905 ms | 942 ms | 951 ms | 11 |
+Values are milliseconds, shown as median / p95 / p99. There were 100
+measured navigations per group, with 3 and 11 habit API requests per
+document, respectively.
 
-Both groups stayed under the one-second p95 review threshold on this fixture.
-The short local history and loopback connection limit what this run says about
-deployed performance.
+#### End-to-end Habits page load
+
+| Metric | 2 active habits | 10 active habits |
+| --- | ---: | ---: |
+| Navigation to Playwright observing all cards | 899 / 926 / 959 | 896 / 922 / 927 |
+
+Both groups stayed under the one-second p95 page-load review threshold.
+This measures one user flow on Chromium and a loopback test backend.
+The short synthetic history limits conclusions about deployed performance.
+
+#### Backend API calls observed by the browser
+
+| Metric | 2 active habits | 10 active habits |
+| --- | ---: | ---: |
+| Habit list request | 7 / 10 / 11 | 6 / 8 / 10 |
+| Individual streak request | 10 / 16 / 19 | 17 / 29 / 45 |
+| Slowest streak per load | 11 / 16 / 19 | 21 / 33 / 53 |
+| Parallel streak group | 11 / 16 / 19 | 22 / 35 / 56 |
+
+These are browser-observed request durations. Server-side processing
+percentiles for `GET /habits` and `GET /habits/{habitId}/streak` were not
+measured in this run. Measuring those requires timing on BE for the same
+requests, with server-side observations tied to each benchmark run.
+
+#### Frontend after the last habit API response
+
+| Metric | 2 active habits | 10 active habits |
+| --- | ---: | ---: |
+| Last response to all cards in the DOM | 4 / 8 / 10 | 13 / 17 / 19 |
+
+This window covers client processing and DOM updates after the last habit
+API response. Navigation, session bootstrap, and browser paint are outside
+this window. To investigate the remaining end-to-end time, measure those
+milestones within individual loads and compare matched samples.
+
+### Simulated API fixture
 
 If Auth0 blocks the browser benchmark, the fixture below renders the actual FE
 page in jsdom. It simulates a 100 ms list read and streak reads ranging from
