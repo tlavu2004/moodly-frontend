@@ -233,11 +233,11 @@ export type UpdateHabitLogRequest = {
     /**
      * Whether the habit was completed today
      */
-    done?: boolean;
+    done: boolean;
     /**
-     * Optional completion note
+     * Replacement note for this log. Omit it or send null to clear the note.
      */
-    note?: string;
+    note?: string | null;
 };
 
 export type ApiResponseListMostMissedHabitResponse = {
@@ -369,7 +369,7 @@ export type EntrySearchResult = {
     entryId: string;
     date: string;
     /**
-     * Plain-text fragments keyed only by mood.note, habits.note, or mood.tags; ranges use zero-based, end-exclusive offsets.
+     * Snippets grouped by source field: mood.note (mood note), habits.note (habit log note), or mood.tags (mood tag). Only matching fields have snippets. A habit note snippet does not identify an individual habit.
      */
     highlights: {
         [key: string]: Array<HighlightFragment>;
@@ -377,12 +377,24 @@ export type EntrySearchResult = {
 };
 
 export type HighlightFragment = {
+    /**
+     * Plain-text search snippet with highlight markers removed; it may be shorter than the original field.
+     */
     text: string;
+    /**
+     * Matches within this snippet's text, measured in UTF-16 code units.
+     */
     ranges: Array<HighlightRange>;
 };
 
 export type HighlightRange = {
+    /**
+     * Zero-based inclusive UTF-16 offset into the containing fragment's text.
+     */
     start: number;
+    /**
+     * Exclusive UTF-16 offset into the containing fragment's text.
+     */
     end: number;
 };
 

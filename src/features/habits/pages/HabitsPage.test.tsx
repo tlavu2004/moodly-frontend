@@ -1,3 +1,4 @@
+import { ApiRequestError } from '../../../api/errors.ts'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { vi } from 'vitest'
@@ -10,7 +11,7 @@ const add = vi.fn()
 const reload = vi.fn()
 const habit = { id: 'habit-1', userId: 'user-1', name: 'Morning walk', icon: '🏃', targetFrequency: 'DAILY' as const, active: true, version: 0 }
 const state = (overrides: Record<string, unknown> = {}) => ({
-  retryAt: null, streakRetryAt: null, habits: [], streaks: {}, isLoading: false, error: null, reload, add, ...overrides,
+  retryAt: null, refresh: vi.fn(), streakRetryAt: null, habits: [], archived: [], change: vi.fn(), streaks: {}, isLoading: false, error: null, reload, add, ...overrides,
 })
 
 describe('HabitsPage', () => {
@@ -83,4 +84,50 @@ describe('HabitsPage', () => {
     await user.click(screen.getByRole('button', { name: 'Create habit' }))
     expect(await screen.findByRole('alert')).toHaveTextContent('already exists')
   })
+})
+
+it('edits a name and icon and exposes archive and restore controls', async () => {
+  const change = vi.fn()
+  vi.mocked(useHabits).mockReturnValue(state({
+    habits: [habit],
+    archived: [{ ...habit, id: 'archived', name: 'Reading', active: false }],
+    change,
+  }))
+  const user = userEvent.setup()
+  render(<HabitsPage />)
+  expect(screen.queryByRole('button', { name: 'Restore' })).toBeNull()
+  await user.click(screen.getByRole('button', { name: 'Edit habit' }))
+  const name = screen.getByLabelText('Habit name')
+  expect(name).toHaveFocus()
+  await user.clear(name)
+  await user.type(name, 'Walk outside')
+  await user.click(screen.getByRole('button', { name: 'Use 🌿 icon' }))
+  await user.click(screen.getByRole('button', { name: 'Save habit' }))
+  expect(change).toHaveBeenCalledWith(habit.id, { name: 'Walk outside', icon: '🌿' })
+  await user.click(screen.getByRole('button', { name: 'Archive' }))
+  expect(change).toHaveBeenCalledWith(habit.id, 'archive')
+  await user.click(screen.getByRole('button', { name: 'Archived habits' }))
+  await user.click(screen.getByRole('button', { name: 'Restore' }))
+  expect(change).toHaveBeenCalledWith('archived', 'restore')
+})
+
+it('holds the habit draft after a lost response and finds the already-saved habit without resending', async () => {
+  const add = vi.fn().mockRejectedValue(new ApiRequestError({ message: 'Timed out' }))
+  const refresh = vi.fn()
+    .mockRejectedValueOnce(new ApiRequestError({ message: 'Offline' }))
+    .mockResolvedValueOnce({ habits: [{ ...habit, name: 'Read', icon: '🌿' }] })
+  vi.mocked(useHabits).mockReturnValue(state({ add, refresh }))
+  const user = userEvent.setup()
+  render(<HabitsPage />)
+  await user.click(screen.getByRole('button', { name: 'New habit' }))
+  await user.type(screen.getByLabelText('Habit name'), 'Read')
+  await user.click(screen.getByRole('button', { name: 'Create habit' }))
+  expect(screen.getByLabelText('Habit name')).toHaveValue('Read')
+  expect(screen.getByRole('button', { name: 'Create habit' })).toBeDisabled()
+  await user.click(screen.getByRole('button', { name: 'Check saved state' }))
+  expect(await screen.findByRole('alert')).toHaveTextContent('Unable to reach Moodly')
+  await user.click(screen.getByRole('button', { name: 'Check saved state' }))
+  expect(await screen.findByText('The submitted values are already on the server.')).toBeVisible()
+  expect(screen.queryByLabelText('Habit name')).not.toBeInTheDocument()
+  expect(add).toHaveBeenCalledOnce()
 })

@@ -13,6 +13,7 @@ describe('getStats', () => {
 
     await getStats({} as never)
 
+    expect(sdk.findByStatus).toHaveBeenCalledWith(expect.objectContaining({ query: { status: 'all' } }))
     expect(sdk.moodTrend).toHaveBeenCalledWith(expect.objectContaining({ query: { period: 'week' } }))
   })
 })

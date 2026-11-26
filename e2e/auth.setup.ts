@@ -16,7 +16,13 @@ setup('authenticate synthetic test user', async ({ page }) => {
   verifyTestConfiguration()
   await page.goto('/dashboard')
   await page.getByRole('button', { name: 'Continue to sign in' }).click()
-  await page.locator('input[name="username"], input[type="email"]').first().fill(email)
+  const username = page.locator('input[name="username"], input[type="email"]').first()
+  const callbackMismatch = page.getByText(/Callback URL mismatch/).first()
+  await expect(username.or(callbackMismatch).first()).toBeVisible()
+  if (await callbackMismatch.isVisible()) {
+    throw new Error('Auth0 rejected the test frontend origin because its callback URL is not allowed.')
+  }
+  await username.fill(email)
   await page.locator('input[name="password"], input[type="password"]').first().fill(password)
   await page.locator('button[type="submit"], input[type="submit"]').first().click()
   await expect(page).toHaveURL(/\/dashboard(?:[?#]|$)/)

@@ -1,10 +1,16 @@
 import type { ApiClient } from '../../../api/client.ts'
-import { confirm, current, signature } from '../../../api/openapi/sdk.api.ts'
+import { confirm, current, delete_, signature } from '../../../api/openapi/sdk.api.ts'
 import type { AvatarResponse as Avatar, UploadRequest } from '../../../api/openapi/types.api.ts'
 
 export async function getAvatar(client: ApiClient, signal?: AbortSignal): Promise<Avatar | null> {
   const result = await current({ client, signal, throwOnError: true })
   return result.data.data ?? null
+}
+
+export async function removeAvatar(client: ApiClient, signal: AbortSignal): Promise<Avatar> {
+  const result = await delete_({ client, signal, throwOnError: true })
+  if (!result.data.data) throw new Error('The avatar response was empty.')
+  return result.data.data
 }
 
 export async function uploadAvatar(client: ApiClient, file: File, signal?: AbortSignal): Promise<Avatar> {

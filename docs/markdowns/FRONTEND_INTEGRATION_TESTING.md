@@ -98,3 +98,81 @@ authorizes authenticated remote writes. Remote E2E is not a required PR check.
 - Reset 403/unavailable: check BE opt-in reset configuration and token on the dedicated
   synthetic account. Do not disable FE validation or redirect tokens to another URL.
 - Scope the tests you actually ran; public-only does not establish authenticated coverage.
+
+
+## Habits page performance
+
+The browser benchmark uses the existing authenticated setup and fixed-account
+reset guard. Run it against the loopback backend with a synthetic account after
+the other authenticated tests have finished. It resets that subject, measures
+the two seeded active habits, creates eight more, and records today's completion
+for each new habit. The seeded history is small, so repeat on a dedicated test
+dataset before extrapolating to long journal histories.
+
+```powershell
+$env:E2E_HABITS_BENCHMARK = '1'
+npx playwright test e2e/habits-performance.smoke.spec.ts --project=authenticated
+Remove-Item Env:E2E_HABITS_BENCHMARK
+```
+
+For each habit count, discard one warm-up and collect 100 navigations at a
+390px viewport. Use the runner's monotonic clock immediately before
+`page.goto('/habits')` and stop when Playwright observes all expected habit
+cards in the DOM. This includes navigation, authentication bootstrap and API
+reads, rendering, and Playwright's observation delay. It is a page-load
+measurement, not endpoint latency or paint timing. Use the same machine,
+backend, browser, and observation method when comparing runs.
+
+Sort each group's 100 elapsed times in ascending order. The median is the
+mean of ranks 50 and 51. Use nearest rank `ceil(p × N)` for percentiles
+with one-based ranks, so p95 is rank 95 and p99 is rank 99. Round the final
+statistics to whole milliseconds. With 100 observations, p99 can change
+noticeably with a few slow navigations. Treat it as a local snapshot.
+
+Check the habit list plus streak request count and any failed streak reads.
+The local test instance needs enough quota for the full batch under its
+existing test configuration. Review the N+1 pattern if typical active
+counts grow beyond 10 or measured p95 exceeds one second.
+
+### Local backend result on 2026-11-26
+
+Chromium, 390px viewport, loopback test backend with the synthetic history
+described above. Authentication setup and the benchmark both passed.
+
+| Active habits | Samples | Median | p95 | p99 | Habit requests per load |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| 2 | 100 | 901 ms | 935 ms | 941 ms | 3 |
+| 10 | 100 | 905 ms | 942 ms | 951 ms | 11 |
+
+Both groups stayed under the one-second p95 review threshold on this fixture.
+The short local history and loopback connection limit what this run says about
+deployed performance.
+
+If Auth0 blocks the browser benchmark, the fixture below renders the actual FE
+page in jsdom. It simulates a 100 ms list read and streak reads ranging from
+100 to 280 ms, with the same sample count. The numbers exclude browser paint,
+Auth0, and backend processing.
+
+```powershell
+$env:MOODLY_HABITS_FIXTURE_BENCHMARK = '1'
+npx vitest run src/features/habits/pages/HabitsPage.performance.test.tsx
+Remove-Item Env:MOODLY_HABITS_FIXTURE_BENCHMARK
+```
+
+Fixture results are written to `reports/habits-fixture-performance.json`.
+
+
+## OpenAPI issue for the backend owner
+
+OpenAPI 3.1 in backend commit `5038c96` describes several nullable objects with
+a sibling `"$ref"` and `"type": "null"`. Both constraints apply, so a JSON
+Schema validator can reject both a valid object and null. For example,
+`ApiResponseDailyEntryResponse.properties.data` refers to
+`DailyEntryResponse`. The same pattern occurs in
+`TodayEntryResponse.properties.entry` and `DailyEntryResponse.properties.mood`.
+
+Generate an `anyOf` with one branch for the object reference and one branch for
+`{ "type": "null" }` wherever the wire response permits either value. Verify
+that validators accept both the populated and the empty response, then merge
+the corrected OpenAPI in the backend. The frontend can update its pin and
+regenerate its client from that merged commit.

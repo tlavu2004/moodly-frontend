@@ -57,7 +57,8 @@ test('renders backend validation errors on habit creation', async ({ page }) => 
   await page.getByRole('button', { name: 'New habit' }).click()
   await page.getByLabel('Habit name').fill('Duplicate')
   await page.getByRole('button', { name: 'Create habit' }).click()
-  await expect(page.getByRole('alert')).toContainText('Name is already in use.')
+  await expect(page.getByRole('alert')).toContainText('Already exists.')
+  await expect(page.getByLabel('Habit name')).toHaveAccessibleDescription('Already exists.')
 })
 
 test('locks a mutation while its request is in flight', async ({ page }) => {
@@ -74,7 +75,7 @@ test('locks a mutation while its request is in flight', async ({ page }) => {
   await page.getByLabel('Habit name').fill('Walk')
   const submit = page.getByRole('button', { name: 'Create habit' })
   const pendingClick = submit.click()
-  await expect(page.getByRole('button', { name: 'Creating…' })).toBeDisabled()
+  await expect(page.getByRole('button', { name: 'Saving…' })).toBeDisabled()
   await pendingClick
   expect(createCount).toBe(1)
 })
@@ -91,7 +92,13 @@ test('does not automatically retry a failed habit creation', async ({ page }) =>
   await page.getByRole('button', { name: 'New habit' }).click()
   await page.getByLabel('Habit name').fill('Walk')
   await page.getByRole('button', { name: 'Create habit' }).click()
-  await expect(page.getByRole('alert')).toContainText('Check your habits before trying again')
+  const draft = page.getByLabel('Habit name')
+  await expect(draft).toHaveValue('Walk')
+  await expect(page.getByRole('button', { name: 'Create habit' })).toBeDisabled()
+  await page.getByRole('button', { name: 'Check saved state' }).click()
+  await expect(page.getByText('The server has different values. Review the list before saving again.')).toBeVisible()
+  await expect(draft).toHaveValue('Walk')
+  await expect(page.getByRole('button', { name: 'Create habit' })).toBeEnabled()
   expect(createCount).toBe(1)
 })
 

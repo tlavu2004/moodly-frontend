@@ -1,10 +1,10 @@
 import type { ApiClient } from '../../../api/client.ts'
 import { ApiRequestError } from '../../../api/errors.ts'
-import { create, currentStreak, findByStatus } from '../../../api/openapi/sdk.api.ts'
+import { archive, create, currentStreak, findByStatus, restore, update } from '../../../api/openapi/sdk.api.ts'
 import type { CreateHabitRequest, HabitResponse as Habit } from '../../../api/openapi/types.api.ts'
 
-export async function listHabits(client: ApiClient, signal?: AbortSignal): Promise<Habit[]> {
-  const result = await findByStatus({ client, signal, query: { status: 'active' }, throwOnError: true })
+export async function listHabits(client: ApiClient, signal?: AbortSignal, status: 'active' | 'archived' | 'all' = 'active'): Promise<Habit[]> {
+  const result = await findByStatus({ client, signal, query: { status }, throwOnError: true })
   return result.data.data ?? []
 }
 
@@ -27,4 +27,19 @@ export async function listHabitStreaks(client: ApiClient, habits: Habit[], signa
     if (result.status === 'rejected' && result.reason instanceof ApiRequestError && result.reason.status === 429) onRateLimit?.(result.reason)
   }
   return Object.fromEntries(settled.flatMap((result) => result.status === 'fulfilled' ? [result.value] : []))
+}
+
+export async function changeHabit(
+  client: ApiClient,
+  habit: Habit,
+  change: 'archive' | 'restore' | { name: string; icon?: string },
+  signal: AbortSignal,
+): Promise<Habit> {
+  const options = { client, signal, path: { habitId: habit.id }, throwOnError: true as const }
+  const body = { version: habit.version }
+  const result = typeof change === 'string'
+    ? await (change === 'archive' ? archive : restore)({ ...options, body })
+    : await update({ ...options, body: { ...body, ...change } })
+  if (!result.data.data) throw new Error('The habit response was empty.')
+  return result.data.data
 }

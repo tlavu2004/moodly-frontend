@@ -11,6 +11,7 @@ const { client, getEntriesPageMock, searchEntriesPageMock } = vi.hoisted(() => (
 }))
 
 vi.mock('../../../api/useApiClient.ts', () => ({ useApiClient: () => client }))
+vi.mock('../../habits/api/habitsApi.ts', () => ({ listHabits: vi.fn().mockResolvedValue([]) }))
 vi.mock('../../entries/api/entriesApi.ts', () => ({ getEntriesPage: getEntriesPageMock }))
 vi.mock('../api/searchApi.ts', () => ({ searchEntriesPage: searchEntriesPageMock }))
 

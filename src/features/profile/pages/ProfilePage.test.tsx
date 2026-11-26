@@ -14,7 +14,7 @@ describe('ProfilePage', () => {
   beforeEach(() => {
     upload.mockReset()
     vi.mocked(useAuth0).mockReturnValue({ user: { name: 'Mai Nguyen', email: 'mai@example.test' }, logout: vi.fn() } as unknown as ReturnType<typeof useAuth0>)
-    vi.mocked(useAvatar).mockReturnValue({ reload: vi.fn(), retryAt: null, avatar: null, isLoading: false, isUploading: false, error: null, upload })
+    vi.mocked(useAvatar).mockReturnValue({ reload: vi.fn(), retryAt: null, avatar: null, isLoading: false, isUploading: false, error: null, upload, isRemoving: false, remove: vi.fn() })
   })
 
   it('falls back from backend avatar to Auth0 picture and then initials', () => {
@@ -26,10 +26,12 @@ describe('ProfilePage', () => {
     expect(screen.getByText('MN')).toBeInTheDocument()
   })
 
-  it('rejects unsupported formats and files larger than 5 MiB', async () => {
+  it('rejects empty images, unsupported formats, and files larger than 5 MiB', async () => {
     const { container } = render(<ProfilePage />)
     const input = container.querySelector('input[type="file"]') as HTMLInputElement
     const user = userEvent.setup({ applyAccept: false })
+    await user.upload(input, new File([], 'empty.png', { type: 'image/png' }))
+    expect(screen.getByRole('alert')).toHaveTextContent('Choose an image that is not empty.')
     await user.upload(input, new File(['text'], 'avatar.gif', { type: 'image/gif' }))
     expect(screen.getByRole('alert')).toHaveTextContent('JPG, PNG, or WebP')
     await user.upload(input, new File([new Uint8Array(5 * 1024 * 1024 + 1)], 'large.png', { type: 'image/png' }))
@@ -48,9 +50,24 @@ describe('ProfilePage', () => {
   })
 
   it('renders backend avatar metadata', () => {
-    vi.mocked(useAvatar).mockReturnValue({ reload: vi.fn(), retryAt: null, avatar: { deliveryUrl: 'https://cdn/avatar.png', contentType: 'image/png', sizeBytes: 1024 * 1024 }, isLoading: false, isUploading: false, error: null, upload })
+    vi.mocked(useAvatar).mockReturnValue({ reload: vi.fn(), retryAt: null, avatar: { deliveryUrl: 'https://cdn/avatar.png', contentType: 'image/png', sizeBytes: 1024 * 1024 }, isLoading: false, isUploading: false, error: null, upload, isRemoving: false, remove: vi.fn() })
     render(<ProfilePage />)
     expect(screen.getByText('PNG')).toBeInTheDocument()
     expect(screen.getByText('1.00 MB')).toBeInTheDocument()
   })
+})
+
+it('removes a custom photo and renders the Auth0 fallback when the server clears it', async () => {
+  vi.mocked(useAuth0).mockReturnValue({ user: { name: 'Mai Nguyen', picture: 'https://auth.example/avatar.jpg' }, logout: vi.fn() } as unknown as ReturnType<typeof useAuth0>)
+  const remove = vi.fn().mockResolvedValue(undefined)
+  const state = { reload: vi.fn(), retryAt: null, isLoading: false, isUploading: false, error: null, upload, isRemoving: false, remove }
+  vi.mocked(useAvatar).mockReturnValue({ ...state, avatar: { deliveryUrl: 'https://cdn.example/custom.png' } })
+  const { rerender } = render(<ProfilePage />)
+  expect(screen.getByRole('img')).toHaveAttribute('src', 'https://cdn.example/custom.png')
+  await userEvent.click(screen.getByRole('button', { name: 'Remove photo' }))
+  expect(remove).toHaveBeenCalledOnce()
+  vi.mocked(useAvatar).mockReturnValue({ ...state, avatar: {} })
+  rerender(<ProfilePage />)
+  expect(screen.getByRole('img')).toHaveAttribute('src', 'https://auth.example/avatar.jpg')
+  expect(screen.queryByRole('button', { name: 'Remove photo' })).toBeNull()
 })
