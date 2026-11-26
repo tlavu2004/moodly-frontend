@@ -104,3 +104,7 @@ export function parseRetryAfter(value: string | null, now = Date.now()): number 
 export function getRetryDeadline(value: string | null, now = Date.now()): number {
   return parseRetryAfter(value, now) ?? now + 30_000
 }
+
+export function isSaveOutcomeUnknown(reason: unknown): boolean {
+  return reason instanceof ApiRequestError && (reason.status === null || reason.status >= 500)
+}

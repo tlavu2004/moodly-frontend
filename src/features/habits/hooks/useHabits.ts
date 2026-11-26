@@ -17,6 +17,12 @@ export function useHabits() {
     return { habits, streaks, streakRetryAt }
   }, [client])
   const { data, setData, isLoading, error, reload, retryAt } = useApiRead(load, 'Unable to load habits.')
+  async function refresh() {
+    const latest = await mutate(load)
+    setData(latest)
+    return latest
+  }
+
   const add = async (input: CreateHabitRequest) => {
     const habit = await mutate((signal) => createHabit(client, input, signal))
     setData((current) => ({ habits: [...(current?.habits ?? []), habit], streaks: { ...current?.streaks, [habit.id]: 0 }, streakRetryAt: current?.streakRetryAt ?? null }))
@@ -37,5 +43,5 @@ export function useHabits() {
     }
   }
   const habits: HabitResponse[] = data?.habits ?? []
-  return { change, archived: habits.filter((habit) => !habit.active), streakRetryAt: data?.streakRetryAt ?? null, habits: habits.filter((habit) => habit.active), streaks: data?.streaks ?? {}, isLoading, error, reload, retryAt, add }
+  return { change, refresh, archived: habits.filter((habit) => !habit.active), streakRetryAt: data?.streakRetryAt ?? null, habits: habits.filter((habit) => habit.active), streaks: data?.streaks ?? {}, isLoading, error, reload, retryAt, add }
 }

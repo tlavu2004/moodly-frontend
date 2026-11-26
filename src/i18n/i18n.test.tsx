@@ -12,7 +12,7 @@ afterEach(() => { act(() => setLocale('en')); vi.restoreAllMocks() })
 describe('localization', () => {
   it('switches accessible labels and persists the preference without losing entered text or API tag values', async () => {
     const updateMood = vi.fn().mockResolvedValue(undefined)
-    vi.mocked(useTodayEntry).mockReturnValue({ entry: null, habits: [], isLoading: false, error: null, retryAt: null, reload: vi.fn(), updateMood, toggleHabit: vi.fn() })
+    vi.mocked(useTodayEntry).mockReturnValue({ entry: null, habits: [], isLoading: false, error: null, retryAt: null, refresh: vi.fn(), reload: vi.fn(), updateMood, toggleHabit: vi.fn() })
     const user = userEvent.setup()
     render(<><LanguageSelect /><TodayPage /></>)
     expect(screen.getByRole('heading', { name: 'How is your inner weather?' })).toBeInTheDocument()

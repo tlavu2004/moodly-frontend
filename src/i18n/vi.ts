@@ -1,4 +1,17 @@
 export const vi: Record<string, string> = {
+  'The save could not be confirmed. Check the server before sending again.': 'Chưa xác nhận được thao tác lưu. Hãy kiểm tra máy chủ trước khi gửi lại.',
+  'Could not check the saved state.': 'Không kiểm tra được dữ liệu đã lưu.',
+  'Checking saved state…': 'Đang kiểm tra dữ liệu đã lưu…',
+  'Check saved state': 'Kiểm tra dữ liệu đã lưu',
+  'The submitted values are already on the server.': 'Dữ liệu vừa gửi đã có trên máy chủ.',
+  'The server has different values. Review the list before saving again.': 'Dữ liệu trên máy chủ khác với bản nháp. Hãy xem lại danh sách trước khi lưu lại.',
+  'This habit is no longer active. Copy your draft before closing the form.': 'Thói quen này không còn hoạt động. Hãy sao chép bản nháp trước khi đóng.',
+  'The server has different values. Review the saved data before saving again.': 'Dữ liệu trên máy chủ khác với bản nháp. Hãy xem dữ liệu đã lưu trước khi lưu lại.',
+  'The calendar day changed. Review the date before saving your draft.': 'Đã sang ngày mới. Hãy xem lại ngày trước khi lưu bản nháp.',
+  'This habit is no longer available to log.': 'Không còn có thể ghi lượt thực hiện cho thói quen này.',
+  'Unsaved habit note': 'Ghi chú thói quen chưa lưu',
+  'Saved mood': 'Tâm trạng đã lưu',
+
   'Mood note': 'Ghi chú tâm trạng',
   'Habit log note': 'Ghi chú lượt ghi thói quen',
   'Mood tag': 'Thẻ tâm trạng',

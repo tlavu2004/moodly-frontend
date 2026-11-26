@@ -1,3 +1,5 @@
+import { ApiRequestError } from '../../../api/errors.ts'
+import { toMoodlyDateKey } from '../../../utils/date.ts'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { vi } from 'vitest'
@@ -18,11 +20,11 @@ describe('TodayPage', () => {
   beforeEach(() => {
     updateMood.mockReset()
     toggleHabit.mockReset()
-    vi.mocked(useTodayEntry).mockReturnValue({ reload: vi.fn(), retryAt: null, entry: null, habits: [habit], isLoading: false, error: null, updateMood, toggleHabit })
+    vi.mocked(useTodayEntry).mockReturnValue({ reload: vi.fn(), retryAt: null, refresh: vi.fn(), entry: null, habits: [habit], isLoading: false, error: null, updateMood, toggleHabit })
   })
 
   it('hydrates the current mood, tags, and note', async () => {
-    vi.mocked(useTodayEntry).mockReturnValue({ reload: vi.fn(), retryAt: null, entry, habits: [habit], isLoading: false, error: null, updateMood, toggleHabit })
+    vi.mocked(useTodayEntry).mockReturnValue({ reload: vi.fn(), retryAt: null, refresh: vi.fn(), entry, habits: [habit], isLoading: false, error: null, updateMood, toggleHabit })
     render(<TodayPage />)
     await waitFor(() => expect(screen.getByRole('button', { name: /Good/ })).toHaveAttribute('aria-pressed', 'true'))
     expect(screen.getByRole('button', { name: 'Calm' })).toHaveAttribute('aria-pressed', 'true')
@@ -94,7 +96,7 @@ describe('TodayPage', () => {
 
 it('opens the note editor via the keyboard and saves with an explicit completion state', async () => {
   toggleHabit.mockReset()
-  vi.mocked(useTodayEntry).mockReturnValue({ reload: vi.fn(), retryAt: null, entry: null, habits: [habit], isLoading: false, error: null, updateMood, toggleHabit })
+  vi.mocked(useTodayEntry).mockReturnValue({ reload: vi.fn(), retryAt: null, refresh: vi.fn(), entry: null, habits: [habit], isLoading: false, error: null, updateMood, toggleHabit })
   const user = userEvent.setup()
   render(<TodayPage />)
   const trigger = screen.getByRole('button', { name: 'Add habit note' })
@@ -108,4 +110,42 @@ it('opens the note editor via the keyboard and saves with an explicit completion
   expect(await screen.findByText('Habit note saved.')).toBeInTheDocument()
   await new Promise(requestAnimationFrame)
   expect(trigger).toHaveFocus()
+})
+
+it('keeps a mood draft when server values differ after a timeout', async () => {
+  const today = { ...entry, date: toMoodlyDateKey(new Date()) }
+  const refresh = vi.fn().mockResolvedValue({ entry: today, habits: [habit] })
+  const updateMood = vi.fn().mockRejectedValue(new ApiRequestError({ message: 'Timed out' }))
+  vi.mocked(useTodayEntry).mockReturnValue({ reload: vi.fn(), retryAt: null, refresh, entry: today, habits: [habit], isLoading: false, error: null, updateMood, toggleHabit })
+  const user = userEvent.setup()
+  render(<TodayPage />)
+  const draft = screen.getByLabelText(/A note to yourself/)
+  await user.clear(draft)
+  await user.type(draft, 'Unconfirmed draft')
+  await user.click(screen.getByRole('button', { name: 'Save check-in' }))
+  expect(screen.getByRole('button', { name: 'Save check-in' })).toBeDisabled()
+  await user.click(screen.getByRole('button', { name: 'Check saved state' }))
+  expect(await screen.findByText('The server has different values. Review the saved data before saving again.')).toBeVisible()
+  expect(screen.getByText('A good day')).toBeVisible()
+  expect(draft).toHaveValue('Unconfirmed draft')
+  expect(screen.getByRole('button', { name: 'Save check-in' })).toBeEnabled()
+  expect(updateMood).toHaveBeenCalledOnce()
+})
+
+it('detects a saved habit note after a lost response without repeating PATCH', async () => {
+  const today = { ...entry, date: toMoodlyDateKey(new Date()) }
+  const latest = { ...today, habits: [{ habitId: habit.id, done: true, note: 'Already saved' }] }
+  const refresh = vi.fn().mockResolvedValue({ entry: latest, habits: [habit] })
+  const toggleHabit = vi.fn().mockRejectedValue(new ApiRequestError({ message: 'Offline' }))
+  vi.mocked(useTodayEntry).mockReturnValue({ reload: vi.fn(), retryAt: null, refresh, entry: today, habits: [habit], isLoading: false, error: null, updateMood, toggleHabit })
+  const user = userEvent.setup()
+  render(<TodayPage />)
+  await user.click(screen.getByRole('button', { name: 'Add habit note' }))
+  await user.type(screen.getByRole('textbox', { name: 'Habit note' }), 'Already saved')
+  await user.click(screen.getByRole('button', { name: 'Save note' }))
+  expect(screen.getByRole('textbox', { name: 'Habit note' })).toHaveValue('Already saved')
+  await user.click(screen.getByRole('button', { name: 'Check saved state' }))
+  expect(await screen.findByText('The submitted values are already on the server.')).toBeVisible()
+  expect(screen.queryByRole('textbox', { name: 'Habit note' })).not.toBeInTheDocument()
+  expect(toggleHabit).toHaveBeenCalledOnce()
 })

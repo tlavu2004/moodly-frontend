@@ -15,6 +15,12 @@ export function useTodayEntry() {
     return { entry, habits }
   }, [client])
   const { data, setData, isLoading, error, reload, retryAt } = useApiRead(load, 'Unable to load today.')
+  async function refresh() {
+    const latest = await mutate(load)
+    setData(latest)
+    return latest
+  }
+
   async function updateMood(input: SetMoodRequest) {
     const updated = await mutate((signal) => saveMood(client, input, signal))
     setData((current) => current ? { ...current, entry: updated } : current)
@@ -30,5 +36,5 @@ export function useTodayEntry() {
     }
   }
   const loggedIds = new Set(data?.entry?.habits?.map((log) => log.habitId))
-  return { entry: data?.entry ?? null, habits: data?.habits.filter((habit) => habit.active || loggedIds.has(habit.id)) ?? [], isLoading, error, reload, retryAt, updateMood, toggleHabit }
+  return { refresh, entry: data?.entry ?? null, habits: data?.habits.filter((habit) => habit.active || loggedIds.has(habit.id)) ?? [], isLoading, error, reload, retryAt, updateMood, toggleHabit }
 }
