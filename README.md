@@ -62,10 +62,34 @@ not loaded. See [E2E setup](docs/markdowns/FRONTEND_INTEGRATION_TESTING.md).
 | `npm run generate:api` | Regenerate the OpenAPI client. |
 | `npm run verify:api` | Regenerate the client and compare it with the current commit. |
 
-Authenticated E2E requires a dedicated synthetic Auth0 account and the opt-in,
-non-production BE fixed-account reset endpoint.
-See [E2E setup](docs/markdowns/FRONTEND_INTEGRATION_TESTING.md) for the required inputs
-and startup sequence.
+Authenticated E2E requires a dedicated synthetic Auth0 account and the opt-in, non-production BE fixed-account reset endpoint. See [E2E setup](docs/markdowns/FRONTEND_INTEGRATION_TESTING.md) for the required inputs and startup sequence.
+
+## Test Coverage
+
+Run `npm run test:coverage` locally. The GitHub Actions quality job runs the same command and Vitest enforces the following thresholds across the included frontend source files.
+
+| Metric | Required project coverage | Advisory PR target |
+| --- | ---: | ---: |
+| Line | 85% | 85% |
+| Branch | 75% | 75% |
+| Function | 85% | 85% |
+| Statement | 85% | 85% |
+
+The PR job summary uses the diff from the PR merge base to the tested checkout. Line and branch counts come from Vitest LCOV records on added or modified executable lines. Function and statement counts come from Vitest's JSON coverage report. A function or statement counts once if its reported source range overlaps the diff, including edits inside an existing function body. It is covered if its hit count is greater than zero.
+
+The summary displays `N/A` when a metric has no measurable units. PR targets are advisory. The Vitest thresholds control the required coverage gate.
+
+### SonarQube Cloud
+
+Import the frontend repository into SonarQube Cloud and select CI-based analysis. Disable Automatic Analysis for that project. Set the GitHub Actions repository variables `SONAR_ORGANIZATION` and `SONAR_PROJECT_KEY`, and store the analysis token as the `SONAR_TOKEN` repository secret.
+
+After Vitest coverage succeeds, the scanner imports LCOV on pushes to `main` and pull requests from this repository. The scan is advisory. GitHub branch protection can enforce a SonarQube check separately after the rollout is validated.
+
+### Codecov
+
+Enable the frontend repository in Codecov and add the `CODECOV_TOKEN` GitHub Actions repository secret. CI uploads Vitest LCOV on pushes to `main` and pull requests from this repository after coverage succeeds. Run a build on `main` first to establish a baseline.
+
+Codecov's project status and 85% patch target are informational. The PR job summary reports the four Moodly metrics separately, and Vitest enforces the project coverage thresholds.
 
 ## API client generation
 
