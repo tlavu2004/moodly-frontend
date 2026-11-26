@@ -20,8 +20,9 @@ function changedLines(base: string | undefined): Map<string, Set<number>> {
   if (!base || !/^[0-9a-fA-F]{40,64}$/.test(base)) {
     throw new Error('PR_BASE_SHA must be a Git commit SHA')
   }
+  // This summary runs on the Ubuntu hosted runner. Use its system Git directly.
   const diff = execFileSync(
-    'git',
+    '/usr/bin/git',
     ['-c', 'core.quotePath=false', 'diff', '--no-ext-diff', '--no-color',
       '--find-renames', '--unified=0', '--dst-prefix=b/', base + '...HEAD', '--'],
     { encoding: 'utf8', maxBuffer: 32 * 1024 * 1024 },
