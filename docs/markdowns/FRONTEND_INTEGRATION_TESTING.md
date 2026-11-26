@@ -134,3 +134,19 @@ Remove-Item Env:MOODLY_HABITS_FIXTURE_BENCHMARK
 ```
 
 Fixture results are written to `reports/habits-fixture-performance.json`.
+
+
+## OpenAPI issue for the backend owner
+
+OpenAPI 3.1 in backend commit `5038c96` describes several nullable objects with
+a sibling `"$ref"` and `"type": "null"`. Both constraints apply, so a JSON
+Schema validator can reject both a valid object and null. For example,
+`ApiResponseDailyEntryResponse.properties.data` refers to
+`DailyEntryResponse`. The same pattern occurs in
+`TodayEntryResponse.properties.entry` and `DailyEntryResponse.properties.mood`.
+
+Generate an `anyOf` with one branch for the object reference and one branch for
+`{ "type": "null" }` wherever the wire response permits either value. Verify
+that validators accept both the populated and the empty response, then merge
+the corrected OpenAPI in the backend. The frontend can update its pin and
+regenerate its client from that merged commit.
