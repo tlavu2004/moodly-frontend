@@ -62,6 +62,8 @@ To run it, open Actions > Authenticated E2E > Run workflow, select the reviewed 
 
 ## Habits Page Performance
 
+Use the page-load p95 and p99 to compare the browser journey under the same test conditions. The current completion point is the expected habit cards in the DOM, with successful habit and streak requests checked separately. Use the backend guides to collect server-side percentiles and report all measurements from the same run. [Backend performance](https://github.com/tlavu2004/moodly-backend/blob/main/docs/testing/markdown/BACKEND_PERFORMANCE.md) · [System performance](https://github.com/tlavu2004/moodly-backend/blob/main/docs/testing/markdown/SYSTEM_PERFORMANCE.md)
+
 The browser benchmark uses the existing authenticated setup and fixed-account reset guard. Run it against the loopback backend with a synthetic account after the other authenticated tests have finished. It resets that subject, measures the two seeded active habits, creates eight more, and records today's completion for each new habit. The seeded history is small, so repeat on a dedicated test dataset before extrapolating to long journal histories.
 
 ```powershell
