@@ -8,7 +8,7 @@ export type SetMoodRequest = {
     /**
      * Mood score, from 1 (lowest) to 5 (highest)
      */
-    score?: number;
+    score: number;
     /**
      * Optional labels describing the mood
      */
@@ -36,11 +36,11 @@ export type ApiResponseDailyEntryResponse = {
     /**
      * Present for successful responses.
      */
-    data?: DailyEntryResponse;
+    data?: DailyEntryResponse | null;
     /**
      * Present for error responses.
      */
-    error?: ApiError;
+    error?: ApiError | null;
     timestamp: string;
 };
 
@@ -48,7 +48,7 @@ export type DailyEntryResponse = {
     id: string;
     userId: string;
     date: string;
-    mood?: MoodResponse;
+    mood?: MoodResponse | null;
     habits: Array<HabitLogResponse>;
     createdAt: string;
     updatedAt: string;
@@ -76,11 +76,11 @@ export type ApiResponseProfileResponse = {
     /**
      * Present for successful responses.
      */
-    data?: ProfileResponse;
+    data?: ProfileResponse | null;
     /**
      * Present for error responses.
      */
-    error?: ApiError;
+    error?: ApiError | null;
     timestamp: string;
 };
 
@@ -96,7 +96,7 @@ export type UploadRequest = {
     /**
      * File size in bytes; maximum 5 MiB (5242880 bytes).
      */
-    sizeBytes?: number;
+    sizeBytes: number;
 };
 
 export type ApiResponseUploadSignatureResponse = {
@@ -104,11 +104,11 @@ export type ApiResponseUploadSignatureResponse = {
     /**
      * Present for successful responses.
      */
-    data?: UploadSignatureResponse;
+    data?: UploadSignatureResponse | null;
     /**
      * Present for error responses.
      */
-    error?: ApiError;
+    error?: ApiError | null;
     timestamp: string;
 };
 
@@ -125,7 +125,7 @@ export type UploadSignatureResponse = {
 
 export type ConfirmRequest = {
     publicId: string;
-    version?: number;
+    version: number;
 };
 
 export type ApiResponseAvatarResponse = {
@@ -133,11 +133,11 @@ export type ApiResponseAvatarResponse = {
     /**
      * Present for successful responses.
      */
-    data?: AvatarResponse;
+    data?: AvatarResponse | null;
     /**
      * Present for error responses.
      */
-    error?: ApiError;
+    error?: ApiError | null;
     timestamp: string;
 };
 
@@ -153,11 +153,11 @@ export type ApiResponseCdcReindexResponse = {
     /**
      * Present for successful responses.
      */
-    data?: CdcReindexResponse;
+    data?: CdcReindexResponse | null;
     /**
      * Present for error responses.
      */
-    error?: ApiError;
+    error?: ApiError | null;
     timestamp: string;
 };
 
@@ -185,11 +185,11 @@ export type ApiResponseHabitResponse = {
     /**
      * Present for successful responses.
      */
-    data?: HabitResponse;
+    data?: HabitResponse | null;
     /**
      * Present for error responses.
      */
-    error?: ApiError;
+    error?: ApiError | null;
     timestamp: string;
 };
 
@@ -249,7 +249,7 @@ export type ApiResponseListMostMissedHabitResponse = {
     /**
      * Present for error responses.
      */
-    error?: ApiError;
+    error?: ApiError | null;
     timestamp: string;
 };
 
@@ -267,7 +267,7 @@ export type ApiResponseListMoodTrendResponse = {
     /**
      * Present for error responses.
      */
-    error?: ApiError;
+    error?: ApiError | null;
     timestamp: string;
 };
 
@@ -286,7 +286,7 @@ export type ApiResponseListHabitResponse = {
     /**
      * Present for error responses.
      */
-    error?: ApiError;
+    error?: ApiError | null;
     timestamp: string;
 };
 
@@ -295,11 +295,11 @@ export type ApiResponseHabitStreakResponse = {
     /**
      * Present for successful responses.
      */
-    data?: HabitStreakResponse;
+    data?: HabitStreakResponse | null;
     /**
      * Present for error responses.
      */
-    error?: ApiError;
+    error?: ApiError | null;
     timestamp: string;
 };
 
@@ -313,11 +313,11 @@ export type ApiResponsePageResponseDailyEntryResponse = {
     /**
      * Present for successful responses.
      */
-    data?: PageResponseDailyEntryResponse;
+    data?: PageResponseDailyEntryResponse | null;
     /**
      * Present for error responses.
      */
-    error?: ApiError;
+    error?: ApiError | null;
     timestamp: string;
 };
 
@@ -335,11 +335,11 @@ export type ApiResponseTodayEntryResponse = {
     /**
      * Present for successful responses.
      */
-    data?: TodayEntryResponse;
+    data?: TodayEntryResponse | null;
     /**
      * Present for error responses.
      */
-    error?: ApiError;
+    error?: ApiError | null;
     timestamp: string;
 };
 
@@ -349,7 +349,7 @@ export type TodayEntryResponse = {
     /**
      * The complete entry, or null when the user has not checked in today.
      */
-    entry?: DailyEntryResponse;
+    entry?: DailyEntryResponse | null;
 };
 
 export type ApiResponsePageResponseEntrySearchResult = {
@@ -357,11 +357,11 @@ export type ApiResponsePageResponseEntrySearchResult = {
     /**
      * Present for successful responses.
      */
-    data?: PageResponseEntrySearchResult;
+    data?: PageResponseEntrySearchResult | null;
     /**
      * Present for error responses.
      */
-    error?: ApiError;
+    error?: ApiError | null;
     timestamp: string;
 };
 
@@ -412,16 +412,16 @@ export type ApiResponseDashboardResponse = {
     /**
      * Present for successful responses.
      */
-    data?: DashboardResponse;
+    data?: DashboardResponse | null;
     /**
      * Present for error responses.
      */
-    error?: ApiError;
+    error?: ApiError | null;
     timestamp: string;
 };
 
 export type DashboardResponse = {
-    todayEntry?: DailyEntryResponse;
+    todayEntry?: DailyEntryResponse | null;
     activeHabits: Array<HabitResponse>;
     completedHabitCount: number;
     totalHabitCount: number;
@@ -437,9 +437,7 @@ export type WeeklyMoodSummary = {
 
 export type ApiResponseApiError = {
     success: boolean;
-    data?: {
-        [key: string]: unknown;
-    };
+    data?: null;
     error: ApiError;
     timestamp: string;
 };
