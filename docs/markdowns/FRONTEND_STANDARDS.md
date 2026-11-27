@@ -2,17 +2,15 @@
 
 ## Purpose
 
-This document defines the conventions for Moodly's React single-page application. Apply them to new
-work and incremental refactors; do not rewrite unrelated code merely to conform.
+This document defines the conventions for Moodly's React single-page application. Apply them to new work and incremental refactors; do not rewrite unrelated code merely to conform.
 
-## Approved foundation
+## Approved Foundation
 
 - React, TypeScript, Vite, and Tailwind CSS.
 - React Router declarative mode for client-side navigation.
 - Auth0 React SDK for authentication and access tokens.
 - `@hey-api/openapi-ts` for types and SDK code generated from the backend OpenAPI document.
-- Native `fetch` through the generated client. Do not introduce Axios, Zustand, or an i18n library
-  without a separate architectural decision.
+- Native `fetch` through the generated client. Do not introduce Axios, Zustand, or an i18n library without a separate architectural decision.
 
 Run these quality gates before merging a meaningful change:
 
@@ -31,9 +29,7 @@ npm audit
 
 ## Coverage
 
-Frontend CI enforces the following minimums across the code included in its Vitest coverage
-report. The same percentages are proposed for the backend when it adopts the four JaCoCo
-limits in Maven `verify`.
+Frontend CI enforces the following minimums across the code included in its Vitest coverage report. The same percentages are proposed for the backend when it adopts the four JaCoCo limits in Maven `verify`.
 
 | Criterion | Minimum | Frontend (Vitest) | Backend proposal (JaCoCo) |
 | --- | ---: | --- | --- |
@@ -42,13 +38,11 @@ limits in Maven `verify`.
 | Functions or methods | 85% | `functions` | `METHOD` |
 | Statements or instructions | 85% | `statements` | `INSTRUCTION` |
 
-Vitest counts source statements and JaCoCo counts Java bytecode instructions. The minimums
-apply to each repository's aggregate report.
+Vitest counts source statements and JaCoCo counts Java bytecode instructions. The minimums apply to each repository's aggregate report.
 
-## Ownership and structure
+## Ownership and Structure
 
-Use feature-first ownership. A feature owns its page, feature-local UI, hooks, API adapters, and
-types.
+Use feature-first ownership. A feature owns its page, feature-local UI, hooks, API adapters, and types.
 
 ```text
 src/
@@ -78,16 +72,13 @@ src/
 ```
 
 - A feature may import from `api`, `auth`, `components`, and itself.
-- One feature must not import another feature's internals. Promote code to shared only after it has
-  at least two unrelated consumers.
-- Pages compose UI and feature hooks. They must not call `fetch` or generated SDK functions
-  directly.
+- One feature must not import another feature's internals. Promote code to shared only after it has at least two unrelated consumers.
+- Pages compose UI and feature hooks. They must not call `fetch` or generated SDK functions directly.
 - Layouts provide structure and navigation; they do not fetch page-specific data.
-- Use named exports for reusable modules. A default export is acceptable only for an application
-  entry or a router-required component.
+- Use named exports for reusable modules. A default export is acceptable only for an application entry or a router-required component.
 - Do not add `any` in handwritten code. Use precise types or `unknown` with narrowing.
 
-## API contract and transport
+## API Contract and Transport
 
 The backend OpenAPI document is the source of truth. It is read from:
 
@@ -98,30 +89,22 @@ The backend OpenAPI document is the source of truth. It is read from:
 - Run `npm run generate:api` after the contract changes.
 - Commit output under `src/api/openapi/`. Do not use a `generated/` directory or `.gen` filenames.
 - Do not edit files in `src/api/openapi/`; regenerate them instead.
-- `src/api/client.ts` owns the API base URL, Auth0 Bearer token setup, and generated-client
-  configuration.
-- `src/api/errors.ts` owns conversion of backend's `success/data/error/timestamp` envelope and
-  network failures into `ApiRequestError`.
-- Feature endpoint adapters belong in `src/features/<feature>/api/`. They use `useApiClient()` or a
-  passed API client and return feature-friendly data.
+- `src/api/client.ts` owns the API base URL, Auth0 Bearer token setup, and generated-client configuration.
+- `src/api/errors.ts` owns conversion of backend's `success/data/error/timestamp` envelope and network failures into `ApiRequestError`.
+- Feature endpoint adapters belong in `src/features/<feature>/api/`. They use `useApiClient()` or a passed API client and return feature-friendly data.
 - Components and pages consume feature hooks/adapters, not raw endpoint paths.
 - Never log an access token, Authorization header, or sensitive API response.
 
-## Routing and authentication
+## Routing and Authentication
 
-- Keep route composition in `src/App.tsx` while the route tree remains small. Extract path constants
-  and route modules when more feature routes are added.
-- Place private routes below the Auth0 guard. A manually entered private URL must redirect to Auth0
-  rather than merely hiding navigation.
-- `AppShell` wraps authenticated feature routes and owns common header, navigation, identity
-  display, and logout control.
+- Keep route composition in `src/App.tsx` while the route tree remains small. Extract path constants and route modules when more feature routes are added.
+- Place private routes below the Auth0 guard. A manually entered private URL must redirect to Auth0 rather than merely hiding navigation.
+- `AppShell` wraps authenticated feature routes and owns common header, navigation, identity display, and logout control.
 - Logout must use Auth0 with `returnTo: window.location.origin`.
-- Public routes must remain outside the protected shell. Add a public landing page before relying on
-  `/` as a stable post-logout destination.
-- Provide an intentional 404 route. Add forbidden or role guards only when the product has real
-  authorization roles.
+- Public routes must remain outside the protected shell. Add a public landing page before relying on `/` as a stable post-logout destination.
+- Provide an intentional 404 route. Add forbidden or role guards only when the product has real authorization roles.
 
-## Feature roadmap and route map
+## Feature Roadmap and Route Map
 
 Build the product in small feature branches, in this order unless requirements change:
 
@@ -134,25 +117,19 @@ Build the product in small feature branches, in this order unless requirements c
 
 Do not expose backend-only `/internal/*` operations in the end-user UI.
 
-Every API-driven feature deliberately handles loading, error, empty, and success states. Examples
-include no habits, no matching entries, validation errors, and upload failures.
+Every API-driven feature deliberately handles loading, error, empty, and success states. Examples include no habits, no matching entries, validation errors, and upload failures.
 
-## UI and accessibility
+## UI and Accessibility
 
-- Use existing Tailwind tokens from `src/index.css`; avoid arbitrary duplicate color, spacing, and
-  radius values.
-- Use semantic HTML and native controls. Interactive controls need accessible names, visible focus,
-  and sensible disabled states.
+- Use existing Tailwind tokens from `src/index.css`; avoid arbitrary duplicate color, spacing, and radius values.
+- Use semantic HTML and native controls. Interactive controls need accessible names, visible focus, and sensible disabled states.
 - Keep page-level loading/error/empty states near the feature until a shared pattern has emerged.
-- Make destructive actions explicit and introduce one accessible confirmation dialog only after a
-  second use case requires it.
-- Keep user-visible copy centralized only when an i18n solution is deliberately introduced; until
-  then, maintain consistent product wording.
+- Make destructive actions explicit and introduce one accessible confirmation dialog only after a second use case requires it.
+- Keep user-visible copy centralized only when an i18n solution is deliberately introduced; until then, maintain consistent product wording.
 
-## Testing and change checklist
+## Testing and Change Checklist
 
-Before the first data-heavy feature, add a test runner (recommended: Vitest and React Testing
-Library). Then test API adapters, feature hooks, route guards, and critical mutations.
+Before the first data-heavy feature, add a test runner (recommended: Vitest and React Testing Library). Then test API adapters, feature hooks, route guards, and critical mutations.
 
 Before considering a change complete, confirm:
 
@@ -163,19 +140,12 @@ Before considering a change complete, confirm:
 - Protected routes enforce authentication at the routing boundary.
 - Lint and build pass, plus relevant manual browser checks.
 
-## Deferred architecture decisions
+## Deferred Architecture Decisions
 
-### Server-state cache
+### Server-State Cache
 
-Keep the current feature-local hooks and request cancellation instead of adding a query-cache
-library. The current route data has few shared consumers, and mutations already update or reload
-their owning feature state. Revisit this decision when the same server resource is fetched
-independently by multiple mounted routes, measured duplicate traffic becomes material, or
-offline/stale-while-revalidate behavior becomes a product requirement.
+Keep the current feature-local hooks and request cancellation instead of adding a query-cache library. The current route data has few shared consumers, and mutations already update or reload their owning feature state. Revisit this decision when the same server resource is fetched independently by multiple mounted routes, measured duplicate traffic becomes material, or offline/stale-while-revalidate behavior becomes a product requirement.
 
-### Import aliases
+### Import Aliases
 
-Keep explicit relative imports for now. They make feature boundaries visible and avoid maintaining
-matching alias configuration across TypeScript, Vite, Vitest, ESLint, and editor tooling. Revisit an
-`@/` alias when routine imports cross three or more parent directories or refactors show that
-relative paths are causing measurable maintenance errors.
+Keep explicit relative imports for now. They make feature boundaries visible and avoid maintaining matching alias configuration across TypeScript, Vite, Vitest, ESLint, and editor tooling. Revisit an `@/` alias when routine imports cross three or more parent directories or refactors show that relative paths are causing measurable maintenance errors.

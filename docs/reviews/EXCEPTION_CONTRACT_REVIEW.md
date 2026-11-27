@@ -1,11 +1,8 @@
-# FE exception contract review — 2026-11-03
+# FE Exception Contract Review — 2026-11-03
 
-Sources: backend `docs/blueprint/exception-standardization-blueprint.md`,
-`docs/api/moodly-openapi.json`, module ErrorCode enums and search controller/adapter tests in
-sibling `moodly-backend` checkout. This review covers the local backend checkout; it does not verify
-a deployed backend or a remote PR revision.
+Sources: backend `docs/blueprint/exception-standardization-blueprint.md`, `docs/api/moodly-openapi.json`, module ErrorCode enums and search controller/adapter tests in sibling `moodly-backend` checkout. This review covers the local backend checkout; it does not verify a deployed backend or a remote PR revision.
 
-## Contract matrix
+## Contract Matrix
 
 | Backend code / HTTP | FE consumer | Before this review | Change needed / final behavior |
 | --- | --- | --- | --- |
@@ -33,60 +30,34 @@ a deployed backend or a remote PR revision.
 | Unknown code | normalizeApiError → shared formatter | HTTP-based safe fallback | Retained: 400 displays contractual safe message; 401/403 fixed text; >=500 fixed server text; other statuses operation fallback. Module mappings require matching HTTP status. |
 | No HTTP response | All shared consumers; habit creation special branch | Connection message; creation warns outcome unknown | Retained; never automatically retries mutations. |
 
-## Complete handling inventory
+## Complete Handling Inventory
 
-- `src/api/errors.ts`: reads envelope code/status/message/errors/path/timestamp; actual Response
-  status takes precedence. Error/string messages are normalized, not parsed for classification.
-- `src/api/errorMessages.ts`: HTTP classification and explicit module code/status lookup; safe 400
-  message display. Local Error messages are still used for client-side validation/upload failures.
-- `src/features/entries/hooks/useTodayEntry.ts`: formerly read Error.message directly; now shared
-  formatter (confirmed inconsistency).
-- `src/features/habits/pages/HabitsPage.tsx`: status null or >=500 means mutation outcome unknown;
-  warns to inspect habits before retrying. Independent of code migration.
-- Shared formatter callers: `AuthBootstrap`, `useAvatar`, `useHabits`, `TodayPage` save/toggle,
-  `useEntries`, `useStats`, `useEntrySearch`, `useDashboard`, and now `useTodayEntry`.
-- `habitsApi.listHabitStreaks`: Promise.allSettled status is promise state, not HTTP; individual
-  streak failures degrade to unavailable without hiding successful habits.
-- `profileApi.uploadAvatar`: Cloudinary response.ok gates local upload failure; does not parse
-  remote provider message or auto retry.
-- `AppErrorBoundary`: regex on Error.message identifies JS chunk-loading failures only; does not
-  classify API responses.
-- Generated client: HTTP ok/status determines success, empty 204 handling; generated SSE checks
-  response.ok. No retry configured by createApiClient. No feature compares message text or legacy
-  public codes.
-- E2E reset helper checks response.ok/status, smoke script checks status; tests use status/message
-  assertions. These are tooling, not UI error policy.
+- `src/api/errors.ts`: reads envelope code/status/message/errors/path/timestamp; actual Response status takes precedence. Error/string messages are normalized, not parsed for classification.
+- `src/api/errorMessages.ts`: HTTP classification and explicit module code/status lookup; safe 400 message display. Local Error messages are still used for client-side validation/upload failures.
+- `src/features/entries/hooks/useTodayEntry.ts`: formerly read Error.message directly; now shared formatter (confirmed inconsistency).
+- `src/features/habits/pages/HabitsPage.tsx`: status null or >=500 means mutation outcome unknown; warns to inspect habits before retrying. Independent of code migration.
+- Shared formatter callers: `AuthBootstrap`, `useAvatar`, `useHabits`, `TodayPage` save/toggle, `useEntries`, `useStats`, `useEntrySearch`, `useDashboard`, and now `useTodayEntry`.
+- `habitsApi.listHabitStreaks`: Promise.allSettled status is promise state, not HTTP; individual streak failures degrade to unavailable without hiding successful habits.
+- `profileApi.uploadAvatar`: Cloudinary response.ok gates local upload failure; does not parse remote provider message or auto retry.
+- `AppErrorBoundary`: regex on Error.message identifies JS chunk-loading failures only; does not classify API responses.
+- Generated client: HTTP ok/status determines success, empty 204 handling; generated SSE checks response.ok. No retry configured by createApiClient. No feature compares message text or legacy public codes.
+- E2E reset helper checks response.ok/status, smoke script checks status; tests use status/message assertions. These are tooling, not UI error policy.
 
-## Search missing _source
+## Search Missing _source
 
-Backend EntrySearchControllerTest asserts 500 / INTERNAL_SERVER_ERROR for an unexpected
-IllegalStateException; ElasticsearchEntrySearchAdapterTest covers missing source. Blueprint
-explicitly distinguishes this from temporary transport failures (503 / SEARCH_UNAVAILABLE). FE tests
-normalize both envelopes and assert safe server messaging and one search request after 120 seconds
-of fake time plus rerender. There is no FE 503 auto-retry rule to apply to 500.
+Backend EntrySearchControllerTest asserts 500 / INTERNAL_SERVER_ERROR for an unexpected IllegalStateException; ElasticsearchEntrySearchAdapterTest covers missing source. Blueprint explicitly distinguishes this from temporary transport failures (503 / SEARCH_UNAVAILABLE). FE tests normalize both envelopes and assert safe server messaging and one search request after 120 seconds of fake time plus rerender. There is no FE 503 auto-retry rule to apply to 500.
 
-## Review scope
+## Review Scope
 
-Review the new 404/409 copy and Today load normalization. Existing 400 display relies on the
-backend's documented safe-message guarantee. No API schema regeneration is needed: FE ApiError.code
-is an open string, and no endpoint/type shape changes are required by this code migration.
+Review the new 404/409 copy and Today load normalization. Existing 400 display relies on the backend's documented safe-message guarantee. No API schema regeneration is needed: FE ApiError.code is an open string, and no endpoint/type shape changes are required by this code migration.
 
-## Verification results
+## Verification Results
 
 - `npm run lint`: passed.
 - `npx tsc -b`: passed.
-- `npm run test:run`: 27 files, 99 tests passed (includes module messages, unknown-code fallback,
-  Today load normalization, and search 500/503 no-retry regression).
+- `npm run test:run`: 27 files, 99 tests passed (includes module messages, unknown-code fallback, Today load normalization, and search 500/503 no-retry regression).
 - `git diff --check`: passed.
-- `npm run test:e2e`: rerun outside socket-restricted sandbox. 3 public tests passed; auth-setup
-  failed after returning to /dashboard because AuthBootstrap displayed "Unable to prepare Moodly /
-  Unable to reach Moodly. Check your connection and try again." 12 authenticated tests did not run.
-  This establishes a failed API bootstrap in this environment, not the precise network/CORS/backend
-  root cause.
-- Failure details:
-  `test-results/auth.setup.ts-authenticate-synthetic-test-user-auth-setup/error-context.md` and
-  sibling screenshot/video (ignored generated artifacts).
+- `npm run test:e2e`: rerun outside socket-restricted sandbox. 3 public tests passed; auth-setup failed after returning to /dashboard because AuthBootstrap displayed "Unable to prepare Moodly / Unable to reach Moodly. Check your connection and try again." 12 authenticated tests did not run. This establishes a failed API bootstrap in this environment, not the precise network/CORS/backend root cause.
+- Failure details: `test-results/auth.setup.ts-authenticate-synthetic-test-user-auth-setup/error-context.md` and sibling screenshot/video (ignored generated artifacts).
 
-Conclusion: local FE handling is compatible with the documented new exception contract after these
-changes; full merge readiness is NOT certified until the API bootstrap issue is resolved and
-authenticated E2E passes. No commit or push performed because the complete test gate has not passed.
+Conclusion: local FE handling is compatible with the documented new exception contract after these changes; full merge readiness is NOT certified until the API bootstrap issue is resolved and authenticated E2E passes. No commit or push performed because the complete test gate has not passed.
